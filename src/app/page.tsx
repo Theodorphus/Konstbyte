@@ -42,13 +42,13 @@ export default async function HomePage() {
             </div>
 
             <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-lg">
-              <Image
-                src="/public/hero.jpg"
-                alt="Konstverk exempel"
-                fill
-                className="object-cover"
-                priority
-              />
+                <Image
+                  src="/weinstock-brush-96240.jpg"
+                  alt="Konstverk exempel"
+                  fill
+                  className="object-cover"
+                  priority
+                />
             </div>
           </div>
         </div>
