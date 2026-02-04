@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '../../../lib/auth';
-import { promises as fs } from 'fs';
-import path from 'path';
-
-const DATA_PATH = path.join(process.cwd(), 'data', 'testimonials.json');
+import prisma from '../../../../lib/prisma';
 
 export async function GET() {
   try {
-    const raw = await fs.readFile(DATA_PATH, 'utf8');
-    const items = JSON.parse(raw || '[]');
+    const items = await prisma.testimonial.findMany({ orderBy: { createdAt: 'desc' } });
     return NextResponse.json(items);
   } catch (error) {
     console.error('Error reading testimonials:', error);
@@ -18,17 +14,16 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const body = await request.json();
     const { text, author } = body;
-    if (!text || !author) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+    if (!text) return NextResponse.json({ error: 'Missing text' }, { status: 400 });
 
-    const raw = await fs.readFile(DATA_PATH, 'utf8');
-    const items = JSON.parse(raw || '[]');
-    const id = String(Date.now());
-    const item = { id, text, author };
-    items.unshift(item);
-    await fs.writeFile(DATA_PATH, JSON.stringify(items, null, 2), 'utf8');
-    return NextResponse.json(item, { status: 201 });
+    const finalAuthor = author || user.name || user.email || 'Anonymous';
+    const created = await prisma.testimonial.create({ data: { text, author: finalAuthor } });
+    return NextResponse.json(created, { status: 201 });
   } catch (error) {
     console.error('Error writing testimonial:', error);
     return NextResponse.json({ error: 'Failed' }, { status: 500 });
@@ -47,10 +42,7 @@ export async function DELETE(request: NextRequest) {
     const { id } = body as { id?: string };
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
 
-    const raw = await fs.readFile(DATA_PATH, 'utf8');
-    const items = JSON.parse(raw || '[]') as Array<{ id: string }>;
-    const filtered = items.filter((it) => it.id !== id);
-    await fs.writeFile(DATA_PATH, JSON.stringify(filtered, null, 2), 'utf8');
+    await prisma.testimonial.deleteMany({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('Error deleting testimonial:', error);

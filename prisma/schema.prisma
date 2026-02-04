@@ -111,3 +111,10 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  text      String
+  author    String
+  createdAt DateTime @default(now())
+}
