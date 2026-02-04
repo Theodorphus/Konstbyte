@@ -4,6 +4,7 @@ import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import Image from 'next/image';
 
 export default async function ArtworkDetail({ 
   params 
@@ -31,15 +32,8 @@ export default async function ArtworkDetail({
 
       <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
         <div>
-          <div className="bg-slate-100 rounded-lg overflow-hidden aspect-square">
-            <img 
-              src={artwork.imageUrl} 
-              alt={artwork.title}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e2e8f0" width="100" height="100"/%3E%3C/svg%3E';
-              }}
-            />
+          <div className="bg-slate-100 rounded-lg overflow-hidden aspect-square relative">
+            <Image src={artwork.imageUrl} alt={artwork.title} fill className="object-cover" />
           </div>
         </div>
 
@@ -56,7 +50,7 @@ export default async function ArtworkDetail({
             <CardContent>
               <p className="font-semibold">{artwork.owner.name || 'Anonyme'}</p>
               {artwork.owner.image && (
-                <img src={artwork.owner.image} alt={artwork.owner.name || 'Artist'} className="w-12 h-12 rounded-full mt-2" />
+                <Image src={artwork.owner.image} alt={artwork.owner.name || 'Artist'} width={48} height={48} className="rounded-full mt-2" />
               )}
             </CardContent>
           </Card>

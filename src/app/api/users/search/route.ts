@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
     };
 
     // Build orderBy based on sortBy parameter
-    let orderBy: any = { createdAt: 'desc' };
     
     const users = await prisma.user.findMany({
       where: whereClause,
@@ -38,7 +37,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Sort users based on sortBy parameter (since Prisma can't directly sort by relation counts in all cases)
-    let sortedUsers = [...users];
+    const sortedUsers = [...users];
     if (sortBy === 'followers') {
       sortedUsers.sort((a, b) => b._count.followers - a._count.followers);
     } else if (sortBy === 'artworks') {

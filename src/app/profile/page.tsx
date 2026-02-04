@@ -1,6 +1,7 @@
 import { getCurrentUser } from '../../lib/auth';
 import prisma from '../../lib/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import Image from 'next/image';
 import { Button } from '../../components/ui/button';
 import Link from 'next/link';
 
@@ -199,9 +200,9 @@ export default async function ProfilePage() {
                 {artworks.slice(0, 3).map(art => (
                   <Link key={art.id} href={`/artworks/${art.id}`} className="block">
                     <div className="flex gap-3 p-2 hover:bg-slate-50 rounded">
-                      <div className="w-16 h-16 bg-slate-100 rounded overflow-hidden flex-shrink-0">
-                        <img src={art.imageUrl} alt={art.title} className="w-full h-full object-cover" />
-                      </div>
+                      <div className="w-16 h-16 bg-slate-100 rounded overflow-hidden flex-shrink-0 relative">
+                          <Image src={art.imageUrl} alt={art.title} fill className="object-cover" />
+                        </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold truncate">{art.title}</div>
                         <div className="text-sm text-slate-600">{art.price} SEK</div>
@@ -233,8 +234,8 @@ export default async function ProfilePage() {
               <div className="space-y-3">
                 {orders.slice(0, 3).map(order => (
                   <div key={order.id} className="flex gap-3 p-2 border rounded">
-                    <div className="w-16 h-16 bg-slate-100 rounded overflow-hidden flex-shrink-0">
-                      <img src={order.artwork.imageUrl} alt={order.artwork.title} className="w-full h-full object-cover" />
+                    <div className="w-16 h-16 bg-slate-100 rounded overflow-hidden flex-shrink-0 relative">
+                      <Image src={order.artwork.imageUrl} alt={order.artwork.title} fill className="object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{order.artwork.title}</div>
@@ -266,11 +267,12 @@ export default async function ProfilePage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {favorites.slice(0, 4).map(fav => (
                   <Link key={fav.id} href={`/artworks/${fav.artwork.id}`} className="group">
-                    <div className="aspect-square bg-slate-100 rounded overflow-hidden mb-2">
-                      <img 
-                        src={fav.artwork.imageUrl} 
-                        alt={fav.artwork.title} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                    <div className="aspect-square bg-slate-100 rounded overflow-hidden mb-2 relative">
+                      <Image
+                        src={fav.artwork.imageUrl}
+                        alt={fav.artwork.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform"
                       />
                     </div>
                     <div className="text-xs font-medium truncate">{fav.artwork.title}</div>

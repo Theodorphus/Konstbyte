@@ -1,5 +1,6 @@
 import './globals.css';
 import React from 'react';
+import Link from 'next/link';
 import NavBar from '../components/NavBar';
 
 export const metadata = {
@@ -41,28 +42,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <div className="space-y-3">
                   <div className="font-semibold text-orange-300">Marknadsplats</div>
                   <ul className="space-y-2 text-white/80">
-                    <li><a href="/artworks" className="hover:text-white transition-colors">Alla konstverk</a></li>
-                    <li><a href="/artworks?category=Målning" className="hover:text-white transition-colors">Målningar</a></li>
-                    <li><a href="/artworks?category=Skulptur" className="hover:text-white transition-colors">Skulpturer</a></li>
-                    <li><a href="/ai/value-art" className="hover:text-white transition-colors">AI‑värdering</a></li>
+                    <li><Link href="/artworks" className="hover:text-white transition-colors">Alla konstverk</Link></li>
+                    <li><Link href="/artworks?category=Målning" className="hover:text-white transition-colors">Målningar</Link></li>
+                    <li><Link href="/artworks?category=Skulptur" className="hover:text-white transition-colors">Skulpturer</Link></li>
+                    <li><Link href="/ai/value-art" className="hover:text-white transition-colors">AI‑värdering</Link></li>
                   </ul>
                 </div>
                 <div className="space-y-3">
                   <div className="font-semibold text-pink-300">Community</div>
                   <ul className="space-y-2 text-white/80">
-                    <li><a href="/community" className="hover:text-white transition-colors">Diskussioner</a></li>
-                    <li><a href="/feed" className="hover:text-white transition-colors">Ditt flöde</a></li>
-                    <li><a href="/users" className="hover:text-white transition-colors">Hitta konstnärer</a></li>
-                    <li><a href="/favorites" className="hover:text-white transition-colors">Favoriter</a></li>
+                    <li><Link href="/community" className="hover:text-white transition-colors">Diskussioner</Link></li>
+                    <li><Link href="/feed" className="hover:text-white transition-colors">Ditt flöde</Link></li>
+                    <li><Link href="/users" className="hover:text-white transition-colors">Hitta konstnärer</Link></li>
+                    <li><Link href="/favorites" className="hover:text-white transition-colors">Favoriter</Link></li>
                   </ul>
                 </div>
                 <div className="space-y-3">
                   <div className="font-semibold text-purple-300">Information</div>
                   <ul className="space-y-2 text-white/80">
-                    <li><a href="/om-oss" className="hover:text-white transition-colors">Om Konstbyte</a></li>
-                    <li><a href="/hur-det-fungerar" className="hover:text-white transition-colors">Hur det fungerar</a></li>
-                    <li><a href="/avgifter" className="hover:text-white transition-colors">Avgifter & Priser</a></li>
-                    <li><a href="/kontakt" className="hover:text-white transition-colors">Kontakta oss</a></li>
+                    <li><Link href="/om-oss" className="hover:text-white transition-colors">Om Konstbyte</Link></li>
+                    <li><Link href="/hur-det-fungerar" className="hover:text-white transition-colors">Hur det fungerar</Link></li>
+                    <li><Link href="/avgifter" className="hover:text-white transition-colors">Avgifter & Priser</Link></li>
+                    <li><Link href="/kontakt" className="hover:text-white transition-colors">Kontakta oss</Link></li>
                   </ul>
                 </div>
               </div>

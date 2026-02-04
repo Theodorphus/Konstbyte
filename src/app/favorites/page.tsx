@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { useState, useEffect } from 'react';
@@ -119,14 +120,12 @@ export default function FavoritesPage() {
                 >
                   ❤️
                 </button>
-                <div className="aspect-square bg-slate-100 overflow-hidden">
-                  <img 
-                    src={favorite.artwork.imageUrl} 
+                <div className="aspect-square bg-slate-100 overflow-hidden relative">
+                  <Image
+                    src={favorite.artwork.imageUrl}
                     alt={favorite.artwork.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23e2e8f0" width="400" height="400"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%2394a3b8" font-size="16"%3EIngen bild%3C/text%3E%3C/svg%3E';
-                    }}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform"
                   />
                 </div>
                 <CardContent className="p-4">

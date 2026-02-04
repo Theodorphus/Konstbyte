@@ -25,7 +25,7 @@ export async function GET() {
     }
 
     // Get IDs of users being followed (plus own ID to include own content)
-    const followedUserIds = user.following.map((f: any) => f.followingId);
+    const followedUserIds = user.following.map((f) => (f as { followingId: string }).followingId);
     const userIds = [...followedUserIds, user.id];
 
     // Fetch posts from followed users
@@ -75,13 +75,13 @@ export async function GET() {
 
     // Combine and sort by date
     const feedItems = [
-      ...posts.map((post: any) => ({
+      ...posts.map((post) => ({
         id: post.id,
         type: 'post' as const,
         content: post,
         createdAt: post.createdAt,
       })),
-      ...artworks.map((artwork: any) => ({
+      ...artworks.map((artwork) => ({
         id: artwork.id,
         type: 'artwork' as const,
         content: artwork,

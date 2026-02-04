@@ -5,6 +5,7 @@ import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function ValueArtPage() {
   const [imageUrl, setImageUrl] = useState('');
@@ -41,7 +42,8 @@ export default function ValueArtPage() {
       } else {
         setResult(data.valuation || 'Ingen värdering kunde genereras.');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       setError('Nätverksfel. Kontrollera din anslutning.');
     } finally {
       setLoading(false);
@@ -81,12 +83,9 @@ export default function ValueArtPage() {
             {imageUrl && (
               <div>
                 <p className="text-xs text-slate-600 mb-2">Förhandsvisning:</p>
-                <img
-                  src={imageUrl}
-                  alt="Preview"
-                  className="max-h-48 rounded border"
-                  onError={() => setError('Kunde inte ladda bilden. Kontrollera URL:en.')}
-                />
+                <div className="w-full h-48 relative rounded border overflow-hidden">
+                  <Image src={imageUrl} alt="Preview" fill className="object-contain" />
+                </div>
               </div>
             )}
 
@@ -125,9 +124,9 @@ export default function ValueArtPage() {
                   <button
                     key={i}
                     onClick={() => setImageUrl(img)}
-                    className="aspect-square rounded bg-slate-100 overflow-hidden hover:ring-2 ring-slate-300 transition"
+                    className="aspect-square rounded bg-slate-100 overflow-hidden hover:ring-2 ring-slate-300 transition relative"
                   >
-                    <img src={img} alt={`Exempel ${i + 1}`} className="w-full h-full object-cover" />
+                    <Image src={img} alt={`Exempel ${i + 1}`} fill className="object-cover" />
                   </button>
                 ))}
               </div>

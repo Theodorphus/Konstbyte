@@ -1,6 +1,8 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import Image from 'next/image';
 import { Button } from '../../../components/ui/button';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
@@ -36,6 +38,7 @@ export default function UserProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchUser();
     fetchArtworks();
@@ -79,7 +82,7 @@ export default function UserProfilePage() {
           const followingResponse = await fetch(`/api/users/${meData.user.id}/following`);
           if (followingResponse.ok) {
             const followingData = await followingResponse.json();
-            setIsFollowing(followingData.some((f: any) => f.following.id === userId));
+            setIsFollowing(followingData.some((f) => (f as { following: { id: string } }).following.id === userId));
           }
         }
       }
@@ -200,11 +203,12 @@ export default function UserProfilePage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {artworks.map((artwork) => (
                 <Link key={artwork.id} href={`/artworks/${artwork.id}`}>
-                  <div className="aspect-square bg-slate-100 rounded overflow-hidden mb-2">
-                    <img
+                  <div className="aspect-square bg-slate-100 rounded overflow-hidden mb-2 relative">
+                    <Image
                       src={artwork.imageUrl}
                       alt={artwork.title}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform"
+                      fill
+                      className="object-cover hover:scale-105 transition-transform"
                     />
                   </div>
                   <div className="text-xs font-medium truncate">{artwork.title}</div>

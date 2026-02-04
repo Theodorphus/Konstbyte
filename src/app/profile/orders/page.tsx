@@ -1,6 +1,7 @@
 import { getCurrentUser } from '../../../lib/auth';
 import prisma from '../../../lib/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import Image from 'next/image';
 import { Button } from '../../../components/ui/button';
 import Link from 'next/link';
 
@@ -62,7 +63,7 @@ export default async function OrdersPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {orders.map((order: any) => (
+          {orders.map((order) => (
             <Card key={order.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -87,17 +88,18 @@ export default async function OrdersPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex gap-4">
-                  <div className="w-24 h-24 bg-slate-100 rounded overflow-hidden flex-shrink-0">
-                    <img 
-                      src={order.artwork.imageUrl} 
+                  <div className="w-24 h-24 bg-slate-100 rounded overflow-hidden flex-shrink-0 relative">
+                    <Image
+                      src={order.artwork.imageUrl}
                       alt={order.artwork.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold mb-1">{order.artwork.title}</h3>
                     <p className="text-sm text-slate-600 mb-2">
-                      av {order.artwork.owner.name || 'Anonyme konstnär'}
+                      av {order.artwork.owner.name || 'Anonym konstnär'}
                     </p>
                     <div className="flex items-center justify-between">
                       <span className="font-bold">{order.amount} SEK</span>

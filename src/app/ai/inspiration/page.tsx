@@ -45,7 +45,8 @@ export default function InspirationPage() {
       } else {
         setResult(data.inspiration || 'Ingen inspiration kunde genereras.');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       setError('Nätverksfel. Kontrollera din anslutning.');
     } finally {
       setLoading(false);

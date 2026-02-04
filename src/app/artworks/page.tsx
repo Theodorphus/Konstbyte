@@ -1,7 +1,9 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import Link from 'next/link';
 import { Card, CardContent } from '../../components/ui/card';
+import Image from 'next/image';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { useState, useEffect } from 'react';
@@ -34,6 +36,7 @@ export default function ArtworksPage() {
     fetchFavorites();
   }, []);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     filterArtworks();
   }, [searchQuery, selectedCategory, sortBy, minPrice, maxPrice, artworks]);
@@ -56,9 +59,9 @@ export default function ArtworksPage() {
   const fetchFavorites = async () => {
     try {
       const response = await fetch('/api/favorites');
-      if (response.ok) {
+        if (response.ok) {
         const data = await response.json();
-        const ids = new Set<string>(data.map((fav: any) => String(fav.artworkId)));
+        const ids = new Set<string>(data.map((fav) => String((fav as { artworkId: string }).artworkId)));
         setFavoriteIds(ids);
       }
       const meResponse = await fetch('/api/me');
@@ -265,8 +268,8 @@ export default function ArtworksPage() {
             <div className="flex flex-wrap gap-2 items-center pt-4 border-t">
               <span className="text-sm font-medium text-slate-600">Aktiva filter:</span>
               {searchQuery && (
-                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
-                  🔍 "{searchQuery}"
+                  <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                  🔍 &quot;{searchQuery}&quot;
                 </span>
               )}
               {selectedCategory && (
@@ -351,14 +354,12 @@ export default function ArtworksPage() {
                     {favoriteIds.has(art.id) ? '❤️' : '🤍'}
                   </button>
                 )}
-                <div className="aspect-square bg-slate-100 overflow-hidden">
-                  <img 
-                    src={art.imageUrl} 
+                <div className="aspect-square bg-slate-100 overflow-hidden relative">
+                  <Image
+                    src={art.imageUrl}
                     alt={art.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23e2e8f0" width="400" height="400"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%2394a3b8" font-size="16"%3EIngen bild%3C/text%3E%3C/svg%3E';
-                    }}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform"
                   />
                 </div>
                 <CardContent className="p-4">

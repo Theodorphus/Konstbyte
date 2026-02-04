@@ -3,7 +3,7 @@ import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
 
 // GET /api/favorites - Get all favorites for current user
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const user = await getCurrentUser();
     if (!user) {

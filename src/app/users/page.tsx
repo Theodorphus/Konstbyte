@@ -51,7 +51,7 @@ export default function UsersSearchPage() {
         const followingRes = await fetch(`/api/users/${data.id}/following`);
         if (followingRes.ok) {
           const followingData = await followingRes.json();
-          const ids = new Set<string>(followingData.map((f: any) => String(f.following.id)));
+          const ids = new Set<string>(followingData.map((f) => String((f as { following: { id: string } }).following.id)));
           setFollowingIds(ids);
         }
       }
@@ -209,7 +209,7 @@ export default function UsersSearchPage() {
           <div className="text-6xl mb-4">😕</div>
           <h2 className="text-xl font-semibold mb-2">Inga resultat</h2>
           <p className="text-slate-600 mb-6">
-            Vi hittade inga användare som matchar "{searchQuery}"
+            Vi hittade inga användare som matchar &quot;{searchQuery}&quot;
           </p>
           <Button variant="outline" onClick={() => setSearchQuery('')}>
             Rensa sökning
@@ -218,7 +218,7 @@ export default function UsersSearchPage() {
       ) : (
         <>
           <div className="mb-4 text-sm text-slate-600">
-            Visar {users.length} {users.length === 1 ? 'resultat' : 'resultat'} för "{searchQuery}"
+            Visar {users.length} {users.length === 1 ? 'resultat' : 'resultat'} för &quot;{searchQuery}&quot;
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

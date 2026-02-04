@@ -7,6 +7,7 @@ import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import UploadImageButton from '../../../components/UploadImageButton';
+import Image from 'next/image';
 
 export default function NewArtworkPage() {
   const router = useRouter();
@@ -59,7 +60,8 @@ export default function NewArtworkPage() {
 
       const result = await response.json();
       router.push(`/artworks/${result.id}`);
-    } catch (err) {
+    } catch (error) {
+      console.error('Error creating artwork:', error);
       setError('Nätverksfel. Försök igen senare.');
       setIsLoading(false);
     }
@@ -165,12 +167,8 @@ export default function NewArtworkPage() {
               </label>
               <UploadImageButton onUploaded={setImageUrl} />
               {imageUrl && (
-                <div className="mt-2">
-                  <img
-                    src={imageUrl}
-                    alt="Förhandsvisning"
-                    className="w-full max-h-64 object-cover rounded border"
-                  />
+                <div className="mt-2 relative w-full h-64">
+                  <Image src={imageUrl} alt="Förhandsvisning" fill className="object-cover rounded border" />
                 </div>
               )}
             </div>

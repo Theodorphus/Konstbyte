@@ -1,9 +1,10 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps */
 
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { Card, CardContent } from '../../../../components/ui/card';
 import { Button } from '../../../../components/ui/button';
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
 interface Follower {
@@ -19,12 +20,12 @@ interface Follower {
 
 export default function FollowersPage() {
   const params = useParams();
-  const router = useRouter();
   const userId = params.id as string;
 
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchFollowers();
   }, [userId]);

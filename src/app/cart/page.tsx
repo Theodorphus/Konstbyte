@@ -1,6 +1,7 @@
 import prisma from '../../lib/prisma';
 import CheckoutButton from '../../components/CheckoutButton';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '../../components/ui/button';
 
@@ -45,15 +46,8 @@ export default async function CartPage({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-4">
-                  <div className="w-24 h-24 bg-slate-100 rounded overflow-hidden flex-shrink-0">
-                    <img 
-                      src={artwork.imageUrl} 
-                      alt={artwork.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e2e8f0" width="100" height="100"/%3E%3C/svg%3E';
-                      }}
-                    />
+                  <div className="w-24 h-24 bg-slate-100 rounded overflow-hidden flex-shrink-0 relative">
+                    <Image src={artwork.imageUrl} alt={artwork.title} fill className="object-cover" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold">{artwork.title}</h3>
