@@ -3,6 +3,9 @@ export const metadata = {
   description: 'Upptäck, köp och sälj konst från oberoende konstnärer. Skapa konto och börja handla idag.',
 };
 
+// Revalidate homepage artworks every 60 seconds (ISR)
+export const revalidate = 60;
+
 import Link from 'next/link';
 import Image from 'next/image';
 import prisma from '../lib/prisma';
