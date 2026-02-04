@@ -24,8 +24,8 @@ export default async function HomePage() {
           </p>
 
           <div className="mt-8 flex justify-center gap-4 flex-wrap">
-            <Link href="/artworks" className="inline-block bg-white text-orange-600 font-semibold px-6 py-3 rounded-lg shadow hover:opacity-95">Utforska konst</Link>
-            <Link href="/artworks/new" className="inline-block border-2 border-white/40 text-white px-6 py-3 rounded-lg hover:bg-white/10">Lägg upp konst</Link>
+            <Link href="/artworks" aria-label="Utforska konstverk" className="inline-block bg-white text-orange-600 font-semibold px-6 py-3 rounded-lg shadow hover:opacity-95">Utforska konst</Link>
+            <Link href="/artworks/new" aria-label="Lägg upp nytt konstverk" className="inline-block border-2 border-white/40 text-white px-6 py-3 rounded-lg hover:bg-white/10">Lägg upp konst</Link>
           </div>
         </div>
       </section>
@@ -45,6 +45,10 @@ export default async function HomePage() {
                 </div>
               </Link>
             ))}
+          </div>
+
+          <div className="text-center mt-6">
+            <Link href="/artworks" aria-label="Visa alla konstverk" className="inline-block text-sm text-orange-600 font-medium hover:underline">Visa alla konstverk</Link>
           </div>
           <h2 className="text-2xl font-semibold mb-6">Vad du kan göra</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
