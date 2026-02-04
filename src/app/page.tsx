@@ -19,16 +19,37 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen">
-      <section className="bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 text-white py-24">
-        <div className="max-w-5xl mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-6xl font-extrabold">Konstbyte</h1>
-          <p className="mt-4 text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
-            En trygg plats för konstälskare — upptäck unika verk, följ dina favoritkonstnärer och handla tryggt.
-          </p>
+      <section className="bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 text-white py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="text-center md:text-left">
+              <h1 className="text-4xl md:text-6xl font-extrabold">Konstbyte</h1>
+              <p className="mt-4 text-lg md:text-xl text-white/90 max-w-2xl">
+                En trygg plats för konstälskare — upptäck unika verk, följ dina favoritkonstnärer och handla tryggt.
+              </p>
 
-          <div className="mt-8 flex justify-center gap-4 flex-wrap">
-            <Link href="/artworks" aria-label="Utforska konstverk" className="inline-block bg-white text-orange-600 font-semibold px-6 py-3 rounded-lg shadow hover:opacity-95">Utforska konst</Link>
-            <Link href="/artworks/new" aria-label="Lägg upp nytt konstverk" className="inline-block border-2 border-white/40 text-white px-6 py-3 rounded-lg hover:bg-white/10">Lägg upp konst</Link>
+              <div className="mt-8 flex justify-center md:justify-start gap-4 flex-wrap">
+                <Link href="/artworks" aria-label="Utforska konstverk" className="inline-block bg-white text-orange-600 font-semibold px-6 py-3 rounded-lg shadow hover:opacity-95">Utforska konst</Link>
+                <Link href="/artworks/new" aria-label="Lägg upp nytt konstverk" className="inline-block border-2 border-white/40 text-white px-6 py-3 rounded-lg hover:bg-white/10">Lägg upp konst</Link>
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Populärt: Målningar</span>
+                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Nyinkommet</span>
+                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Fotografi</span>
+                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Skulpturer</span>
+              </div>
+            </div>
+
+            <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-lg">
+              <Image
+                src="/public/hero.jpg"
+                alt="Konstverk exempel"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
           </div>
         </div>
       </section>
