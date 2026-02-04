@@ -4,8 +4,16 @@ export const metadata = {
 };
 
 import Link from 'next/link';
+import Image from 'next/image';
+import prisma from '../lib/prisma';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const artworks = await prisma.artwork.findMany({
+    where: { isPublished: true },
+    orderBy: { createdAt: 'desc' },
+    take: 6,
+  });
+
   return (
     <main className="min-h-screen">
       <section className="bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 text-white py-24">
@@ -24,6 +32,20 @@ export default function HomePage() {
 
       <section className="py-16">
         <div className="max-w-5xl mx-auto px-6">
+          <h2 className="text-2xl font-semibold mb-6">Senaste konstverk</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+            {artworks.map((art) => (
+              <Link key={art.id} href={`/artworks/${art.id}`} className="group">
+                <div className="aspect-square bg-slate-100 rounded overflow-hidden relative">
+                  <Image src={art.imageUrl} alt={art.title} fill className="object-cover group-hover:scale-105 transition-transform" />
+                </div>
+                <div className="mt-2">
+                  <div className="font-medium text-sm truncate">{art.title}</div>
+                  <div className="text-xs text-slate-500">{art.price} SEK</div>
+                </div>
+              </Link>
+            ))}
+          </div>
           <h2 className="text-2xl font-semibold mb-6">Vad du kan göra</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div className="p-6 border rounded-lg">
