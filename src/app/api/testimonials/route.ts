@@ -33,3 +33,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id } = body as { id?: string };
+    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+
+    const raw = await fs.readFile(DATA_PATH, 'utf8');
+    const items = JSON.parse(raw || '[]') as Array<{ id: string }>;
+    const filtered = items.filter((it) => it.id !== id);
+    await fs.writeFile(DATA_PATH, JSON.stringify(filtered, null, 2), 'utf8');
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error('Error deleting testimonial:', error);
+    return NextResponse.json({ error: 'Failed' }, { status: 500 });
+  }
+}

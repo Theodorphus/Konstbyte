@@ -9,6 +9,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
   },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000'),
 };
 
 // Revalidate homepage artworks every 60 seconds (ISR)
