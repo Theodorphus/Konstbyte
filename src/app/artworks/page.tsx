@@ -19,6 +19,9 @@ interface Artwork {
 
 export default function ArtworksPage() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [page, setPage] = useState<number>(1);
+  const pageSize = 12;
   const [filteredArtworks, setFilteredArtworks] = useState<Artwork[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -32,22 +35,23 @@ export default function ArtworksPage() {
   const categories = ['malningar', 'skulpturer', 'fotografi', 'digital'];
 
   useEffect(() => {
-    fetchArtworks();
+    fetchArtworks(page);
     fetchFavorites();
-  }, []);
+  }, [page]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     filterArtworks();
   }, [searchQuery, selectedCategory, sortBy, minPrice, maxPrice, artworks]);
 
-  const fetchArtworks = async () => {
+  const fetchArtworks = async (pageNumber = 1) => {
     try {
-      const response = await fetch('/api/artworks');
+      const response = await fetch(`/api/artworks?page=${pageNumber}&take=${pageSize}`);
       if (response.ok) {
         const data = await response.json();
-        setArtworks(data);
-        setFilteredArtworks(data);
+        setArtworks(data.items || []);
+        setFilteredArtworks(data.items || []);
+        setTotal(data.total || 0);
       }
     } catch (error) {
       console.error('Error fetching artworks:', error);
@@ -377,6 +381,26 @@ export default function ArtworksPage() {
           ))}
         </div>
       )}
+      {/* Pagination controls */}
+      <div className="flex items-center justify-center gap-4 mt-6">
+        <button
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={page === 1}
+          aria-label="Föregående sida"
+          className="px-3 py-1 rounded bg-white border hover:bg-slate-50 disabled:opacity-50 focus:outline-2 focus:outline-orange-500"
+        >
+          Föregående
+        </button>
+        <div className="text-sm text-slate-600">Sida {page} av {Math.max(1, Math.ceil(total / pageSize))}</div>
+        <button
+          onClick={() => setPage((p) => p + 1)}
+          disabled={page >= Math.ceil(total / pageSize)}
+          aria-label="Nästa sida"
+          className="px-3 py-1 rounded bg-white border hover:bg-slate-50 disabled:opacity-50 focus:outline-2 focus:outline-orange-500"
+        >
+          Nästa
+        </button>
+      </div>
     </div>
   );
 }
