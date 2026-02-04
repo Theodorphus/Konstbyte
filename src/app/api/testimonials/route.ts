@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentUser } from '../../../lib/auth';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -36,6 +37,12 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    const allowed = (process.env.ADMIN_EMAILS || process.env.NEXT_PUBLIC_ADMIN_EMAIL || '').split(',').map((s) => s.trim()).filter(Boolean);
+    if (!user || !user.email || !allowed.includes(user.email)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { id } = body as { id?: string };
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
