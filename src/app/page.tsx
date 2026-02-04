@@ -1,6 +1,14 @@
 export const metadata = {
   title: 'Konstbyte — Marknadsplats för konst',
   description: 'Upptäck, köp och sälj konst från oberoende konstnärer. Skapa konto och börja handla idag.',
+  openGraph: {
+    title: 'Konstbyte — Marknadsplats för konst',
+    description: 'Upptäck, köp och sälj konst från oberoende konstnärer.',
+    images: ['/weinstock-brush-96240.jpg'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 };
 
 // Revalidate homepage artworks every 60 seconds (ISR)
@@ -87,6 +95,24 @@ export default async function HomePage() {
             <div className="p-6 border rounded-lg">
               <h3 className="font-semibold">Följ och få uppdateringar</h3>
               <p className="text-sm text-slate-600 mt-2">Följ konstnärer, få notiser och bygg din egen samling.</p>
+            </div>
+          </div>
+          
+          <div className="mt-12">
+            <h2 className="text-2xl font-semibold mb-6">Vad andra säger</h2>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="p-6 bg-white rounded-lg shadow">
+                <p className="text-sm text-slate-700">&quot;Fantastisk plats att hitta unika verk — enkel att använda och säkra betalningar.&quot;</p>
+                <div className="mt-4 text-xs text-slate-500">— Anna, samlare</div>
+              </div>
+              <div className="p-6 bg-white rounded-lg shadow">
+                <p className="text-sm text-slate-700">&quot;Så enkelt att sälja mina målningar här. Supporten var hjälpsam och snabb.&quot;</p>
+                <div className="mt-4 text-xs text-slate-500">— Lars, konstnär</div>
+              </div>
+              <div className="p-6 bg-white rounded-lg shadow">
+                <p className="text-sm text-slate-700">&quot;Bra community och jag upptäckte flera intressanta konstnärer.&quot;</p>
+                <div className="mt-4 text-xs text-slate-500">— Sofia, köpare</div>
+              </div>
             </div>
           </div>
         </div>
