@@ -35,7 +35,7 @@ export default function ArtworksPage() {
   const categories = ['malningar', 'skulpturer', 'fotografi', 'digital'];
 
   useEffect(() => {
-    fetchArtworks(page);
+    fetchArtworks(page); // Fetch artworks when page changes
     fetchFavorites();
   }, [page]);
 
@@ -46,7 +46,8 @@ export default function ArtworksPage() {
 
   const fetchArtworks = async (pageNumber = 1) => {
     try {
-      const response = await fetch(`/api/artworks?page=${pageNumber}&take=${pageSize}`);
+      const qs = buildQuery(pageNumber);
+      const response = await fetch(`/api/artworks?${qs}`);
       if (response.ok) {
         const data = await response.json();
         setArtworks(data.items || []);
@@ -58,6 +59,18 @@ export default function ArtworksPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const buildQuery = (pageNumber = 1) => {
+    const params = new URLSearchParams();
+    params.set('page', String(pageNumber));
+    params.set('take', String(pageSize));
+    if (selectedCategory) params.set('category', selectedCategory);
+    if (searchQuery) params.set('search', searchQuery);
+    if (minPrice) params.set('minPrice', minPrice);
+    if (maxPrice) params.set('maxPrice', maxPrice);
+    if (sortBy) params.set('sortBy', sortBy);
+    return params.toString();
   };
 
   const fetchFavorites = async () => {

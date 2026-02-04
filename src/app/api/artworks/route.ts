@@ -29,17 +29,42 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const ownerId = searchParams.get('ownerId');
+    const search = searchParams.get('search') || undefined;
+    const category = searchParams.get('category') || undefined;
+    const minPrice = searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined;
+    const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined;
+    const sortBy = searchParams.get('sortBy') || 'newest';
 
     const page = parseInt(searchParams.get('page') || '1', 10);
     const take = parseInt(searchParams.get('take') || '12', 10);
     const skip = (Math.max(page, 1) - 1) * take;
 
-    const where = ownerId ? { ownerId, isPublished: true } : { isPublished: true };
+    // Build dynamic where clause
+    const where: Record<string, unknown> = { isPublished: true };
+    if (ownerId) where.ownerId = ownerId;
+    if (category) where.category = category;
+    if (minPrice !== undefined) where.price = { ...(where.price || {}), gte: minPrice };
+    if (maxPrice !== undefined) where.price = { ...(where.price || {}), lte: maxPrice };
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const orderBy =
+      sortBy === 'price-asc'
+        ? { price: 'asc' }
+        : sortBy === 'price-desc'
+        ? { price: 'desc' }
+        : sortBy === 'name'
+        ? { title: 'asc' }
+        : { createdAt: 'desc' };
 
     const [list, total] = await Promise.all([
       prisma.artwork.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take,
       }),
