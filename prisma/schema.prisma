@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String?
+  image         String?
+  artworks      Artwork[]
+  orders        Order[]
+  posts         Post[]
+  comments      Comment[]
+  favorites     Favorite[]
+  followers     Follow[]       @relation("UserFollowers")
+  following     Follow[]       @relation("UserFollowing")
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+}
+
+model Artwork {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  price       Int
+  imageUrl    String
+  category    String     @default("malningar")
+  isPublished Boolean    @default(true)
+  owner       User       @relation(fields: [ownerId], references: [id])
+  ownerId     String
+  orders      Order[]    @relation("OrderArtworks")
+  favorites   Favorite[]
+  createdAt   DateTime   @default(now())
+}
+
+model Order {
+  id         String   @id @default(cuid())
+  buyer      User     @relation(fields: [buyerId], references: [id])
+  buyerId    String
+  artwork    Artwork  @relation("OrderArtworks", fields: [artworkId], references: [id])
+  artworkId  String
+  amount     Int
+  status     String   @default("pending")
+  payments   Payment[]
+  createdAt  DateTime @default(now())
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String   @unique
+  stripeId  String   @unique
+  amount    Int
+  createdAt DateTime @default(now())
+}
+
+model Post {
+  id        String    @id @default(cuid())
+  content   String
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  String
+  likes     Int       @default(0)
+  comments  Comment[]
+  createdAt DateTime  @default(now())
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  createdAt DateTime @default(now())
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+  artworkId String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, artworkId])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId  String
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+  followingId String
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  type      String   // "follow", "like", "comment", "purchase"
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  text      String
+  author    String
+  createdAt DateTime @default(now())
+}
