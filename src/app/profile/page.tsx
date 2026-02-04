@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import Image from 'next/image';
 import { Button } from '../../components/ui/button';
 import Link from 'next/link';
+export const revalidate = 60;
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();

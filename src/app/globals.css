@@ -44,3 +44,13 @@ body {
   background-color: #f97316;
   color: white;
 }
+
+/* Accessible focus styles */
+:focus {
+  outline: 2px solid rgba(249, 115, 22, 0.9);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}

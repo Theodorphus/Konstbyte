@@ -4,6 +4,8 @@ import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+
+export const revalidate = 60;
 import Image from 'next/image';
 
 export default async function ArtworkDetail({ 
