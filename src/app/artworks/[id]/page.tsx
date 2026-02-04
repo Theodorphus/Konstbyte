@@ -73,7 +73,8 @@ export default async function ArtworkDetail({
           )}
 
           <Card className="bg-slate-50">
-            <C{isOwner ? (
+            <CardContent>
+              {isOwner ? (
                 <>
                   <Button asChild className="w-full mb-3">
                     <Link href={`/artworks/${artwork.id}/edit`}>
@@ -95,9 +96,7 @@ export default async function ArtworkDetail({
                     Dela
                   </Button>
                 </>
-              )}ariant="outline" className="w-full">
-                Dela
-              </Button>
+              )}
             </CardContent>
           </Card>
         </div>

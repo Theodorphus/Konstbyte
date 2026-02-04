@@ -10,7 +10,7 @@ type Props = {
 
 export default function UploadImageButton({ onUploaded }: Props) {
   return (
-    <UploadButton<UploadRouter>
+    <UploadButton<UploadRouter, 'artworkImage'>
       endpoint="artworkImage"
       onClientUploadComplete={(res) => {
         const url = res?.[0]?.url;

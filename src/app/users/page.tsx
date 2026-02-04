@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '../../components/ui/button';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface User {
   id: string;
@@ -20,11 +20,10 @@ interface User {
 
 export default function UsersSearchPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'recent');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('recent');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
 
@@ -33,14 +32,13 @@ export default function UsersSearchPage() {
   }, []);
 
   useEffect(() => {
-    const query = searchParams.get('q');
-    const sort = searchParams.get('sortBy');
-    if (query) {
-      setSearchQuery(query);
-      if (sort) setSortBy(sort);
-      performSearch(query, sort || 'recent');
-    }
-  }, [searchParams]);
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('q') || '';
+    const sort = params.get('sortBy') || 'recent';
+    setSearchQuery(query);
+    setSortBy(sort);
+    if (query) performSearch(query, sort);
+  }, []);
 
   const fetchCurrentUser = async () => {
     try {

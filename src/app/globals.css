@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+* {
+  scroll-behavior: smooth;
+}
+
 html, body, #__next {
   height: 100%;
 }
@@ -9,4 +13,34 @@ body {
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #f97316, #ec4899);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #ea580c, #db2777);
+}
+
+/* Selection color */
+::selection {
+  background-color: #f97316;
+  color: white;
+}
+
+::-moz-selection {
+  background-color: #f97316;
+  color: white;
 }

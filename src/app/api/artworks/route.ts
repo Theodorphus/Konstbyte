@@ -30,11 +30,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const ownerId = searchParams.get('ownerId');
 
-    const where = ownerId ? { ownerId } : {};
+    const where = ownerId ? { ownerId, isPublished: true } : { isPublished: true };
 
     const list = await prisma.artwork.findMany({
       where,
-      where: { isPublished: true },
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(list);

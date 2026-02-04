@@ -44,13 +44,13 @@ export async function GET() {
           select: { favorites: true },
         },
       },
-      take: 100, // Get more to sort client-side
+      take: 150, // Get more to ensure we have enough quality content
     });
 
     // Sort by favorites count - Type assertion for sorting
     const sortedFeatured = [...featuredArtworks]
       .sort((a, b) => (b._count?.favorites || 0) - (a._count?.favorites || 0))
-      .slice(0, 6);
+      .slice(0, 8); // Increased to 8 for hero grid
 
     // Get recent posts
     const recentPosts = await prisma.post.findMany({

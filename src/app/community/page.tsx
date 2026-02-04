@@ -229,38 +229,61 @@ export default function CommunityPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Community</h1>
-        <Button 
-          variant={showForm ? "outline" : "default"}
-          onClick={() => setShowForm(!showForm)}
-        >
-          {showForm ? 'Avbryt' : 'Skapa inlägg'}
-        </Button>
+      {/* Gradient Header */}
+      <div className="-mx-6 -mt-6 mb-8 px-6 py-12 md:py-16 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-600 text-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold mb-3">💬 Community</h1>
+              <p className="text-lg md:text-xl text-white/90 mb-4">Dela dina tankar, diskutera konst och hitta inspiration</p>
+              <div className="flex gap-3 flex-wrap">
+                <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
+                  {posts.length} inlägg
+                </span>
+                <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
+                  Aktivt community
+                </span>
+              </div>
+            </div>
+            <Button 
+              className="bg-white text-purple-600 hover:bg-purple-50 shadow-lg"
+              onClick={() => setShowForm(!showForm)}
+            >
+              {showForm ? '✖ Avbryt' : '✨ Skapa inlägg'}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {showForm && (
-        <Card>
+        <Card className="border-2 border-purple-200 shadow-lg">
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
-              <textarea
-                value={newPost}
-                onChange={(e) => setNewPost(e.target.value)}
-                placeholder="Dela dina tankar med communityn..."
-                className="w-full p-3 border rounded text-sm"
-                rows={4}
-                required
-              />
-              <div className="flex gap-2">
-                <Button type="submit" disabled={isPosting}>
-                  {isPosting ? 'Publicerar...' : 'Publicera'}
-                </Button>
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-slate-700">✍️ Skapa ett nytt inlägg</label>
+                <textarea
+                  value={newPost}
+                  onChange={(e) => setNewPost(e.target.value)}
+                  placeholder="Dela dina tankar, frågor eller inspiration med communityn..."
+                  className="w-full p-4 border-2 border-slate-200 rounded-lg text-sm focus:border-purple-500 focus:outline-none transition-colors min-h-[120px]"
+                  rows={4}
+                  required
+                ></textarea>
+              </div>
+              <div className="flex justify-end gap-2">
                 <Button 
                   type="button" 
                   variant="outline"
                   onClick={() => setShowForm(false)}
                 >
                   Avbryt
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isPosting || !newPost.trim()}
+                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                >
+                  {isPosting ? 'Publicerar...' : '✨ Publicera inlägg'}
                 </Button>
               </div>
             </form>
