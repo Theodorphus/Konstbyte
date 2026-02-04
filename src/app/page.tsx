@@ -17,6 +17,33 @@ export const revalidate = 60;
 import Link from 'next/link';
 import Image from 'next/image';
 import prisma from '../lib/prisma';
+import TestimonialsClient from '../components/TestimonialsClient';
+
+function toBase64(str: string) {
+  try {
+    return Buffer.from(str).toString('base64');
+  } catch {
+    return '';
+  }
+}
+
+function shimmer(w = 700, h = 475) {
+  return `
+  <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="g">
+        <stop stop-color="#f3f4f6" offset="0%" />
+        <stop stop-color="#e5e7eb" offset="50%" />
+        <stop stop-color="#f3f4f6" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="#f3f4f6" />
+    <rect width="100%" height="100%" fill="url(#g)" />
+  </svg>`;
+}
+
+const heroBlurDataURL = `data:image/svg+xml;base64,${toBase64(shimmer(1200,800))}`;
+const thumbBlurDataURL = `data:image/svg+xml;base64,${toBase64(shimmer(400,400))}`;
 
 export default async function HomePage() {
   const artworks = await prisma.artwork.findMany({
@@ -56,6 +83,8 @@ export default async function HomePage() {
                   fill
                   className="object-cover"
                   priority
+                  placeholder="blur"
+                  blurDataURL={heroBlurDataURL}
                 />
             </div>
           </div>
@@ -69,7 +98,7 @@ export default async function HomePage() {
             {artworks.map((art) => (
               <Link key={art.id} href={`/artworks/${art.id}`} className="group">
                 <div className="aspect-square bg-slate-100 rounded overflow-hidden relative">
-                  <Image src={art.imageUrl} alt={art.title} fill className="object-cover group-hover:scale-105 transition-transform" />
+                  <Image src={art.imageUrl} alt={art.title} fill className="object-cover group-hover:scale-105 transition-transform" placeholder="blur" blurDataURL={thumbBlurDataURL} />
                 </div>
                 <div className="mt-2">
                   <div className="font-medium text-sm truncate">{art.title}</div>
@@ -99,21 +128,7 @@ export default async function HomePage() {
           </div>
           
           <div className="mt-12">
-            <h2 className="text-2xl font-semibold mb-6">Vad andra säger</h2>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="p-6 bg-white rounded-lg shadow">
-                <p className="text-sm text-slate-700">&quot;Fantastisk plats att hitta unika verk — enkel att använda och säkra betalningar.&quot;</p>
-                <div className="mt-4 text-xs text-slate-500">— Anna, samlare</div>
-              </div>
-              <div className="p-6 bg-white rounded-lg shadow">
-                <p className="text-sm text-slate-700">&quot;Så enkelt att sälja mina målningar här. Supporten var hjälpsam och snabb.&quot;</p>
-                <div className="mt-4 text-xs text-slate-500">— Lars, konstnär</div>
-              </div>
-              <div className="p-6 bg-white rounded-lg shadow">
-                <p className="text-sm text-slate-700">&quot;Bra community och jag upptäckte flera intressanta konstnärer.&quot;</p>
-                <div className="mt-4 text-xs text-slate-500">— Sofia, köpare</div>
-              </div>
-            </div>
+            <TestimonialsClient />
           </div>
         </div>
       </section>
