@@ -1,10 +1,56 @@
+export const metadata = {
+  title: 'Konstbyte — Marknadsplats för konst',
+  description: 'Upptäck, köp och sälj konst från oberoende konstnärer. Skapa konto och börja handla idag.',
+};
+
+import Link from 'next/link';
+
 export default function HomePage() {
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">Konstbyte</h1>
-        <p className="mt-4 text-gray-600">Startsidan är klar — bygga och köra för att se den live.</p>
-      </div>
+    <main className="min-h-screen">
+      <section className="bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 text-white py-24">
+        <div className="max-w-5xl mx-auto px-6 text-center">
+          <h1 className="text-4xl md:text-6xl font-extrabold">Konstbyte</h1>
+          <p className="mt-4 text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
+            En trygg plats för konstälskare — upptäck unika verk, följ dina favoritkonstnärer och handla tryggt.
+          </p>
+
+          <div className="mt-8 flex justify-center gap-4 flex-wrap">
+            <Link href="/artworks" className="inline-block bg-white text-orange-600 font-semibold px-6 py-3 rounded-lg shadow hover:opacity-95">Utforska konst</Link>
+            <Link href="/artworks/new" className="inline-block border-2 border-white/40 text-white px-6 py-3 rounded-lg hover:bg-white/10">Lägg upp konst</Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16">
+        <div className="max-w-5xl mx-auto px-6">
+          <h2 className="text-2xl font-semibold mb-6">Vad du kan göra</h2>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="p-6 border rounded-lg">
+              <h3 className="font-semibold">Upptäck unik konst</h3>
+              <p className="text-sm text-slate-600 mt-2">Bläddra bland handplockade verk från konstnärer över hela världen.</p>
+            </div>
+            <div className="p-6 border rounded-lg">
+              <h3 className="font-semibold">Sälj och nå nya köpare</h3>
+              <p className="text-sm text-slate-600 mt-2">Publicera dina verk enkelt och nå en målgrupp som uppskattar konst.</p>
+            </div>
+            <div className="p-6 border rounded-lg">
+              <h3 className="font-semibold">Följ och få uppdateringar</h3>
+              <p className="text-sm text-slate-600 mt-2">Följ konstnärer, få notiser och bygg din egen samling.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t py-8">
+        <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="text-sm text-slate-600">© {new Date().getFullYear()} Konstbyte</div>
+          <div className="flex gap-4">
+            <a href="/om-oss" className="text-sm text-slate-600 hover:underline">Om oss</a>
+            <a href="/kontakt" className="text-sm text-slate-600 hover:underline">Kontakt</a>
+          </div>
+        </div>
+      </footer>
     </main>
-  )
+  );
 }
