@@ -27,6 +27,29 @@ export default async function ArtworkDetail({
   const isOwner = currentUser?.id === artwork.ownerId;
 
   return (
+    <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "VisualArtwork",
+          "name": artwork.title,
+          "description": artwork.description || undefined,
+          "image": artwork.imageUrl,
+          "author": {
+            "@type": "Person",
+            "name": artwork.owner?.name || 'Anonyme'
+          },
+          "url": `${process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000'}/artworks/${artwork.id}`,
+          "datePublished": artwork.createdAt?.toISOString(),
+          "offers": {
+            "@type": "Offer",
+            "priceCurrency": "SEK",
+            "price": artwork.price?.toString()
+          }
+        }) }}
+      />
     <div className="space-y-6">
       <Link href="/artworks" className="text-sm text-slate-600 hover:text-slate-900">
         ← Tillbaka till marknadsplats

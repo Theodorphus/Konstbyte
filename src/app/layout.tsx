@@ -20,6 +20,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon-32.png" sizes="32x32" />
         <link rel="shortcut icon" href="/favicon.ico" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Konstbyte",
+            "url": process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000',
+            "logo": `${process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000'}/favicon.svg`,
+            "sameAs": [
+              "https://facebook.com/konstbyte",
+              "https://instagram.com/konstbyte",
+              "https://twitter.com/konstbyte"
+            ],
+            "contactPoint": [{
+              "@type": "ContactPoint",
+              "contactType": "customer support",
+              "email": "konstbyte@gmail.com",
+              "availableLanguage": "sv"
+            }]
+          }) }}
+        />
       </head>
       <body>
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-white text-slate-900 px-3 py-2 rounded">Hoppa till innehåll</a>
