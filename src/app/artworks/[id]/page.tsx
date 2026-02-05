@@ -24,6 +24,28 @@ export default async function ArtworkDetail({
   
   if (!artwork) return notFound();
 
+
+
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  const { id } = params;
+  const artwork = await prisma.artwork.findUnique({ where: { id }, include: { owner: true } });
+  if (!artwork) return {};
+  const base = process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000';
+  return {
+    title: `${artwork.title} — Konstbyte`,
+    description: artwork.description || 'Konstverk på Konstbyte',
+    openGraph: {
+      images: [
+        {
+          url: `${base}/api/og/${artwork.id}`,
+          width: 1200,
+          height: 630,
+          alt: artwork.title,
+        },
+      ],
+    },
+  };
+}
   const isOwner = currentUser?.id === artwork.ownerId;
 
   return (
