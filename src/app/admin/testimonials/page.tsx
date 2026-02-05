@@ -1,5 +1,5 @@
-import AdminTestimonialsClient from '../../../../components/AdminTestimonialsClient'
-import { getCurrentUser } from '../../../../lib/auth'
+import AdminTestimonialsClient from '../../../components/AdminTestimonialsClient'
+import { getCurrentUser } from '../../../lib/auth'
 import { redirect } from 'next/navigation'
 
 export default async function AdminTestimonialsPage() {

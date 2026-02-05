@@ -50,9 +50,10 @@ export default function UsersSearchPage() {
         // Fetch following list
         const followingRes = await fetch(`/api/users/${data.id}/following`);
         if (followingRes.ok) {
-          const followingData = await followingRes.json();
-          const ids = new Set<string>(followingData.map((f) => String((f as { following: { id: string } }).following.id)));
-          setFollowingIds(ids);
+            const followingData = await followingRes.json();
+            const follows = followingData as Array<{ following: { id: string } }>;
+            const ids = new Set<string>(follows.map((f) => String(f.following.id)));
+            setFollowingIds(ids);
         }
       }
     } catch (error) {

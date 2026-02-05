@@ -82,7 +82,8 @@ export default function UserProfilePage() {
           const followingResponse = await fetch(`/api/users/${meData.user.id}/following`);
           if (followingResponse.ok) {
             const followingData = await followingResponse.json();
-            setIsFollowing(followingData.some((f) => (f as { following: { id: string } }).following.id === userId));
+            const follows = followingData as Array<{ following: { id: string } }>;
+            setIsFollowing(follows.some((f) => f.following.id === userId));
           }
         }
       }

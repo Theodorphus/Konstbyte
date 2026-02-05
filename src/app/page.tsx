@@ -59,14 +59,26 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="text-center md:text-left">
-              <h1 className="text-4xl md:text-6xl font-extrabold">Konstbyte</h1>
+              <h1 className="text-4xl md:text-6xl font-extrabold">Konstbyte — Upptäck unik konst</h1>
               <p className="mt-4 text-lg md:text-xl text-white/90 max-w-2xl">
-                En trygg plats för konstälskare — upptäck unika verk, följ dina favoritkonstnärer och handla tryggt.
+                Hitta och samla handplockade konstverk från oberoende konstnärer. En trygg och enkel marknadsplats för både köpare och säljare.
               </p>
 
               <div className="mt-8 flex justify-center md:justify-start gap-4 flex-wrap">
-                <Link href="/artworks" aria-label="Utforska konstverk" className="inline-block bg-white text-orange-600 font-semibold px-6 py-3 rounded-lg shadow hover:opacity-95">Utforska konst</Link>
-                <Link href="/artworks/new" aria-label="Lägg upp nytt konstverk" className="inline-block border-2 border-white/40 text-white px-6 py-3 rounded-lg hover:bg-white/10">Lägg upp konst</Link>
+                <Link
+                  href="/artworks"
+                  aria-label="Utforska konstverk"
+                  className="inline-block bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg shadow hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                >
+                  Utforska konst
+                </Link>
+                <Link
+                  href="/artworks/new"
+                  aria-label="Sälj din konst"
+                  className="inline-block border-2 border-white/40 text-white px-6 py-3 rounded-lg hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30"
+                >
+                  Sälj din konst
+                </Link>
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">

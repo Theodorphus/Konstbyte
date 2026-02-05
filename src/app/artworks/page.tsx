@@ -78,7 +78,8 @@ export default function ArtworksPage() {
       const response = await fetch('/api/favorites');
         if (response.ok) {
         const data = await response.json();
-        const ids = new Set<string>(data.map((fav) => String((fav as { artworkId: string }).artworkId)));
+        const favs = data as Array<{ artworkId: string }>;
+        const ids = new Set<string>(favs.map((fav) => String(fav.artworkId)));
         setFavoriteIds(ids);
       }
       const meResponse = await fetch('/api/me');

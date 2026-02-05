@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const orderBy =
+    const orderBy: any =
       sortBy === 'price-asc'
         ? { price: 'asc' }
         : sortBy === 'price-desc'

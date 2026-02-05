@@ -11,11 +11,22 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="sv">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#7c3aed" />
+        <meta property="og:title" content="Konstbyte" />
+        <meta property="og:description" content="Marknadsplats för konst" />
+        <meta property="og:image" content="/og-image.png" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon-32.png" sizes="32x32" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+      </head>
       <body>
+        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-white text-slate-900 px-3 py-2 rounded">Hoppa till innehåll</a>
         <div className="min-h-screen flex flex-col">
           <NavBar />
-          <main className="flex-1 max-w-7xl mx-auto w-full p-6">{children}</main>
-          <footer className="border-t bg-gradient-to-br from-slate-900 via-purple-900 to-pink-900 text-white">
+          <main id="main" role="main" className="flex-1 max-w-7xl mx-auto w-full p-6">{children}</main>
+          <footer role="contentinfo" className="border-t bg-gradient-to-br from-slate-900 via-purple-900 to-pink-900 text-white">
             <div className="max-w-7xl mx-auto px-6 py-12">
               <div className="grid gap-8 md:grid-cols-[1.2fr_1fr_1fr_1fr] text-sm mb-8">
                 <div className="space-y-3">
@@ -28,13 +39,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <p className="text-white/60">📧 konstbyte@gmail.com</p>
                   <p className="text-white/60">📍 Göteborg, Sverige</p>
                   <div className="flex gap-3 pt-2">
-                    <a href="#" className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+                    <a href="#" aria-label="Facebook" className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
                       📘
                     </a>
-                    <a href="#" className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+                    <a href="#" aria-label="Instagram" className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
                       📷
                     </a>
-                    <a href="#" className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+                    <a href="#" aria-label="Twitter" className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
                       🐦
                     </a>
                   </div>

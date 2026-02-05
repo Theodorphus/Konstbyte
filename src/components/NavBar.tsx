@@ -29,11 +29,11 @@ export default function NavBar() {
   }, []);
 
   return (
-    <nav className="border-b bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 sticky top-0 z-50 shadow-lg">
+    <nav aria-label="Huvudnavigering" className="border-b bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 sticky top-0 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="text-xl font-bold text-white hover:text-orange-100 transition-colors">
+          <Link href="/" aria-label="Startsida - Konstbyte" className="text-xl font-bold text-white hover:text-orange-100 transition-colors">
             🎨 Konstbyte
           </Link>
 
@@ -74,7 +74,7 @@ export default function NavBar() {
             <Button variant="outline" size="sm" asChild className="text-white hover:bg-white/20 hover:text-white">
               <Link href="/profile">Profil</Link>
             </Button>
-            <Button size="sm" asChild className="bg-white text-orange-600 hover:bg-orange-50 shadow-lg">
+            <Button size="sm" asChild className="bg-white text-orange-600 hover:bg-orange-50 shadow-lg focus:outline-none focus:ring-2 focus:ring-white/60">
               <Link href="/artworks/new">Lägg upp konst</Link>
             </Button>
           </div>
@@ -82,6 +82,9 @@ export default function NavBar() {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-controls="mobile-menu"
+            aria-expanded={mobileMenuOpen}
+            aria-label={mobileMenuOpen ? 'Stäng mobilmeny' : 'Öppna mobilmeny'}
             className="md:hidden p-2 text-white hover:text-orange-100 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,7 +99,7 @@ export default function NavBar() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/20 py-4 space-y-3 bg-gradient-to-b from-transparent to-white/10">
+          <div id="mobile-menu" role="menu" className="md:hidden border-t border-white/20 py-4 space-y-3 bg-gradient-to-b from-transparent to-white/10">
             <Link 
               href="/feed" 
               className="block px-4 py-2 text-white/90 hover:bg-white/20 hover:text-white rounded transition-colors"
