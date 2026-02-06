@@ -45,6 +45,16 @@ export default function SignInPage() {
           Skicka länk
         </Button>
       </form>
+      <div className="mt-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-slate-200" />
+          <div className="text-sm text-slate-500">eller</div>
+          <div className="flex-1 h-px bg-slate-200" />
+        </div>
+        <Button onClick={() => signIn('google', { callbackUrl: '/' })} className="w-full">
+          Fortsätt med Google
+        </Button>
+      </div>
     </div>
   );
 }
