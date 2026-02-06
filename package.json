@@ -8,7 +8,8 @@
     "start": "next start",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lighthouse": "node tools/run-lighthouse.js http://localhost:3000 lighthouse-report.json"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -53,6 +54,7 @@
     "pa11y": "^9.1.0",
     "prettier": "^2.8.0",
     "prisma": "^5.10.0",
+    "puppeteer": "^24.37.1",
     "typescript": "^5.2.0"
   },
   "optionalDependencies": {
