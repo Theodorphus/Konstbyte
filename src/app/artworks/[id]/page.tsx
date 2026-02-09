@@ -7,25 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui
 
 export const revalidate = 60;
 import Image from 'next/image';
-
-export default async function ArtworkDetail({ 
-  params 
-}: { 
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const [artwork, currentUser] = await Promise.all([
-    prisma.artwork.findUnique({ 
-      where: { id },
-      include: { owner: true }
-    }),
-    getCurrentUser()
-  ]);
-  
-  if (!artwork) return notFound();
-
-
-
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const { id } = params;
   const artwork = await prisma.artwork.findUnique({ where: { id }, include: { owner: true } });
@@ -46,6 +27,22 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
     },
   };
 }
+
+export default async function ArtworkDetail({ 
+  params 
+}: { 
+  params: { id: string };
+}) {
+  const { id } = await params;
+  const [artwork, currentUser] = await Promise.all([
+    prisma.artwork.findUnique({ 
+      where: { id },
+      include: { owner: true }
+    }),
+    getCurrentUser()
+  ]);
+  
+  if (!artwork) return notFound();
   const isOwner = currentUser?.id === artwork.ownerId;
 
   return (
@@ -143,5 +140,6 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
         </div>
       </div>
     </div>
+    </>
   );
 }

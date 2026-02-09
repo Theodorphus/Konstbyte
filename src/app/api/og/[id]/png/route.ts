@@ -1,8 +1,8 @@
 import prisma from '../../../../../lib/prisma';
 import sharp from 'sharp';
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
   const artwork = await prisma.artwork.findUnique({ where: { id }, include: { owner: true } });
   if (!artwork) return new Response('Not found', { status: 404 });
@@ -29,7 +29,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
   try {
     const png = await sharp(Buffer.from(svg)).png({ quality: 90 }).toBuffer();
-    return new Response(png, {
+    return new Response(new Uint8Array(png), {
       status: 200,
       headers: {
         'Content-Type': 'image/png',

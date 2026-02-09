@@ -9,10 +9,15 @@ html, body, #__next {
 }
 
 body {
-  background-color: #f8fafc;
+  background-color: #fffbf4;
   color: #0f172a;
+  font-family: var(--font-sans), "Space Grotesk", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: var(--font-display), "Fraunces", serif;
 }
 
 /* Custom scrollbar styling */
@@ -26,28 +31,28 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #f97316, #ec4899);
+  background: linear-gradient(to bottom, #f59e0b, #f97316);
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #ea580c, #db2777);
+  background: linear-gradient(to bottom, #d97706, #ea580c);
 }
 
 /* Selection color */
 ::selection {
-  background-color: #f97316;
+  background-color: #f59e0b;
   color: white;
 }
 
 ::-moz-selection {
-  background-color: #f97316;
+  background-color: #f59e0b;
   color: white;
 }
 
 /* Accessible focus styles */
 :focus {
-  outline: 2px solid rgba(249, 115, 22, 0.9);
+  outline: 2px solid rgba(245, 158, 11, 0.9);
   outline-offset: 2px;
 }
 

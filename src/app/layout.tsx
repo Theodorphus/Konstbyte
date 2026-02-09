@@ -1,7 +1,20 @@
 import './globals.css';
 import React from 'react';
 import Link from 'next/link';
+import { Fraunces, Space_Grotesk } from 'next/font/google';
 import NavBar from '../components/NavBar';
+
+const displayFont = Fraunces({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800'],
+  variable: '--font-display',
+});
+
+const bodyFont = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans',
+});
 
 export const metadata = {
   title: 'Konstbyte',
@@ -10,10 +23,10 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="sv">
+    <html lang="sv" className={`${displayFont.variable} ${bodyFont.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#7c3aed" />
+        <meta name="theme-color" content="#0f172a" />
         <meta property="og:title" content="Konstbyte" />
         <meta property="og:description" content="Marknadsplats för konst" />
         <meta property="og:image" content="/og-image.png" />
@@ -42,12 +55,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }) }}
         />
       </head>
-      <body>
+      <body className="bg-amber-50 text-slate-900 antialiased">
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-white text-slate-900 px-3 py-2 rounded">Hoppa till innehåll</a>
         <div className="min-h-screen flex flex-col">
           <NavBar />
           <main id="main" role="main" className="flex-1 max-w-7xl mx-auto w-full p-6">{children}</main>
-          <footer role="contentinfo" className="border-t bg-gradient-to-br from-slate-900 via-purple-900 to-pink-900 text-white">
+          <footer role="contentinfo" className="border-t bg-gradient-to-br from-slate-900 via-slate-800 to-amber-900 text-white">
             <div className="max-w-7xl mx-auto px-6 py-12">
               <div className="grid gap-8 md:grid-cols-[1.2fr_1fr_1fr_1fr] text-sm mb-8">
                 <div className="space-y-3">

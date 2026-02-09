@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
+import { Prisma } from '@prisma/client';
 
 // POST to create, GET to list artworks
 export async function POST(request: Request) {
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const orderBy =
+    const orderBy: Prisma.ArtworkOrderByWithRelationInput =
       sortBy === 'price-asc'
         ? { price: 'asc' }
         : sortBy === 'price-desc'

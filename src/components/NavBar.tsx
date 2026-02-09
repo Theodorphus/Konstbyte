@@ -29,7 +29,7 @@ export default function NavBar() {
   }, []);
 
   return (
-    <nav aria-label="Huvudnavigering" className="border-b bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 sticky top-0 z-50 shadow-lg">
+    <nav aria-label="Huvudnavigering" className="border-b bg-gradient-to-r from-amber-500 via-rose-500 to-sky-500 sticky top-0 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -74,7 +74,7 @@ export default function NavBar() {
             <Button variant="outline" size="sm" asChild className="text-white hover:bg-white/20 hover:text-white">
               <Link href="/profile">Profil</Link>
             </Button>
-            <Button size="sm" asChild className="bg-white text-orange-600 hover:bg-orange-50 shadow-lg focus:outline-none focus:ring-2 focus:ring-white/60">
+            <Button size="sm" asChild className="bg-slate-900 text-white hover:bg-slate-800 shadow-lg focus:outline-none focus:ring-2 focus:ring-white/60">
               <Link href="/artworks/new">Lägg upp konst</Link>
             </Button>
           </div>
@@ -160,7 +160,7 @@ export default function NavBar() {
                   Profil
                 </Link>
               </Button>
-              <Button className="w-full bg-white text-orange-600 hover:bg-orange-50" asChild>
+              <Button className="w-full bg-slate-900 text-white hover:bg-slate-800" asChild>
                 <Link href="/artworks/new" onClick={() => setMobileMenuOpen(false)}>
                   Lägg upp konst
                 </Link>

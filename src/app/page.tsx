@@ -54,107 +54,213 @@ export default async function HomePage() {
   });
 
   return (
-    <main className="min-h-screen">
-      <section className="bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 text-white py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="text-center md:text-left">
-              <h1 className="text-4xl md:text-6xl font-extrabold">Konstbyte — Upptäck unik konst</h1>
-              <p className="mt-4 text-lg md:text-xl text-white/90 max-w-2xl">
-                Hitta och samla handplockade konstverk från oberoende konstnärer. En trygg och enkel marknadsplats för både köpare och säljare.
+    <div className="min-h-screen">
+      <section className="relative overflow-hidden rounded-3xl bg-slate-900 text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.35),_transparent_45%),radial-gradient(circle_at_bottom,_rgba(56,189,248,0.35),_transparent_40%)]" />
+        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-rose-400/40 blur-3xl" />
+        <div className="absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-amber-300/50 blur-[120px]" />
+
+        <div className="relative px-6 py-20 md:py-28">
+          <div className="grid gap-12 md:grid-cols-[1.1fr_0.9fr] items-center">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1 text-xs uppercase tracking-[0.3em] text-white/80">
+                Kuraterad marknadsplats
+              </span>
+              <h1 className="font-display mt-6 text-4xl md:text-6xl leading-tight">
+                Konst som känns personlig, direkt från konstnären.
+              </h1>
+              <p className="mt-6 text-lg text-white/80 max-w-xl">
+                Upptäck nya röster, bygg din samling och sälj verk med en trygg betalning och en publik som älskar original.
               </p>
 
-              <div className="mt-8 flex justify-center md:justify-start gap-4 flex-wrap">
+              <div className="mt-8 flex flex-wrap gap-4">
                 <Link
                   href="/artworks"
                   aria-label="Utforska konstverk"
-                  className="inline-block bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg shadow hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  className="inline-flex items-center justify-center rounded-full bg-amber-400 px-7 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-amber-400/30 transition hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-white/70"
                 >
                   Utforska konst
                 </Link>
                 <Link
                   href="/artworks/new"
                   aria-label="Sälj din konst"
-                  className="inline-block border-2 border-white/40 text-white px-6 py-3 rounded-lg hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30"
+                  className="inline-flex items-center justify-center rounded-full border border-white/40 px-7 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
                 >
-                  Sälj din konst
+                  Bli konstnär
                 </Link>
               </div>
 
-              <div className="mt-6 flex flex-wrap gap-3">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Populärt: Målningar</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Nyinkommet</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Fotografi</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Skulpturer</span>
+              <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  { label: 'Plattformsavgift', value: '3%' },
+                  { label: 'Trygg betalning', value: 'Stripe' },
+                  { label: 'Kuraterade verk', value: 'Handplockat' },
+                  { label: 'Leverans', value: 'Spårbar' },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-2xl bg-white/10 p-4 text-center">
+                    <div className="text-lg font-semibold text-white">{item.value}</div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-white/60">{item.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-lg">
+            <div className="relative">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-white/10 shadow-2xl">
                 <Image
                   src="/weinstock-brush-96240.jpg"
-                  alt="Konstverk exempel"
+                  alt="Färgstarkt penseldrag i ateljé"
                   fill
                   className="object-cover"
                   priority
                   placeholder="blur"
                   blurDataURL={heroBlurDataURL}
                 />
+              </div>
+              <div className="absolute -bottom-6 -left-6 rounded-2xl bg-white p-4 text-slate-900 shadow-xl">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Utvald konstnär</p>
+                <p className="font-semibold">Sofia Lind</p>
+                <p className="text-xs text-slate-500">Blandteknik · 2025</p>
+              </div>
+              <div className="absolute -top-6 right-6 rounded-full bg-slate-900/80 px-4 py-2 text-xs text-white">Ny kollektion</div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-16">
-        <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-2xl font-semibold mb-6">Senaste konstverk</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-            {artworks.map((art) => (
-              <Link key={art.id} href={`/artworks/${art.id}`} className="group">
-                <div className="aspect-square bg-slate-100 rounded overflow-hidden relative">
-                  <Image src={art.imageUrl} alt={art.title} fill className="object-cover group-hover:scale-105 transition-transform" placeholder="blur" blurDataURL={thumbBlurDataURL} />
+      <section className="mt-16">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Senaste</p>
+            <h2 className="font-display text-3xl md:text-4xl">Nya konstverk i flödet</h2>
+          </div>
+          <Link href="/artworks" aria-label="Visa alla konstverk" className="text-sm font-semibold text-slate-900 hover:text-slate-700">
+            Visa alla konstverk →
+          </Link>
+        </div>
+
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {artworks.map((art) => (
+            <Link key={art.id} href={`/artworks/${art.id}`} className="group">
+              <div className="rounded-2xl bg-white p-4 shadow-lg shadow-slate-900/5 ring-1 ring-slate-200/70 transition hover:-translate-y-1 hover:shadow-xl">
+                <div className="aspect-square overflow-hidden rounded-xl bg-slate-100">
+                  <Image
+                    src={art.imageUrl}
+                    alt={art.title}
+                    fill
+                    className="object-cover transition duration-500 group-hover:scale-105"
+                    placeholder="blur"
+                    blurDataURL={thumbBlurDataURL}
+                  />
                 </div>
-                <div className="mt-2">
-                  <div className="font-medium text-sm truncate">{art.title}</div>
-                  <div className="text-xs text-slate-500">{art.price} SEK</div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="font-semibold text-slate-900 truncate">{art.title}</div>
+                    <div className="text-sm text-slate-500">{art.price} SEK</div>
+                  </div>
+                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">Ny</span>
                 </div>
-              </Link>
-            ))}
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-20">
+        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] items-center">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Varför Konstbyte</p>
+            <h2 className="font-display mt-4 text-3xl md:text-4xl">En plats att upptäcka, skapa och växa.</h2>
+            <p className="mt-4 text-slate-600 max-w-xl">
+              Vi kombinerar en kuraterad marknadsplats med community och verktyg som gör det enkelt att bygga ett konstnärsliv online.
+            </p>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              {[
+                {
+                  title: 'Kuraterade utställningar',
+                  text: 'Nya släpp varje vecka, handplockade av vårt team.',
+                },
+                {
+                  title: 'Trygg frakt',
+                  text: 'Försäkring, spårning och tydliga leveranssteg.',
+                },
+                {
+                  title: 'Betalning på dina villkor',
+                  text: 'Säkra utbetalningar via Stripe med transparenta avgifter.',
+                },
+                {
+                  title: 'Konstnärsverktyg',
+                  text: 'Hantera lager, kampanjer och kundrelationer på ett ställe.',
+                },
+              ].map((item) => (
+                <div key={item.title} className="rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-sm">
+                  <h3 className="font-semibold text-slate-900">{item.title}</h3>
+                  <p className="mt-2 text-sm text-slate-600">{item.text}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="text-center mt-6">
-            <Link href="/artworks" aria-label="Visa alla konstverk" className="inline-block text-sm text-orange-600 font-medium hover:underline">Visa alla konstverk</Link>
+          <div className="space-y-4">
+            <div className="rounded-3xl bg-gradient-to-br from-amber-200 via-orange-200 to-rose-200 p-6 shadow-lg">
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Trendspaning</p>
+              <p className="font-display mt-3 text-2xl text-slate-900">Mjuk minimalism och organiska former toppar.</p>
+              <p className="mt-3 text-sm text-slate-600">Upptäck nya uttryck från konstnärer i Norden.</p>
+              <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-slate-700">
+                <span className="rounded-full bg-white/70 px-3 py-1">Textil</span>
+                <span className="rounded-full bg-white/70 px-3 py-1">Grafik</span>
+                <span className="rounded-full bg-white/70 px-3 py-1">Fotografi</span>
+              </div>
+            </div>
+            <div className="rounded-3xl border border-slate-200/70 bg-white p-6 shadow-lg">
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Kommande live</p>
+              <p className="font-display mt-3 text-2xl text-slate-900">Ateljébesök med Lina Grönberg.</p>
+              <p className="mt-3 text-sm text-slate-600">En live-session om akvarell och ljus.</p>
+              <Link href="/community" className="mt-4 inline-flex items-center text-sm font-semibold text-slate-900 hover:text-slate-700">
+                Boka plats →
+              </Link>
+            </div>
           </div>
-          <h2 className="text-2xl font-semibold mb-6">Vad du kan göra</h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="p-6 border rounded-lg">
-              <h3 className="font-semibold">Upptäck unik konst</h3>
-              <p className="text-sm text-slate-600 mt-2">Bläddra bland handplockade verk från konstnärer över hela världen.</p>
+        </div>
+      </section>
+
+      <section className="mt-20">
+        <div className="rounded-3xl bg-white/80 p-8 shadow-xl ring-1 ring-amber-100">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Omdömen</p>
+              <h2 className="font-display mt-3 text-3xl md:text-4xl">Konstnärer och samlare om Konstbyte</h2>
             </div>
-            <div className="p-6 border rounded-lg">
-              <h3 className="font-semibold">Sälj och nå nya köpare</h3>
-              <p className="text-sm text-slate-600 mt-2">Publicera dina verk enkelt och nå en målgrupp som uppskattar konst.</p>
-            </div>
-            <div className="p-6 border rounded-lg">
-              <h3 className="font-semibold">Följ och få uppdateringar</h3>
-              <p className="text-sm text-slate-600 mt-2">Följ konstnärer, få notiser och bygg din egen samling.</p>
-            </div>
+            <Link href="/community" className="text-sm font-semibold text-slate-900 hover:text-slate-700">
+              Läs fler berättelser →
+            </Link>
           </div>
-          
-          <div className="mt-12">
+          <div className="mt-8">
             <TestimonialsClient />
           </div>
         </div>
       </section>
 
-      <footer className="border-t py-8">
-        <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-slate-600">© {new Date().getFullYear()} Konstbyte</div>
-          <div className="flex gap-4">
-            <a href="/om-oss" className="text-sm text-slate-600 hover:underline">Om oss</a>
-            <a href="/kontakt" className="text-sm text-slate-600 hover:underline">Kontakt</a>
+      <section className="mt-20 pb-20">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-300 via-rose-300 to-sky-300 p-10 md:p-14">
+          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/40 blur-2xl" />
+          <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-600">Redo att skapa?</p>
+              <h2 className="font-display mt-3 text-3xl md:text-4xl text-slate-900">Starta din butik på Konstbyte.</h2>
+              <p className="mt-3 text-sm text-slate-700 max-w-xl">Bygg din publik, få verktyg för leverans och betalt, och lansera din nästa kollektion med oss.</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/artworks/new" className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:bg-slate-800">
+                Skapa butik
+              </Link>
+              <Link href="/hur-det-fungerar" className="inline-flex items-center justify-center rounded-full border border-slate-900/30 px-6 py-3 text-sm font-semibold text-slate-900 hover:bg-white/60">
+                Hur det fungerar
+              </Link>
+            </div>
           </div>
         </div>
-      </footer>
-    </main>
+      </section>
+    </div>
   );
 }
