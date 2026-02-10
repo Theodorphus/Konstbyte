@@ -1,5 +1,7 @@
 import prisma from '../../lib/prisma';
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   const [users, artworks] = await Promise.all([
     prisma.user.findMany({ orderBy: { createdAt: 'desc' } }),
