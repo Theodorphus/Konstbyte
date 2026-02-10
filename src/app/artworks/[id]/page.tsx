@@ -6,6 +6,7 @@ import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 
 export const revalidate = 60;
+export const dynamic = "force-dynamic";
 import Image from 'next/image';
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const { id } = params;

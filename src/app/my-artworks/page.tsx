@@ -5,6 +5,8 @@ import { deleteArtworkAction } from './actions';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 
+export const dynamic = "force-dynamic";
+
 export default async function MyArtworksPage() {
   const user = await getCurrentUser();
   if (!user) {
