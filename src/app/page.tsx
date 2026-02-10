@@ -14,6 +14,7 @@ export const metadata = {
 
 // Revalidate homepage artworks every 60 seconds (ISR)
 export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 import Link from 'next/link';
 import Image from 'next/image';
