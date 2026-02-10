@@ -7,7 +7,7 @@ export default function CookiesPage() {
         <CardTitle>Cookies</CardTitle>
       </CardHeader>
       <CardContent className="text-sm text-slate-600">
-        <p>Vi använder cookies för att förbättra upplevelsen.</p>
+        <p>Vi använder cookies för att förbättra upplevelsen och förstå användning.</p>
       </CardContent>
     </Card>
   );

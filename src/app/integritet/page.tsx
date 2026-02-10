@@ -7,7 +7,7 @@ export default function PrivacyPage() {
         <CardTitle>Integritetspolicy</CardTitle>
       </CardHeader>
       <CardContent className="text-sm text-slate-600">
-        <p>Vi värnar om din integritet och hanterar data ansvarsfullt.</p>
+        <p>Vi värnar om din integritet och hanterar data ansvarsfullt och transparent.</p>
       </CardContent>
     </Card>
   );

@@ -8,7 +8,7 @@ export default function AboutPage() {
       </CardHeader>
       <CardContent className="text-sm text-slate-600 space-y-2">
         <p>Konstbyte är en marknadsplats där konstnärer och samlare möts.</p>
-        <p>Vårt mål är att göra konsthandel trygg, transparent och inspirerande.</p>
+        <p>Vårt mål är att göra konsthandel trygg, transparent och inspirerande för alla.</p>
       </CardContent>
     </Card>
   );

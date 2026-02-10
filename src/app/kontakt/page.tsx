@@ -7,7 +7,7 @@ export default function ContactPage() {
         <CardTitle>Kontakta oss</CardTitle>
       </CardHeader>
       <CardContent className="text-sm text-slate-600 space-y-2">
-        <p>Mail: konstbyte@gmail.com</p>
+        <p>E‑post: konstbyte@gmail.com</p>
         <p>Plats: Göteborg, Sverige</p>
       </CardContent>
     </Card>

@@ -7,7 +7,7 @@ export default function TermsPage() {
         <CardTitle>Användarvillkor</CardTitle>
       </CardHeader>
       <CardContent className="text-sm text-slate-600">
-        <p>Här beskriver vi regler för användning av Konstbyte.</p>
+        <p>Här beskriver vi reglerna för hur Konstbyte får användas.</p>
       </CardContent>
     </Card>
   );

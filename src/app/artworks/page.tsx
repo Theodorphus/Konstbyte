@@ -211,7 +211,7 @@ export default function ArtworksPage() {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <label className="block text-sm font-semibold mb-2 text-slate-700">💰 Min pris</label>
+              <label className="block text-sm font-semibold mb-2 text-slate-700">💰 Minsta pris</label>
               <Input
                 type="number"
                 placeholder="0 kr"
@@ -221,7 +221,7 @@ export default function ArtworksPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2 text-slate-700">💰 Max pris</label>
+              <label className="block text-sm font-semibold mb-2 text-slate-700">💰 Högsta pris</label>
               <Input
                 type="number"
                 placeholder="Obegränsat"
@@ -238,8 +238,8 @@ export default function ArtworksPage() {
                 className="w-full px-4 py-2 border-2 border-slate-200 rounded-md focus:border-orange-500 focus:outline-none transition-colors bg-white"
               >
                 <option value="newest">Senaste</option>
-                <option value="price-asc">Pris: Låg-Hög</option>
-                <option value="price-desc">Pris: Hög-Låg</option>
+                <option value="price-asc">Pris: låg–hög</option>
+                <option value="price-desc">Pris: hög–låg</option>
                 <option value="name">Namn: A-Ö</option>
               </select>
             </div>

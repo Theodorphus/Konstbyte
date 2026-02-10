@@ -51,7 +51,7 @@ export default async function CartPage({
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold">{artwork.title}</h3>
-                    <p className="text-sm text-slate-600">{artwork.owner.name || 'Anonyme konstnär'}</p>
+                    <p className="text-sm text-slate-600">{artwork.owner.name || 'Anonym konstnär'}</p>
                     {artwork.description && (
                       <p className="text-sm text-slate-500 mt-2">{artwork.description}</p>
                     )}

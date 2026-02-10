@@ -7,7 +7,7 @@ export default function PurchaseTermsPage() {
         <CardTitle>Köpvillkor</CardTitle>
       </CardHeader>
       <CardContent className="text-sm text-slate-600">
-        <p>Villkor för köp och leverans av konstverk.</p>
+        <p>Villkor för köp, leverans och returer av konstverk.</p>
       </CardContent>
     </Card>
   );

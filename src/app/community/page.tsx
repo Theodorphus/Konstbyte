@@ -264,7 +264,7 @@ export default function CommunityPage() {
                 <textarea
                   value={newPost}
                   onChange={(e) => setNewPost(e.target.value)}
-                  placeholder="Dela dina tankar, frågor eller inspiration med communityn..."
+                  placeholder="Dela dina tankar, frågor eller inspiration med communityt..."
                   className="w-full p-4 border-2 border-slate-200 rounded-lg text-sm focus:border-purple-500 focus:outline-none transition-colors min-h-[120px]"
                   rows={4}
                   required
@@ -304,7 +304,7 @@ export default function CommunityPage() {
             <div className="flex gap-2 justify-center">
               <Button onClick={() => setShowForm(true)}>Skapa första inlägget</Button>
               <Button variant="outline" asChild>
-                <Link href="/auth/register">Gå med i communityn</Link>
+                <Link href="/auth/register">Gå med i communityt</Link>
               </Button>
             </div>
           </CardContent>

@@ -55,64 +55,67 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }) }}
         />
       </head>
-      <body className="bg-amber-50 text-slate-900 antialiased">
+      <body className="bg-[#f6f2ea] text-slate-900 antialiased">
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-white text-slate-900 px-3 py-2 rounded">Hoppa till innehåll</a>
         <div className="min-h-screen flex flex-col">
           <NavBar />
           <main id="main" role="main" className="flex-1 max-w-7xl mx-auto w-full p-6">{children}</main>
-          <footer role="contentinfo" className="border-t bg-gradient-to-br from-slate-900 via-slate-800 to-amber-900 text-white">
-            <div className="max-w-7xl mx-auto px-6 py-12">
-              <div className="grid gap-8 md:grid-cols-[1.2fr_1fr_1fr_1fr] text-sm mb-8">
+          <footer role="contentinfo" className="border-t border-slate-200/70 bg-gradient-to-b from-white via-[#f7f3ec] to-[#efe7da] text-slate-700">
+            <div className="max-w-7xl mx-auto px-6 py-14">
+              <div className="grid gap-8 md:grid-cols-[1.2fr_1fr_1fr_1fr] text-sm mb-10">
                 <div className="space-y-3">
-                  <div className="text-lg font-bold flex items-center gap-2">
-                    🎨 Konstbyte.se
+                  <div className="font-display text-lg font-semibold tracking-wide flex items-center gap-2 text-slate-900">
+                    🎨 Konstbyte
                   </div>
-                  <p className="text-white/80 leading-relaxed">
-                    Sveriges nya marknadsplats för konst. Köp och sälj unika verk direkt från konstnärer.
+                  <p className="text-slate-600 leading-relaxed">
+                    Konstbyte — ett svenskt community för kreatörer. Köp och sälj unika verk direkt från konstnärer.
                   </p>
-                  <p className="text-white/60">📧 konstbyte@gmail.com</p>
-                  <p className="text-white/60">📍 Göteborg, Sverige</p>
+                  <p className="text-slate-500">📧 konstbyte@gmail.com</p>
+                  <p className="text-slate-500">📍 Göteborg, Sverige</p>
                   <div className="flex gap-3 pt-2">
-                    <a href="#" aria-label="Facebook" className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+                    <a href="#" aria-label="Facebook" className="w-8 h-8 rounded-full border border-slate-200/70 bg-white/70 hover:bg-white flex items-center justify-center transition-colors">
                       📘
                     </a>
-                    <a href="#" aria-label="Instagram" className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+                    <a href="#" aria-label="Instagram" className="w-8 h-8 rounded-full border border-slate-200/70 bg-white/70 hover:bg-white flex items-center justify-center transition-colors">
                       📷
                     </a>
-                    <a href="#" aria-label="Twitter" className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+                    <a href="#" aria-label="Twitter" className="w-8 h-8 rounded-full border border-slate-200/70 bg-white/70 hover:bg-white flex items-center justify-center transition-colors">
                       🐦
                     </a>
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <div className="font-semibold text-orange-300">Marknadsplats</div>
-                  <ul className="space-y-2 text-white/80">
-                    <li><Link href="/artworks" className="hover:text-white transition-colors">Alla konstverk</Link></li>
-                    <li><Link href="/artworks?category=Målning" className="hover:text-white transition-colors">Målningar</Link></li>
-                    <li><Link href="/artworks?category=Skulptur" className="hover:text-white transition-colors">Skulpturer</Link></li>
-                    <li><Link href="/ai/value-art" className="hover:text-white transition-colors">AI‑värdering</Link></li>
+                  <div className="font-semibold text-slate-900">Marknadsplats</div>
+                  <ul className="space-y-2 text-slate-600">
+                    <li><Link href="/artworks" className="hover:text-slate-900 transition-colors">Alla konstverk</Link></li>
+                    <li><Link href="/artworks?category=Målning" className="hover:text-slate-900 transition-colors">Målningar</Link></li>
+                    <li><Link href="/artworks?category=Skulptur" className="hover:text-slate-900 transition-colors">Skulpturer</Link></li>
+                    <li><Link href="/artworks/new" className="hover:text-slate-900 transition-colors">Bli konstnär</Link></li>
+                    <li><Link href="/ai/value-art" className="hover:text-slate-900 transition-colors">AI‑värdering</Link></li>
                   </ul>
                 </div>
                 <div className="space-y-3">
-                  <div className="font-semibold text-pink-300">Community</div>
-                  <ul className="space-y-2 text-white/80">
-                    <li><Link href="/community" className="hover:text-white transition-colors">Diskussioner</Link></li>
-                    <li><Link href="/feed" className="hover:text-white transition-colors">Ditt flöde</Link></li>
-                    <li><Link href="/users" className="hover:text-white transition-colors">Hitta konstnärer</Link></li>
-                    <li><Link href="/favorites" className="hover:text-white transition-colors">Favoriter</Link></li>
+                  <div className="font-semibold text-slate-900">Community</div>
+                  <ul className="space-y-2 text-slate-600">
+                    <li><Link href="/community" className="hover:text-slate-900 transition-colors">Diskussioner</Link></li>
+                    <li><Link href="/community" className="hover:text-slate-900 transition-colors">Gå med i communityt</Link></li>
+                    <li><Link href="/feed" className="hover:text-slate-900 transition-colors">Ditt flöde</Link></li>
+                    <li><Link href="/users" className="hover:text-slate-900 transition-colors">Hitta konstnärer</Link></li>
+                    <li><Link href="/favorites" className="hover:text-slate-900 transition-colors">Favoriter</Link></li>
                   </ul>
                 </div>
                 <div className="space-y-3">
-                  <div className="font-semibold text-purple-300">Information</div>
-                  <ul className="space-y-2 text-white/80">
-                    <li><Link href="/om-oss" className="hover:text-white transition-colors">Om Konstbyte</Link></li>
-                    <li><Link href="/hur-det-fungerar" className="hover:text-white transition-colors">Hur det fungerar</Link></li>
-                    <li><Link href="/avgifter" className="hover:text-white transition-colors">Avgifter & Priser</Link></li>
-                    <li><Link href="/kontakt" className="hover:text-white transition-colors">Kontakta oss</Link></li>
+                  <div className="font-semibold text-slate-900">Information</div>
+                  <ul className="space-y-2 text-slate-600">
+                    <li><Link href="/om-oss" className="hover:text-slate-900 transition-colors">Om Konstbyte</Link></li>
+                    <li><Link href="/hur-det-fungerar" className="hover:text-slate-900 transition-colors">Hur det fungerar</Link></li>
+                    <li><Link href="/hur-det-fungerar" className="hover:text-slate-900 transition-colors">Guider</Link></li>
+                    <li><Link href="/avgifter" className="hover:text-slate-900 transition-colors">Avgifter & Priser</Link></li>
+                    <li><Link href="/kontakt" className="hover:text-slate-900 transition-colors">Kontakta oss</Link></li>
                   </ul>
                 </div>
               </div>
-              <div className="border-t border-white/20 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/60">
+              <div className="border-t border-slate-200/70 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
                 <span>© 2026 Konstbyte.se. Alla rättigheter förbehållna.</span>
                 <span>Plattformsavgift: 3% på alla försäljningar. Säker betalning med Stripe.</span>
               </div>

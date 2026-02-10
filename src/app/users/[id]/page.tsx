@@ -180,7 +180,7 @@ export default function UserProfilePage() {
               </div>
               {!isOwnProfile && currentUserId && (
                 <Button onClick={toggleFollow} className="mt-4">
-                  {isFollowing ? 'Sluta följ' : 'Följ'}
+                  {isFollowing ? 'Sluta följa' : 'Följ'}
                 </Button>
               )}
               {isOwnProfile && (

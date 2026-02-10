@@ -58,7 +58,7 @@ export default async function ArtworkDetail({
           "image": artwork.imageUrl,
           "author": {
             "@type": "Person",
-            "name": artwork.owner?.name || 'Anonyme'
+            "name": artwork.owner?.name || 'Anonym'
           },
           "url": `${process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000'}/artworks/${artwork.id}`,
           "datePublished": artwork.createdAt?.toISOString(),
@@ -92,7 +92,7 @@ export default async function ArtworkDetail({
               <CardTitle className="text-sm">Konstnär</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="font-semibold">{artwork.owner.name || 'Anonyme'}</p>
+              <p className="font-semibold">{artwork.owner.name || 'Anonym'}</p>
               {artwork.owner.image && (
                 <Image src={artwork.owner.image} alt={artwork.owner.name || 'Artist'} width={48} height={48} className="rounded-full mt-2" />
               )}

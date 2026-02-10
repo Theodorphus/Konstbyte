@@ -10,7 +10,7 @@ export default async function AdminPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Adminpanel</h1>
       <section>
-        <h2 className="text-lg font-medium">Annonser</h2>
+        <h2 className="text-lg font-medium">Konstverk</h2>
         <ul className="mt-2 space-y-1">
           {artworks.map((art) => (
             <li key={art.id} className="text-sm">

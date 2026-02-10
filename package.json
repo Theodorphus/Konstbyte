@@ -11,6 +11,9 @@
     "lint": "next lint",
     "lighthouse": "node tools/run-lighthouse.js http://localhost:3000 lighthouse-report.json"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@next-auth/prisma-adapter": "^1.0.7",
