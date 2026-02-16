@@ -1,10 +1,18 @@
 import Groq from "groq-sdk";
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
 export async function POST(req: Request) {
+  const apiKey = process.env.GROQ_API_KEY;
+
+  if (!apiKey) {
+    return Response.json(
+      {
+        error: "GROQ API-nyckel saknas. Lägg till GROQ_API_KEY i miljövariabler.",
+      },
+      { status: 500 }
+    );
+  }
+
+  const groq = new Groq({ apiKey });
   const { prompt } = await req.json();
 
   const completion = await groq.chat.completions.create({
