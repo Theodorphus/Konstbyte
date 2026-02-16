@@ -1,5 +1,3 @@
-import Groq from "groq-sdk";
-
 export async function POST(req: Request) {
   try {
     const apiKey = process.env.GROQ_API_KEY;
@@ -23,15 +21,40 @@ export async function POST(req: Request) {
       );
     }
 
-    const groq = new Groq({ apiKey });
+    const groqResponse = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [{ role: "user", content: prompt }],
+        }),
+      }
+    );
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      messages: [{ role: "user", content: prompt }],
-    });
+    const completion = await groqResponse.json();
+
+    if (!groqResponse.ok) {
+      const apiError =
+        typeof completion?.error?.message === "string"
+          ? completion.error.message
+          : "Groq API returnerade ett fel.";
+
+      return Response.json(
+        {
+          error: "AI-anrop misslyckades.",
+          details: apiError,
+        },
+        { status: groqResponse.status }
+      );
+    }
 
     return Response.json({
-      output: completion.choices[0].message.content,
+      output: completion?.choices?.[0]?.message?.content ?? "",
     });
   } catch (error: unknown) {
     const message =
