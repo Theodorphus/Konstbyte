@@ -1,9 +1,12 @@
 import { getCurrentUser } from '../../../lib/auth';
 import prisma from '../../../lib/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import Image from 'next/image';
+import SafeImage from '../../../components/SafeImage';
 import { Button } from '../../../components/ui/button';
 import Link from 'next/link';
+import { formatSek } from '../../../lib/currency';
+import StatusCard from '../../../components/StatusCard';
+import { PageHeader } from '../../../components/PageHeader';
 
 export const dynamic = "force-dynamic";
 
@@ -13,19 +16,22 @@ export default async function OrdersPage() {
   if (!user) {
     return (
       <div className="max-w-md mx-auto py-12">
-        <Card>
-          <CardContent className="p-6 space-y-4 text-center">
-            <p className="text-slate-600">Du måste logga in för att se dina beställningar.</p>
-            <div className="flex gap-2 justify-center">
+        <PageHeader title="Mina beställningar" className="mb-4" />
+        <StatusCard
+          icon="🔐"
+          title="Inloggning krävs"
+          message="Du måste logga in för att se dina beställningar."
+          actions={
+            <>
               <Button asChild>
                 <Link href="/auth/signin">Logga in</Link>
               </Button>
               <Button variant="outline" asChild>
                 <Link href="/auth/register">Skapa konto</Link>
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </>
+          }
+        />
       </div>
     );
   }
@@ -44,29 +50,30 @@ export default async function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Mina beställningar</h1>
-          <p className="text-slate-600 mt-1">Översikt över dina köp</p>
-        </div>
+      <PageHeader
+        title="Mina beställningar"
+        description="Översikt över dina köp"
+        className="mb-2"
+      >
         <Button variant="outline" asChild>
           <Link href="/artworks">Fortsätt handla</Link>
         </Button>
-      </div>
-
+      </PageHeader>
       {orders.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-center space-y-4">
-            <p className="text-slate-600">Du har inte gjort några köp än.</p>
+        <StatusCard
+          icon="🧾"
+          title="Inga beställningar ännu"
+          message="Du har inte gjort några köp än."
+          actions={
             <Button asChild>
               <Link href="/artworks">Utforska konstverk</Link>
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       ) : (
         <div className="space-y-4">
           {orders.map((order) => (
-            <Card key={order.id}>
+            <Card key={order.id} className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">Order #{order.id.slice(0, 8)}</CardTitle>
@@ -91,11 +98,11 @@ export default async function OrdersPage() {
               <CardContent>
                 <div className="flex gap-4">
                   <div className="w-24 h-24 bg-slate-100 rounded overflow-hidden flex-shrink-0 relative">
-                    <Image
+                    <SafeImage
                       src={order.artwork.imageUrl}
                       alt={order.artwork.title}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-300 ease-out motion-reduce:transition-none"
                     />
                   </div>
                   <div className="flex-1">
@@ -104,7 +111,7 @@ export default async function OrdersPage() {
                       av {order.artwork.owner.name || 'Anonym konstnär'}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="font-bold">{order.amount} SEK</span>
+                      <span className="font-bold">{formatSek(order.amount)}</span>
                       <Button asChild variant="outline" size="sm">
                         <Link href={`/artworks/${order.artwork.id}`}>
                           Visa konstverk

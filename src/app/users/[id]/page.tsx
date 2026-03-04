@@ -2,11 +2,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import Image from 'next/image';
+import SafeImage from '../../../components/SafeImage';
 import { Button } from '../../../components/ui/button';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { formatSek } from '../../../lib/currency';
+import StatusCard from '../../../components/StatusCard';
 
 interface User {
   id: string;
@@ -64,7 +66,7 @@ export default function UserProfilePage() {
       const response = await fetch(`/api/artworks?ownerId=${userId}`);
       if (response.ok) {
         const data = await response.json();
-        setArtworks(data.slice(0, 6));
+        setArtworks((data.items || []).slice(0, 6));
       }
     } catch (error) {
       console.error('Error fetching artworks:', error);
@@ -127,11 +129,7 @@ export default function UserProfilePage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Card>
-          <CardContent className="p-6 text-center text-slate-600">
-            Laddar profil...
-          </CardContent>
-        </Card>
+        <StatusCard message="Laddar profil..." icon="⏳" />
       </div>
     );
   }
@@ -139,14 +137,16 @@ export default function UserProfilePage() {
   if (!user) {
     return (
       <div className="space-y-6">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-slate-600 mb-4">Användaren hittades inte.</p>
+        <StatusCard
+          icon="👤"
+          title="Användaren hittades inte"
+          message="Profilen du söker verkar inte finnas."
+          actions={
             <Button asChild>
               <Link href="/community">Tillbaka till community</Link>
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       </div>
     );
   }
@@ -155,7 +155,7 @@ export default function UserProfilePage() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
         <CardContent className="p-6">
           <div className="flex items-start gap-6">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-3xl">
@@ -193,27 +193,27 @@ export default function UserProfilePage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
         <CardHeader>
           <CardTitle>Konstverk</CardTitle>
         </CardHeader>
         <CardContent>
           {artworks.length === 0 ? (
-            <p className="text-sm text-slate-600">Inga konstverk ännu.</p>
+            <StatusCard icon="🖼️" message="Inga konstverk ännu." className="py-8" />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {artworks.map((artwork) => (
-                <Link key={artwork.id} href={`/artworks/${artwork.id}`}>
+                <Link key={artwork.id} href={`/artworks/${artwork.id}`} className="group">
                   <div className="aspect-square bg-slate-100 rounded overflow-hidden mb-2 relative">
-                    <Image
+                    <SafeImage
                       src={artwork.imageUrl}
                       alt={artwork.title}
                       fill
-                      className="object-cover hover:scale-105 transition-transform"
+                      className="object-cover transition-transform duration-300 ease-out motion-reduce:transition-none group-hover:scale-105"
                     />
                   </div>
                   <div className="text-xs font-medium truncate">{artwork.title}</div>
-                  <div className="text-xs text-slate-500">{artwork.price} SEK</div>
+                  <div className="text-xs text-slate-500">{formatSek(artwork.price)}</div>
                 </Link>
               ))}
             </div>

@@ -69,3 +69,7 @@ git push origin main
 ```
 
 If you want, I can add a small seed script to migrate existing `data/testimonials.json` into the DB and create a CI workflow.
+
+Branch protection
+
+- Configure required PR + CI checks for `main` by following [.github/BRANCH_PROTECTION.md](.github/BRANCH_PROTECTION.md).

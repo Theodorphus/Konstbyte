@@ -1,10 +1,13 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image';
+import SafeImage from '../../components/SafeImage';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { useState, useEffect } from 'react';
+import { formatSek } from '../../lib/currency';
+import StatusCard from '../../components/StatusCard';
+import { PageHeader } from '../../components/PageHeader';
 
 interface Favorite {
   id: string;
@@ -66,40 +69,34 @@ export default function FavoritesPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-semibold">Mina favoriter</h1>
-        <Card>
-          <CardContent className="p-6 text-center text-slate-600">
-            Laddar favoriter...
-          </CardContent>
-        </Card>
+        <PageHeader title="Mina favoriter" />
+        <StatusCard message="Laddar favoriter..." icon="⏳" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Mina favoriter</h1>
+      <PageHeader
+        title="Mina favoriter"
+        description={`${favorites.length} sparade konstverk`}
+        className="mb-2"
+      >
         <Button variant="outline" asChild>
           <Link href="/artworks">Bläddra konstverk</Link>
         </Button>
-      </div>
-
-      <div className="text-sm text-slate-600">
-        {favorites.length} sparade konstverk
-      </div>
-
+      </PageHeader>
       {favorites.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-center space-y-4">
-            <p className="text-slate-600">
-              Du har inga sparade favoriter ännu.
-            </p>
+        <StatusCard
+          icon="❤️"
+          title="Inga favoriter ännu"
+          message="Du har inga sparade favoriter ännu."
+          actions={
             <Button asChild>
               <Link href="/artworks">Upptäck konstverk</Link>
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {favorites.map((favorite) => (
@@ -108,7 +105,7 @@ export default function FavoritesPage() {
               href={`/artworks/${favorite.artwork.id}`} 
               className="group"
             >
-              <Card className="overflow-hidden hover:shadow-lg transition-shadow relative">
+              <Card className="relative overflow-hidden transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-lg">
                 <button
                   onClick={(e) => {
                     e.preventDefault();
@@ -121,11 +118,11 @@ export default function FavoritesPage() {
                   ❤️
                 </button>
                 <div className="aspect-square bg-slate-100 overflow-hidden relative">
-                  <Image
+                  <SafeImage
                     src={favorite.artwork.imageUrl}
                     alt={favorite.artwork.title}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform"
+                    className="object-cover transition-transform duration-300 ease-out motion-reduce:transition-none group-hover:scale-105"
                   />
                 </div>
                 <CardContent className="p-4">
@@ -136,7 +133,7 @@ export default function FavoritesPage() {
                     </p>
                   )}
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold">{favorite.artwork.price} SEK</span>
+                    <span className="text-lg font-bold">{formatSek(favorite.artwork.price)}</span>
                     <span className="text-xs text-slate-400 capitalize">
                       {favorite.artwork.category}
                     </span>

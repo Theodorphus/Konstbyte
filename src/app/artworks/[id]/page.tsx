@@ -1,15 +1,15 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
 import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
-import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Button } from '../../../components/ui/button';
+import SafeImage from '../../../components/SafeImage';
 
-export const revalidate = 60;
-export const dynamic = "force-dynamic";
-import Image from 'next/image';
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const { id } = params;
+export async function generateMetadata({ params }: { params: Promise<{ id?: string }> }) {
+  const { id } = await params;
+  if (!id) return {};
   const artwork = await prisma.artwork.findUnique({ where: { id }, include: { owner: true } });
   if (!artwork) return {};
   const base = process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000';
@@ -29,12 +29,13 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   };
 }
 
-export default async function ArtworkDetail({ 
-  params 
-}: { 
-  params: { id: string };
+export default async function ArtworkDetail({
+  params
+}: {
+  params: Promise<{ id?: string }>;
 }) {
   const { id } = await params;
+  if (!id) return notFound();
   const [artwork, currentUser] = await Promise.all([
     prisma.artwork.findUnique({ 
       where: { id },
@@ -77,8 +78,8 @@ export default async function ArtworkDetail({
 
       <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
         <div>
-          <div className="bg-slate-100 rounded-lg overflow-hidden aspect-square relative">
-            <Image src={artwork.imageUrl} alt={artwork.title} fill className="object-cover" />
+          <div className="bg-slate-100 rounded-lg overflow-hidden aspect-square relative transition-all duration-200 ease-out motion-reduce:transition-none hover:shadow-md">
+            <SafeImage src={artwork.imageUrl} alt={artwork.title} fill className="object-cover transition-transform duration-300 ease-out motion-reduce:transition-none hover:scale-[1.02]" />
           </div>
         </div>
 
@@ -88,7 +89,7 @@ export default async function ArtworkDetail({
             <h1 className="text-3xl font-bold mt-1">{artwork.title}</h1>
           </div>
 
-          <Card>
+          <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Konstnär</CardTitle>
             </CardHeader>
@@ -101,7 +102,7 @@ export default async function ArtworkDetail({
           </Card>
 
           {artwork.description && (
-            <Card>
+            <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm">Om verket</CardTitle>
               </CardHeader>
@@ -111,36 +112,93 @@ export default async function ArtworkDetail({
             </Card>
           )}
 
-          <Card className="bg-slate-50">
-            <CardContent>
-              {isOwner ? (
-                <>
-                  <Button asChild className="w-full mb-3">
-                    <Link href={`/artworks/${artwork.id}/edit`}>
-                      Redigera konstverk
-                    </Link>
-                  </Button>
-                  <p className="text-xs text-slate-500 text-center">
-                    Du är ägare av detta konstverk
-                  </p>
-                </>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-5 space-y-4">
+            {/* Title + artist */}
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">{artwork.title}</h2>
+              <p className="text-sm text-slate-500 mt-0.5">
+                av <span className="font-medium text-slate-700">{artwork.owner.name || 'Anonym'}</span>
+              </p>
+            </div>
+
+            {/* Price + badges */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-3xl font-bold text-slate-900">
+                {artwork.price ? artwork.price.toLocaleString('sv-SE') + ' kr' : 'Ej till salu'}
+              </span>
+              {artwork.isSold ? (
+                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
+                  Sålt
+                </span>
               ) : (
-                <>
-                  <Button asChild className="w-full mb-3">
-                    <Link href={`/cart?artworkId=${artwork.id}`}>
-                      Lägg i varukorg
-                    </Link>
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    Dela
-                  </Button>
-                </>
+                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                  Originalverk
+                </span>
               )}
-            </CardContent>
-          </Card>
+            </div>
+
+            {isOwner ? (
+              <div className="space-y-2">
+                <Button asChild className="w-full">
+                  <Link href={`/artworks/${artwork.id}/edit`}>Redigera konstverk</Link>
+                </Button>
+                <p className="text-xs text-slate-500 text-center">Du är ägare av detta konstverk</p>
+              </div>
+            ) : artwork.isSold ? (
+              <div className="w-full px-4 py-3 rounded-md bg-slate-100 text-slate-500 font-semibold text-center cursor-not-allowed">
+                Sålt — ej tillgängligt
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {/* Primary CTA */}
+                <Link
+                  href={`/cart?artworkId=${artwork.id}`}
+                  className="block w-full px-4 py-3 rounded-md bg-blue-600 text-white font-semibold text-center hover:bg-blue-700 transition-colors"
+                >
+                  Lägg i varukorg
+                </Link>
+
+                {/* Secondary */}
+                <Link
+                  href={`/users/${artwork.ownerId}`}
+                  className="block w-full px-4 py-2.5 rounded-md border border-slate-300 text-slate-700 font-medium text-center text-sm hover:bg-slate-100 transition-colors"
+                >
+                  Ställ en fråga till konstnären
+                </Link>
+              </div>
+            )}
+
+            {/* Shipping info */}
+            {!isOwner && !artwork.isSold && (
+              <ul className="space-y-1 text-sm text-slate-600 border-t border-slate-200 pt-3">
+                <li className="flex items-center gap-2">
+                  <span className="text-slate-400">📦</span> Frakt: 49 kr inom Sverige
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-slate-400">🚚</span> Leverans: 3–5 arbetsdagar
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-slate-400">🎨</span> Packas omsorgsfullt av konstnären
+                </li>
+              </ul>
+            )}
+
+            {/* Trust signals */}
+            {!isOwner && !artwork.isSold && (
+              <ul className="space-y-1 text-xs text-slate-500 border-t border-slate-200 pt-3">
+                <li className="flex items-center gap-1.5">
+                  <span>🔒</span> Säker betalning via Stripe
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <span>↩️</span> 14 dagars ångerrätt enligt svensk lag
+                </li>
+              </ul>
+            )}
+          </div>
         </div>
       </div>
     </div>
     </>
   );
 }
+

@@ -232,9 +232,9 @@ export default function EditArtworkPage() {
             </div>
 
             <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={isSaving}>
+              <button type="submit" disabled={isSaving} className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors disabled:opacity-50">
                 {isSaving ? 'Sparar...' : 'Spara ändringar'}
-              </Button>
+              </button>
               <Button type="button" variant="outline" asChild>
                 <Link href={`/artworks/${artworkId}`}>Avbryt</Link>
               </Button>

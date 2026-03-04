@@ -4,6 +4,7 @@ import prisma from '../../lib/prisma';
 import { deleteArtworkAction } from './actions';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
+import { PageHeader } from '../../components/PageHeader';
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export default async function MyArtworksPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Mina konstverk</h1>
+      <PageHeader title="Mina konstverk" className="mb-2" />
       <ul className="space-y-2">
         {artworks.map((art) => (
           <li key={art.id}>

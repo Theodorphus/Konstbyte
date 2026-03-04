@@ -2,7 +2,8 @@ import './globals.css';
 import React from 'react';
 import Link from 'next/link';
 import { Fraunces, Space_Grotesk } from 'next/font/google';
-import NavBar from '../components/NavBar';
+import ClientLayout from './ClientLayout'; // <-- ADDED import ClientLayout
+// Removed: import { SessionProvider } from 'next-auth/react'; // <-- LÄGG TILL DENNA RAD (not used in new version)
 
 const displayFont = Fraunces({
   subsets: ['latin'],
@@ -20,6 +21,8 @@ export const metadata = {
   title: 'Konstbyte',
   description: 'Marknadsplats för konst'
 };
+
+const currentYear = new Date().getFullYear();
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -56,10 +59,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="bg-[#f6f2ea] text-slate-900 antialiased">
-        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-white text-slate-900 px-3 py-2 rounded">Hoppa till innehåll</a>
+        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-white text-slate-900 px-3 py-2 rounded">
+          Hoppa till innehåll
+        </a>
         <div className="min-h-screen flex flex-col">
-          <NavBar />
-          <main id="main" role="main" className="flex-1 max-w-7xl mx-auto w-full p-6">{children}</main>
+            <ClientLayout>
+              <main id="main" role="main" className="flex-1 max-w-7xl mx-auto w-full p-6">
+                {children}
+              </main>
+            </ClientLayout>
           <footer role="contentinfo" className="border-t border-slate-200/70 bg-gradient-to-b from-white via-[#f7f3ec] to-[#efe7da] text-slate-700">
             <div className="max-w-7xl mx-auto px-6 py-14">
               <div className="grid gap-8 md:grid-cols-[1.2fr_1fr_1fr_1fr] text-sm mb-10">
@@ -73,13 +81,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <p className="text-slate-500">📧 konstbyte@gmail.com</p>
                   <p className="text-slate-500">📍 Göteborg, Sverige</p>
                   <div className="flex gap-3 pt-2">
-                    <a href="#" aria-label="Facebook" className="w-8 h-8 rounded-full border border-slate-200/70 bg-white/70 hover:bg-white flex items-center justify-center transition-colors">
+                    <a href="https://facebook.com/konstbyte" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="w-8 h-8 rounded-full border border-slate-200/70 bg-white/70 hover:bg-white flex items-center justify-center transition-colors">
                       📘
                     </a>
-                    <a href="#" aria-label="Instagram" className="w-8 h-8 rounded-full border border-slate-200/70 bg-white/70 hover:bg-white flex items-center justify-center transition-colors">
+                    <a href="https://instagram.com/konstbyte" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-8 h-8 rounded-full border border-slate-200/70 bg-white/70 hover:bg-white flex items-center justify-center transition-colors">
                       📷
                     </a>
-                    <a href="#" aria-label="Twitter" className="w-8 h-8 rounded-full border border-slate-200/70 bg-white/70 hover:bg-white flex items-center justify-center transition-colors">
+                    <a href="https://twitter.com/konstbyte" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="w-8 h-8 rounded-full border border-slate-200/70 bg-white/70 hover:bg-white flex items-center justify-center transition-colors">
                       🐦
                     </a>
                   </div>
@@ -116,7 +124,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
               </div>
               <div className="border-t border-slate-200/70 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-                <span>© 2026 Konstbyte.se. Alla rättigheter förbehållna.</span>
+                <span>© {currentYear} Konstbyte.se. Alla rättigheter förbehållna.</span>
                 <span>Plattformsavgift: 3% på alla försäljningar. Säker betalning med Stripe.</span>
               </div>
             </div>
@@ -126,3 +134,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

@@ -1,13 +1,37 @@
 "use client";
 
-import React, { useState, useTransition } from 'react';
+import React, { Suspense, useState, useTransition } from 'react';
 import { signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 
+const errorMessages: Record<string, string> = {
+  OAuthSignin: 'Kunde inte starta Google-inloggning. Kontrollera Google OAuth-inställningarna.',
+  OAuthCallback: 'Google svarade inte korrekt. Kontrollera redirect URI i Google Console.',
+  OAuthCreateAccount: 'Kunde inte skapa konto från Google-data.',
+  EmailCreateAccount: 'Kunde inte skapa konto med e-post.',
+  Callback: 'Inloggningen avbröts i callback-steget.',
+  OAuthAccountNotLinked: 'E-postadressen är redan kopplad till en annan inloggningsmetod.',
+  AccessDenied: 'Åtkomst nekad av Google eller appens OAuth-regler.',
+  Configuration: 'Autentisering är felkonfigurerad. Kontrollera miljövariablerna.',
+  Verification: 'Inloggningslänken är ogiltig eller har gått ut.'
+};
+
 export default function SignInPage() {
+  return (
+    <Suspense fallback={<div className="max-w-md mx-auto py-12 text-slate-600">Laddar inloggning...</div>}>
+      <SignInContent />
+    </Suspense>
+  );
+}
+
+function SignInContent() {
   const [email, setEmail] = useState('');
   const [isPending, startTransition] = useTransition();
+  const searchParams = useSearchParams();
+  const errorCode = searchParams.get('error') || '';
+  const errorMessage = errorMessages[errorCode] || '';
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -23,6 +47,13 @@ export default function SignInPage() {
       <p className="text-slate-600 mt-2">
         Ange din e‑post för att få en magisk länk.
       </p>
+
+      {errorMessage ? (
+        <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          {errorMessage}
+          {errorCode ? ` (kod: ${errorCode})` : ''}
+        </div>
+      ) : null}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <label className="block">

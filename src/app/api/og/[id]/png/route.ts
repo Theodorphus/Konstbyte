@@ -36,7 +36,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         'Cache-Control': 'public, max-age=86400'
       }
     });
-  } catch (err) {
+  } catch {
     return new Response('Conversion error', { status: 500 });
   }
 }

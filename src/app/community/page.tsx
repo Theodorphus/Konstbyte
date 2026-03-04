@@ -5,194 +5,124 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import StatusCard from '../../components/StatusCard';
+import { PageHeader } from '../../components/PageHeader';
+
+interface Author {
+  id: string;
+    name: string | null;
+    image: string | null;
+    email: string;
+}
+
+interface Comment {
+        id: string;
+        content: string;
+        createdAt: string;
+  author: Author;
+}
 
 interface Post {
   id: string;
   content: string;
   likes: number;
   createdAt: string;
-  author: {
-    id: string;
-    name: string | null;
-    image: string | null;
-    email: string;
-  };
+  author: Author;
   comments?: Comment[];
 }
 
-interface Comment {
-  id: string;
-  content: string;
-  createdAt: string;
-  author: {
-    id: string;
-    name: string | null;
-    email: string;
-  };
+function formatTime(dateString: string) {
+  const date = new Date(dateString);
+  return date.toLocaleString('sv-SE');
 }
 
 export default function CommunityPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [newPost, setNewPost] = useState('');
+  const [postContent, setPostContent] = useState('');
   const [isPosting, setIsPosting] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [expandedPost, setExpandedPost] = useState<string | null>(null);
-  const [commentInputs, setCommentInputs] = useState<{ [key: string]: string }>({});
   const [postComments, setPostComments] = useState<{ [key: string]: Comment[] }>({});
+  const [commentInputs, setCommentInputs] = useState<{ [key: string]: string }>({});
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPosts();
-    fetchCurrentUser();
+    // Optionally fetch user info here, setCurrentUserId(...)
+    // Se detta som pseudo-inloggning/placeholder
+    setCurrentUserId("current-user-id"); // <- Anpassa till faktisk user-id
   }, []);
 
-  const fetchCurrentUser = async () => {
+  async function fetchPosts() {
+    setIsLoading(true);
     try {
-      const response = await fetch('/api/me');
-      if (response.ok) {
-        const data = await response.json();
-        setCurrentUserId(data?.user?.id || null);
-      }
-    } catch (error) {
-      console.error('Error fetching current user:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
-  const fetchPosts = async () => {
-    try {
-      const response = await fetch('/api/posts');
-      if (response.ok) {
-        const data = await response.json();
+      const res = await fetch('/api/posts');
+      if (res.ok) {
+        const data = await res.json();
         setPosts(data);
       }
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      alert("Kunde inte hämta inlägg!");
     }
-  };
+    setIsLoading(false);
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPost.trim()) return;
-
-    setIsPosting(true);
+  async function handleLike(postId: string) {
     try {
-      const response = await fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newPost })
-      });
-
-      if (response.ok) {
-        const post = await response.json();
-        setPosts([post, ...posts]);
-        setNewPost('');
-        setShowForm(false);
-      } else if (response.status === 401) {
-        alert('Du måste vara inloggad för att skapa inlägg');
-      }
-    } catch (error) {
-      console.error('Error creating post:', error);
-    } finally {
-      setIsPosting(false);
-    }
-  };
-
-  const formatTime = (date: string) => {
-    const now = new Date();
-    const posted = new Date(date);
-    const diffMs = now.getTime() - posted.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Idag';
-    if (diffDays === 1) return 'Igår';
-    return `${diffDays} dagar sedan`;
-  };
-
-  const handleLike = async (postId: string) => {
-    try {
-      const response = await fetch(`/api/posts/${postId}/like`, {
-        method: 'POST'
-      });
-
+      const response = await fetch(`/api/posts/${postId}/like`, { method: 'POST' });
       if (response.ok) {
         const data = await response.json();
-        setPosts(posts.map(p => 
-          p.id === postId ? { ...p, likes: data.likes } : p
-        ));
+        setPosts(posts.map(p => p.id === postId ? { ...p, likes: data.likes } : p));
       } else if (response.status === 401) {
         alert('Du måste vara inloggad för att gilla inlägg');
       }
     } catch (error) {
-      console.error('Error liking post:', error);
+      alert('Kunde inte gilla inlägg');
     }
-  };
+  }
 
-  const handleDelete = async (postId: string) => {
-    if (!confirm('Är du säker på att du vill ta bort detta inlägg?')) {
-      return;
-    }
-
+  async function handleDelete(postId: string) {
+    if (!confirm('Är du säker på att du vill ta bort detta inlägg?')) return;
     try {
-      const response = await fetch(`/api/posts/${postId}`, {
-        method: 'DELETE'
-      });
-
+      const response = await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
       if (response.ok) {
         setPosts(posts.filter(p => p.id !== postId));
       } else {
-        alert('Kunde inte ta bort inlägget');
+        alert('Misslyckades att ta bort inlägg');
       }
     } catch (error) {
-      console.error('Error deleting post:', error);
-      alert('Ett fel inträffade');
+      alert('Misslyckades att ta bort inlägg');
     }
-  };
+  }
 
-  const toggleComments = async (postId: string) => {
-    if (expandedPost === postId) {
-      setExpandedPost(null);
-    } else {
-      setExpandedPost(postId);
-      if (!postComments[postId]) {
-        await fetchComments(postId);
+  async function toggleComments(postId: string) {
+    if (!postComments[postId]) {
+      try {
+        const response = await fetch(`/api/posts/${postId}/comments`);
+        if (response.ok) {
+          const comments = await response.json();
+          setPostComments(prev => ({ ...prev, [postId]: comments }));
+        }
+      } catch (error) {
+        alert('Kunde inte hämta kommentarer');
       }
     }
-  };
+    setExpandedPost(prev => prev === postId ? null : postId);
+  }
 
-  const fetchComments = async (postId: string) => {
-    try {
-      const response = await fetch(`/api/posts/${postId}/comments`);
-      if (response.ok) {
-        const comments = await response.json();
-        setPostComments(prev => ({ ...prev, [postId]: comments }));
-      }
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-    }
-  };
-
-  const handleComment = async (postId: string) => {
+  async function handleComment(postId: string) {
     const content = commentInputs[postId];
     if (!content || content.trim().length === 0) return;
-
     try {
       const response = await fetch(`/api/posts/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: content.trim() })
       });
-
       if (response.ok) {
         const newComment = await response.json();
         setPostComments(prev => ({
-          ...prev,
+                            ...prev,
           [postId]: [newComment, ...(prev[postId] || [])]
         }));
         setCommentInputs(prev => ({ ...prev, [postId]: '' }));
@@ -200,19 +130,14 @@ export default function CommunityPage() {
         alert('Du måste vara inloggad för att kommentera');
       }
     } catch (error) {
-      console.error('Error creating comment:', error);
       alert('Misslyckades att skapa kommentar');
     }
-  };
+  }
 
-  const handleDeleteComment = async (commentId: string, postId: string) => {
+  async function handleDeleteComment(commentId: string, postId: string) {
     if (!confirm('Är du säker på att du vill ta bort denna kommentar?')) return;
-
     try {
-      const response = await fetch(`/api/comments/${commentId}`, {
-        method: 'DELETE'
-      });
-
+      const response = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
       if (response.ok) {
         setPostComments(prev => ({
           ...prev,
@@ -222,103 +147,71 @@ export default function CommunityPage() {
         alert('Misslyckades att ta bort kommentar');
       }
     } catch (error) {
-      console.error('Error deleting comment:', error);
       alert('Misslyckades att ta bort kommentar');
     }
-  };
+  }
+
+  async function handlePostSubmit(e: React.FormEvent) {
+                              e.preventDefault();
+    if (!postContent.trim()) return;
+    setIsPosting(true);
+    try {
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: postContent.trim() })
+      });
+      if (response.ok) {
+        const newPost = await response.json();
+        setPosts([newPost, ...posts]);
+        setPostContent('');
+      } else if (response.status === 401) {
+        alert('Du måste vara inloggad för att skriva inlägg');
+                            }
+    } catch {
+      alert('Misslyckades att publicera inlägg');
+    }
+    setIsPosting(false);
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Gradient Header */}
-      <div className="-mx-6 -mt-6 mb-8 px-6 py-12 md:py-16 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-600 text-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-3">💬 Community</h1>
-              <p className="text-lg md:text-xl text-white/90 mb-4">Dela dina tankar, diskutera konst och hitta inspiration</p>
-              <div className="flex gap-3 flex-wrap">
-                <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
-                  {posts.length} inlägg
-                </span>
-                <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
-                  Aktivt community
-                </span>
-              </div>
-            </div>
-            <Button 
-              className="bg-white text-purple-600 hover:bg-purple-50 shadow-lg"
-              onClick={() => setShowForm(!showForm)}
-            >
-              {showForm ? '✖ Avbryt' : '✨ Skapa inlägg'}
+    <div className="max-w-2xl mx-auto p-6">
+      <PageHeader title="Community" />
+      <Card className="mb-4">
+        <CardContent>
+          <form onSubmit={handlePostSubmit} className="flex flex-col gap-2">
+            <Input
+              value={postContent}
+              onChange={e => setPostContent(e.target.value)}
+              placeholder="Skriv ett nytt inlägg..."
+              disabled={isPosting}
+              required
+                        />
+            <Button type="submit" disabled={isPosting || !postContent.trim()}>
+              {isPosting ? 'Publicerar...' : '✨ Publicera inlägg'}
             </Button>
-          </div>
-        </div>
-      </div>
-
-      {showForm && (
-        <Card className="border-2 border-purple-200 shadow-lg">
-          <CardContent className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-slate-700">✍️ Skapa ett nytt inlägg</label>
-                <textarea
-                  value={newPost}
-                  onChange={(e) => setNewPost(e.target.value)}
-                  placeholder="Dela dina tankar, frågor eller inspiration med communityt..."
-                  className="w-full p-4 border-2 border-slate-200 rounded-lg text-sm focus:border-purple-500 focus:outline-none transition-colors min-h-[120px]"
-                  rows={4}
-                  required
-                ></textarea>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={() => setShowForm(false)}
-                >
-                  Avbryt
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={isPosting || !newPost.trim()}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-                >
-                  {isPosting ? 'Publicerar...' : '✨ Publicera inlägg'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+          </form>
+              </CardContent>
+            </Card>
 
       {isLoading ? (
-        <Card>
-          <CardContent className="p-6 text-center text-slate-600">
-            Laddar inlägg...
-          </CardContent>
-        </Card>
+        <StatusCard message="Laddar inlägg..." icon="⏳" />
       ) : posts.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-center space-y-4">
-            <p className="text-slate-600">Inga inlägg ännu. Var först att dela något!</p>
-            <div className="flex gap-2 justify-center">
-              <Button onClick={() => setShowForm(true)}>Skapa första inlägget</Button>
-              <Button variant="outline" asChild>
-                <Link href="/auth/register">Gå med i communityt</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <StatusCard
+          icon="💬"
+          title="Inga inlägg ännu"
+          message="Var först att dela något i communityt."
+        />
       ) : (
         <div className="grid gap-4">
-          {posts.map((post) => (
+          {posts.map(post => (
             <Card key={post.id}>
               <CardContent className="p-6 space-y-3">
                 <div className="flex items-center justify-between">
-                  <Link href={`/users/${post.author.id}`} className="flex items-center gap-3 hover:bg-slate-50 rounded p-1 -m-1">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold">
+                  <Link href={`/users/${post.author.id}`} className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-400 text-white font-semibold">
                       {post.author.name?.[0]?.toUpperCase() || post.author.email[0].toUpperCase()}
-                    </div>
+    </div>
                     <div>
                       <div className="text-sm font-semibold">
                         {post.author.name || 'Anonym användare'}
@@ -337,48 +230,41 @@ export default function CommunityPage() {
                     </button>
                   )}
                 </div>
-                <p className="text-sm text-slate-700 whitespace-pre-wrap">
-                  {post.content}
-                </p>
+                <p className="text-sm text-slate-700 whitespace-pre-wrap">{post.content}</p>
                 <div className="flex items-center gap-4 text-xs text-slate-500 pt-2">
-                  <button 
+                  <button
                     onClick={() => handleLike(post.id)}
                     className="hover:text-slate-700 flex items-center gap-1 transition-colors"
                   >
                     👍 {post.likes}
                   </button>
-                  <button 
+                  <button
                     onClick={() => toggleComments(post.id)}
                     className="hover:text-slate-700 flex items-center gap-1 transition-colors"
                   >
                     💬 Kommentera {postComments[post.id] ? `(${postComments[post.id].length})` : ''}
                   </button>
-                  <button className="hover:text-slate-700">Dela</button>
                 </div>
-
-                {/* Comments Section */}
                 {expandedPost === post.id && (
                   <div className="pt-4 border-t space-y-3">
-                    {/* Comment Input */}
                     {currentUserId && (
                       <div className="flex gap-2">
                         <Input
                           value={commentInputs[post.id] || ''}
-                          onChange={(e) => setCommentInputs(prev => ({
-                            ...prev,
-                            [post.id]: e.target.value
-                          }))}
+                          onChange={e =>
+                            setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))
+}
                           placeholder="Skriv en kommentar..."
                           className="flex-1 text-sm"
-                          onKeyDown={(e) => {
+                          onKeyDown={e => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                               e.preventDefault();
                               handleComment(post.id);
                             }
                           }}
                         />
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           onClick={() => handleComment(post.id)}
                           disabled={!commentInputs[post.id]?.trim()}
                         >
@@ -386,15 +272,13 @@ export default function CommunityPage() {
                         </Button>
                       </div>
                     )}
-
-                    {/* Comments List */}
                     <div className="space-y-2">
                       {postComments[post.id]?.length === 0 && (
                         <p className="text-xs text-slate-400 text-center py-2">
                           Inga kommentarer ännu. Var först att kommentera!
                         </p>
                       )}
-                      {postComments[post.id]?.map((comment) => (
+                      {postComments[post.id]?.map(comment => (
                         <div key={comment.id} className="bg-slate-50 rounded p-3 text-sm">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-2 mb-1">
@@ -428,3 +312,4 @@ export default function CommunityPage() {
     </div>
   );
 }
+

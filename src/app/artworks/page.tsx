@@ -1,20 +1,85 @@
 "use client";
-/* eslint-disable react-hooks/exhaustive-deps */
-
 import Link from 'next/link';
 import { Card, CardContent } from '../../components/ui/card';
-import Image from 'next/image';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { useState, useEffect } from 'react';
+import { formatSek } from '../../lib/currency';
+import SafeImage from '../../components/SafeImage';
+import { PageHeader } from '../../components/PageHeader';
+import { Skeleton } from '../../components/ui/Skeleton';
 
-interface Artwork {
+// --- TYPING ---
+type Artwork = {
   id: string;
   title: string;
   description: string | null;
   price: number;
   imageUrl: string;
   category: string;
+};
+type ArtworksResponse = {
+  items: Artwork[];
+  total: number;
+};
+
+const categories = ['malningar', 'skulpturer', 'fotografi', 'digital'];
+
+function ArtworksGrid({ artworks, favoriteIds, toggleFavorite, currentUserId }: {
+  artworks: Artwork[];
+  favoriteIds: Set<string>;
+  toggleFavorite: (artworkId: string, e: React.MouseEvent) => void;
+  currentUserId: string | null;
+}) {
+  return (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {artworks.length === 0 && (
+            <Card className="sm:col-span-2 lg:col-span-3">
+              <CardContent className="p-6 text-sm text-slate-600 space-y-3">
+            <p>Inga konstverk matchade din sökning.</p>
+                <div className="flex gap-2">
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/artworks/new">Ladda upp första verket</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+      {artworks.map((art) => (
+            <Link key={art.id} href={`/artworks/${art.id}`} className="group">
+              <Card className="relative overflow-hidden transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-lg">
+                {currentUserId && (
+                  <button
+                    onClick={(e) => toggleFavorite(art.id, e)}
+                    className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-md transition-all"
+                    title={favoriteIds.has(art.id) ? 'Ta bort från favoriter' : 'Lägg till i favoriter'}
+                  >
+                    {favoriteIds.has(art.id) ? '❤️' : '🤍'}
+                  </button>
+                )}
+                <div className="aspect-square bg-slate-100 overflow-hidden relative">
+                  <SafeImage
+                    src={art.imageUrl}
+                    alt={art.title}
+                    fill
+                    className="object-cover transition-transform duration-300 ease-out motion-reduce:transition-none group-hover:scale-105"
+                  />
+                </div>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold mb-1 truncate">{art.title}</h3>
+                  {art.description && (
+                    <p className="text-xs text-slate-500 mb-2 line-clamp-2">{art.description}</p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-bold">{formatSek(art.price)}</span>
+                    <span className="text-xs text-slate-400 capitalize">{art.category}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+  );
 }
 
 export default function ArtworksPage() {
@@ -22,7 +87,6 @@ export default function ArtworksPage() {
   const [total, setTotal] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
   const pageSize = 12;
-  const [filteredArtworks, setFilteredArtworks] = useState<Artwork[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('newest');
@@ -31,35 +95,38 @@ export default function ArtworksPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  const categories = ['malningar', 'skulpturer', 'fotografi', 'digital'];
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchArtworks(page); // Fetch artworks when page changes
-    fetchFavorites();
-  }, [page]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    filterArtworks();
-  }, [searchQuery, selectedCategory, sortBy, minPrice, maxPrice, artworks]);
-
-  const fetchArtworks = async (pageNumber = 1) => {
-    try {
-      const qs = buildQuery(pageNumber);
-      const response = await fetch(`/api/artworks?${qs}`);
-      if (response.ok) {
-        const data = await response.json();
-        setArtworks(data.items || []);
-        setFilteredArtworks(data.items || []);
-        setTotal(data.total || 0);
+    let isCurrent = true;
+    setIsLoading(true);
+    setError(null);
+    const fetchData = async () => {
+      try {
+        const qs = buildQuery(page);
+        const response = await fetch(`/api/artworks?${qs}`);
+        if (response.ok) {
+          const data: ArtworksResponse = await response.json();
+          if (isCurrent) {
+            setArtworks(data.items || []);
+            setTotal(data.total || 0);
+          }
+        } else {
+          if (isCurrent) setError('Kunde inte hämta konstverk just nu.');
+        }
+      } catch {
+        if (isCurrent) setError('Nätverksfel vid hämtning av konstverk.');
+      } finally {
+        if (isCurrent) setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching artworks:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+    fetchData();
+    return () => { isCurrent = false; };
+  }, [page, searchQuery, selectedCategory, sortBy, minPrice, maxPrice]);
+
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
 
   const buildQuery = (pageNumber = 1) => {
     const params = new URLSearchParams();
@@ -76,7 +143,7 @@ export default function ArtworksPage() {
   const fetchFavorites = async () => {
     try {
       const response = await fetch('/api/favorites');
-        if (response.ok) {
+      if (response.ok) {
         const data = await response.json();
         const favs = data as Array<{ artworkId: string }>;
         const ids = new Set<string>(favs.map((fav) => String(fav.artworkId)));
@@ -88,21 +155,18 @@ export default function ArtworksPage() {
         setCurrentUserId(userData?.user?.id || null);
       }
     } catch (error) {
-      console.error('Error fetching favorites:', error);
+      // still ignore here
     }
   };
 
   const toggleFavorite = async (artworkId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     if (!currentUserId) {
       alert('Du måste vara inloggad för att spara favoriter');
       return;
     }
-
     const isFavorited = favoriteIds.has(artworkId);
-
     try {
       if (isFavorited) {
         const response = await fetch(`/api/favorites?artworkId=${artworkId}`, {
@@ -116,7 +180,7 @@ export default function ArtworksPage() {
           });
         }
       } else {
-        const response = await fetch('/api/favorites', {
+        const response = await fetch(`/api/favorites`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ artworkId }),
@@ -126,78 +190,38 @@ export default function ArtworksPage() {
         }
       }
     } catch (error) {
-      console.error('Error toggling favorite:', error);
-      alert('Något gick fel');
+      // still ignore here
     }
   };
 
-  const filterArtworks = () => {
-    let filtered = artworks;
-
-    if (searchQuery) {
-      filtered = filtered.filter(art => 
-        art.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        art.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    if (selectedCategory) {
-      filtered = filtered.filter(art => art.category === selectedCategory);
-    }
-
-    // Price filter
-    if (minPrice) {
-      filtered = filtered.filter(art => art.price >= parseInt(minPrice));
-    }
-    if (maxPrice) {
-      filtered = filtered.filter(art => art.price <= parseInt(maxPrice));
-    }
-
-    // Sorting
-    filtered = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'price-asc':
-          return a.price - b.price;
-        case 'price-desc':
-          return b.price - a.price;
-        case 'name':
-          return a.title.localeCompare(b.title);
-        case 'newest':
-        default:
-          return 0; // Already sorted by createdAt desc from API
-      }
-    });
-
-    setFilteredArtworks(filtered);
-  };
-
+  // Huvudreturn för komponenten
   return (
     <div className="space-y-6">
       {/* Gradient Header */}
       <div className="-mx-6 -mt-6 mb-8 px-6 py-12 md:py-16 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 text-white">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-3">🎨 Marknadsplats</h1>
-              <p className="text-lg md:text-xl text-white/90 mb-4">Upptäck och köp unik konst från talangfulla konstnärer</p>
-              <div className="flex gap-3 flex-wrap">
-                <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
-                  {artworks.length} konstverk
-                </span>
-                <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
-                  {categories.length} kategorier
-                </span>
-              </div>
+          <PageHeader
+            title="🎨 Marknadsplats"
+            description="Upptäck och köp unik konst från talangfulla konstnärer"
+            className="mb-4 text-white"
+          >
+            <div className="flex gap-3 flex-wrap mb-4">
+              <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
+                {total} konstverk
+              </span>
+              <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
+                {categories.length} kategorier
+              </span>
             </div>
             <Button asChild className="bg-white text-orange-600 hover:bg-orange-50 shadow-lg">
               <Link href="/artworks/new">Lägg upp konst</Link>
             </Button>
-          </div>
+          </PageHeader>
         </div>
       </div>
 
       {/* Filters Section */}
-      <div className="bg-white border-2 border-orange-200 rounded-xl p-6 shadow-lg">
+      <div className="bg-white border-2 border-orange-200 rounded-xl p-6 shadow-lg transition-all duration-200 ease-out motion-reduce:transition-none hover:shadow-xl hover:border-orange-300">
         <div className="space-y-6">
           <div className="flex-1">
             <label className="block text-sm font-semibold mb-2 text-slate-700">🔍 Sök konst</label>
@@ -205,7 +229,7 @@ export default function ArtworksPage() {
               placeholder="Sök efter titel, konstnär eller beskrivning..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border-2 border-slate-200 focus:border-orange-500 transition-colors"
+              className="border-2 border-slate-200 focus:border-orange-500 transition-colors duration-200"
             />
           </div>
 
@@ -217,7 +241,7 @@ export default function ArtworksPage() {
                 placeholder="0 kr"
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
-                className="border-2 border-slate-200 focus:border-orange-500 transition-colors"
+                className="border-2 border-slate-200 focus:border-orange-500 transition-colors duration-200"
               />
             </div>
             <div>
@@ -227,7 +251,7 @@ export default function ArtworksPage() {
                 placeholder="Obegränsat"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
-                className="border-2 border-slate-200 focus:border-orange-500 transition-colors"
+                className="border-2 border-slate-200 focus:border-orange-500 transition-colors duration-200"
               />
             </div>
             <div className="sm:col-span-2">
@@ -235,7 +259,7 @@ export default function ArtworksPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-4 py-2 border-2 border-slate-200 rounded-md focus:border-orange-500 focus:outline-none transition-colors bg-white"
+                className="w-full px-4 py-2 border-2 border-slate-200 rounded-md focus:border-orange-500 focus:outline-none transition-colors duration-200 bg-white"
               >
                 <option value="newest">Senaste</option>
                 <option value="price-asc">Pris: låg–hög</option>
@@ -244,40 +268,24 @@ export default function ArtworksPage() {
               </select>
             </div>
           </div>
-          
           <div>
             <label className="block text-sm font-semibold mb-3 text-slate-700">🎨 Kategorier</label>
             <div className="flex items-center gap-2 text-sm flex-wrap">
-              <button 
+              <button
                 onClick={() => setSelectedCategory('')}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${!selectedCategory ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md' : 'border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50'}`}
               >
                 Alla
               </button>
-              <button 
-                onClick={() => setSelectedCategory('malningar')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${selectedCategory === 'malningar' ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md' : 'border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50'}`}
-              >
-                Målningar
-              </button>
-              <button 
-                onClick={() => setSelectedCategory('skulpturer')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${selectedCategory === 'skulpturer' ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md' : 'border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50'}`}
-              >
-                Skulpturer
-              </button>
-              <button 
-                onClick={() => setSelectedCategory('fotografi')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${selectedCategory === 'fotografi' ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md' : 'border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50'}`}
-              >
-                Fotografi
-              </button>
-              <button 
-                onClick={() => setSelectedCategory('digital')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${selectedCategory === 'digital' ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md' : 'border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50'}`}
-              >
-                Digital konst
-              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${selectedCategory === cat ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md' : 'border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50'}`}
+                >
+                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -297,15 +305,15 @@ export default function ArtworksPage() {
               )}
               {minPrice && (
                 <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-                  Min: {minPrice} kr
+                  Min: {formatSek(Number(minPrice))}
                 </span>
               )}
               {maxPrice && (
                 <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-                  Max: {maxPrice} kr
+                  Max: {formatSek(Number(maxPrice))}
                 </span>
               )}
-              <button 
+              <button
                 onClick={() => {
                   setSearchQuery('');
                   setSelectedCategory('');
@@ -321,16 +329,9 @@ export default function ArtworksPage() {
           )}
         </div>
       </div>
-
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-slate-600">
-          Visar <strong className="text-slate-900">{filteredArtworks.length}</strong> av <strong className="text-slate-900">{artworks.length}</strong> konstverk
-        </span>
-        {filteredArtworks.length === 0 && !isLoading && (
-          <span className="text-orange-600 font-medium">Inga konstverk matchade dina filter</span>
-        )}
-      </div>
-
+      {error && (
+        <Card><CardContent className="text-red-500">{error}</CardContent></Card>
+      )}
       {isLoading ? (
         <Card>
           <CardContent className="p-6 text-center text-slate-600">
@@ -338,62 +339,12 @@ export default function ArtworksPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredArtworks.length === 0 && (
-            <Card className="sm:col-span-2 lg:col-span-3">
-              <CardContent className="p-6 text-sm text-slate-600 space-y-3">
-                <p>
-                  {artworks.length === 0 
-                    ? 'Inga konstverk att visa just nu.' 
-                    : 'Inga konstverk matchade din sökning.'}
-                </p>
-                <div className="flex gap-2">
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/artworks/new">Ladda upp första verket</Link>
-                  </Button>
-                  {searchQuery && (
-                    <Button size="sm" onClick={() => { setSearchQuery(''); setSelectedCategory(''); }}>
-                      Rensa filter
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          {filteredArtworks.map((art) => (
-            <Link key={art.id} href={`/artworks/${art.id}`} className="group">
-              <Card className="overflow-hidden hover:shadow-lg transition-shadow relative">
-                {currentUserId && (
-                  <button
-                    onClick={(e) => toggleFavorite(art.id, e)}
-                    className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-md transition-all"
-                    title={favoriteIds.has(art.id) ? 'Ta bort från favoriter' : 'Lägg till i favoriter'}
-                  >
-                    {favoriteIds.has(art.id) ? '❤️' : '🤍'}
-                  </button>
-                )}
-                <div className="aspect-square bg-slate-100 overflow-hidden relative">
-                  <Image
-                    src={art.imageUrl}
-                    alt={art.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform"
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-1 truncate">{art.title}</h3>
-                  {art.description && (
-                    <p className="text-xs text-slate-500 mb-2 line-clamp-2">{art.description}</p>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold">{art.price} SEK</span>
-                    <span className="text-xs text-slate-400 capitalize">{art.category}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
+        <ArtworksGrid
+          artworks={artworks}
+          favoriteIds={favoriteIds}
+          toggleFavorite={toggleFavorite}
+          currentUserId={currentUserId}
+        />
       )}
       {/* Pagination controls */}
       <div className="flex items-center justify-center gap-4 mt-6">
@@ -416,5 +367,7 @@ export default function ArtworksPage() {
         </button>
       </div>
     </div>
+
   );
 }
+

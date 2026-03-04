@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import SafeImage from '../../components/SafeImage';
 import { Button } from '../../components/ui/button';
+import { formatSek } from '../../lib/currency';
+import StatusCard from '../../components/StatusCard';
+import { PageHeader } from '../../components/PageHeader';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 interface Post {
   id: string;
@@ -51,21 +55,27 @@ export default function FeedPage() {
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [followingCount, setFollowingCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     fetchFeed();
   }, []);
 
   const fetchFeed = async () => {
+    setErrorMessage('');
+    setLoading(true);
     try {
       const res = await fetch('/api/feed');
       if (res.ok) {
         const data = await res.json();
         setFeedItems(data.items);
         setFollowingCount(data.followingCount);
+      } else {
+        setErrorMessage('Kunde inte hämta ditt flöde just nu.');
       }
     } catch (error) {
       console.error('Failed to fetch feed:', error);
+      setErrorMessage('Nätverksfel när flödet skulle laddas.');
     } finally {
       setLoading(false);
     }
@@ -86,18 +96,19 @@ export default function FeedPage() {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-slate-200 rounded w-1/4"></div>
+        <PageHeader title="Ditt flöde" className="mb-6" />
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-1/4 mb-2" />
           {[1, 2, 3].map(i => (
             <div key={i} className="bg-white border rounded-lg p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-slate-200 rounded-full"></div>
+                <Skeleton className="w-10 h-10 rounded-full" />
                 <div className="flex-grow">
-                  <div className="h-4 bg-slate-200 rounded w-1/3 mb-2"></div>
-                  <div className="h-3 bg-slate-200 rounded w-1/4"></div>
+                  <Skeleton className="h-4 w-1/3 mb-2" />
+                  <Skeleton className="h-3 w-1/4" />
                 </div>
               </div>
-              <div className="h-40 bg-slate-200 rounded"></div>
+              <Skeleton className="h-40 w-full" />
             </div>
           ))}
         </div>
@@ -105,22 +116,41 @@ export default function FeedPage() {
     );
   }
 
+  if (errorMessage) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <PageHeader title="Ditt flöde" className="mb-6" />
+        <StatusCard
+          icon="⚠️"
+          title="Kunde inte ladda flödet"
+          message={errorMessage}
+          actions={
+            <>
+              <Button onClick={fetchFeed}>Försök igen</Button>
+              <Button variant="outline" asChild>
+                <Link href="/community">Gå till community</Link>
+              </Button>
+            </>
+          }
+        />
+      </div>
+    );
+  }
+
   if (feedItems.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Ditt flöde</h1>
-        <div className="text-center py-16 bg-white border rounded-lg">
-          <div className="text-6xl mb-4">📰</div>
-          <h2 className="text-xl font-semibold mb-2">
-            {followingCount === 0 ? 'Ditt flöde är tomt' : 'Inga nya aktiviteter'}
-          </h2>
-          <p className="text-slate-600 mb-6 max-w-md mx-auto">
-            {followingCount === 0 
+        <PageHeader title="Ditt flöde" className="mb-6" />
+        <StatusCard
+          icon="📰"
+          title={followingCount === 0 ? 'Ditt flöde är tomt' : 'Inga nya aktiviteter'}
+          message={
+            followingCount === 0
               ? 'Börja följa konstnärer för att se deras inlägg och konstverk här!'
-              : 'Användare du följer har inte publicerat något nytt ännu.'}
-          </p>
-          <div className="flex gap-3 justify-center">
-            {followingCount === 0 ? (
+              : 'Användare du följer har inte publicerat något nytt ännu.'
+          }
+          actions={
+            followingCount === 0 ? (
               <>
                 <Button asChild>
                   <Link href="/artworks">Utforska konst</Link>
@@ -138,25 +168,27 @@ export default function FeedPage() {
                   <Link href="/community">Se alla inlägg</Link>
                 </Button>
               </>
-            )}
-          </div>
-        </div>
+            )
+          }
+          className="py-8"
+        />
       </div>
     );
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Ditt flöde</h1>
-        <p className="text-sm text-slate-600">
-          Följer {followingCount} {followingCount === 1 ? 'användare' : 'användare'}
-        </p>
-      </div>
-
+      <PageHeader
+        title="Ditt flöde"
+        description={`Följer ${followingCount} användare`}
+        className="mb-6"
+      />
       <div className="space-y-6">
         {feedItems.map(item => (
-          <div key={`${item.type}-${item.id}`} className="bg-white border rounded-lg p-6">
+          <div
+            key={`${item.type}-${item.id}`}
+            className="bg-white border rounded-lg p-6 transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md"
+          >
             {item.type === 'post' ? (
               // Post card
               <>
@@ -211,11 +243,11 @@ export default function FeedPage() {
                 </div>
                 <Link href={`/artworks/${item.id}`}>
                   <div className="relative aspect-video mb-3 rounded-lg overflow-hidden bg-slate-100">
-                    <Image
+                    <SafeImage
                       src={(item.content as Artwork).imageUrl}
                       alt={(item.content as Artwork).title}
                       fill
-                      className="object-cover hover:scale-105 transition-transform"
+                      className="object-cover transition-transform duration-300 ease-out motion-reduce:transition-none hover:scale-105"
                     />
                   </div>
                   <h3 className="font-semibold text-lg mb-1 hover:text-slate-700">
@@ -228,7 +260,7 @@ export default function FeedPage() {
                   )}
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-bold">
-                      {(item.content as Artwork).price} kr
+                      {formatSek((item.content as Artwork).price)}
                     </span>
                     <span className="text-sm text-slate-600">
                       🤍 {(item.content as Artwork)._count.favorites}

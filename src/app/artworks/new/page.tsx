@@ -7,7 +7,7 @@ import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import UploadImageButton from '../../../components/UploadImageButton';
-import Image from 'next/image';
+import SafeImage from '../../../components/SafeImage';
 
 export default function NewArtworkPage() {
   const router = useRouter();
@@ -168,7 +168,7 @@ export default function NewArtworkPage() {
               <UploadImageButton onUploaded={setImageUrl} />
               {imageUrl && (
                 <div className="mt-2 relative w-full h-64">
-                  <Image src={imageUrl} alt="Förhandsvisning" fill className="object-cover rounded border" />
+                  <SafeImage src={imageUrl} alt="Förhandsvisning" fill className="object-cover rounded border" />
                 </div>
               )}
             </div>

@@ -1,12 +1,18 @@
 "use client";
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
+import { signOut, useSession } from "next-auth/react";
 
 export default function NavBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuMounted, setMobileMenuMounted] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     // Fetch unread notification count
@@ -28,8 +34,71 @@ export default function NavBar() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      setMobileMenuMounted(true);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setMobileMenuMounted(false);
+    }, 180);
+
+    return () => window.clearTimeout(timeout);
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const triggerButton = mobileMenuButtonRef.current;
+    document.body.style.overflow = 'hidden';
+
+    const firstFocusable = mobileMenuRef.current?.querySelector<HTMLElement>('a, button');
+    firstFocusable?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+        return;
+      }
+
+      if (event.key === 'Tab' && mobileMenuRef.current) {
+        const focusableElements = Array.from(
+          mobileMenuRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+        );
+
+        if (focusableElements.length === 0) {
+          return;
+        }
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        const activeElement = document.activeElement as HTMLElement | null;
+
+        if (event.shiftKey) {
+          if (activeElement === firstElement) {
+            event.preventDefault();
+            lastElement.focus();
+          }
+        } else if (activeElement === lastElement) {
+          event.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+      triggerButton?.focus();
+    };
+  }, [mobileMenuOpen]);
+
   return (
-    <nav aria-label="Huvudnavigering" className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/70 backdrop-blur-lg shadow-sm">
+    <nav aria-label="Huvudnavigering" className="relative sticky top-0 z-50 border-b border-slate-200/70 bg-white/70 backdrop-blur-lg shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -54,6 +123,9 @@ export default function NavBar() {
             <Link href="/community" className="text-sm font-semibold text-slate-900 hover:text-slate-900 transition-colors rounded-full border border-slate-200/70 px-3 py-1.5 bg-white/60 hover:bg-white">
               Gå med i communityt
             </Link>
+            <Link href="/utmaning" className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors">
+              Utmaning
+            </Link>
             <Link href="/ai" className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors">
               AI-verktyg
             </Link>
@@ -61,26 +133,48 @@ export default function NavBar() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/notifications" className="relative p-2 text-slate-700 hover:text-slate-900 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
+            {session ? (
+              <>
+                <Link href="/notifications" className="relative p-2 text-slate-700 hover:text-slate-900 transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-amber-200 text-slate-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </Link>
-            <Button variant="outline" size="sm" asChild className="border-slate-300 text-slate-700 hover:bg-slate-900 hover:text-white">
-              <Link href="/profile">Profil</Link>
-            </Button>
-            <Button size="sm" asChild className="bg-slate-900 text-white hover:bg-slate-800 shadow-md focus:outline-none focus:ring-2 focus:ring-slate-300/70">
-              <Link href="/artworks/new">Lägg upp konst</Link>
-            </Button>
-          </div>
+                    <span className="absolute -top-1 -right-1 bg-amber-200 text-slate-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </Link>
+                <Button variant="outline" size="sm" asChild className="border-slate-300 text-slate-700 hover:bg-slate-900 hover:text-white">
+                  <Link href="/profile">Profil</Link>
+                </Button>
+                <Button size="sm" asChild className="bg-slate-900 text-white hover:bg-slate-800 shadow-md focus:outline-none focus:ring-2 focus:ring-slate-300/70">
+                  <Link href="/artworks/new">Lägg upp konst</Link>
+                </Button>
+                <Button
+                variant="outline"
+                  size="sm"
+                  className="border-slate-300 text-slate-700 hover:bg-red-500 hover:text-white"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                >
+                  Logga ut
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-slate-300 text-slate-700 hover:bg-slate-900 hover:text-white"
+                asChild
+              >
+                <Link href="/auth/signin">Logga in</Link>
+              </Button>
+            )}
+      </div>
 
           {/* Mobile menu button */}
           <button
+            ref={mobileMenuButtonRef}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-controls="mobile-menu"
             aria-expanded={mobileMenuOpen}
@@ -97,53 +191,78 @@ export default function NavBar() {
           </button>
         </div>
 
+        {mobileMenuMounted && (
+          <button
+            type="button"
+            aria-label="Stäng mobilmeny"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`md:hidden fixed inset-0 top-16 bg-slate-900/20 backdrop-blur-[1px] transition-opacity duration-200 ${
+              mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+          />
+        )}
+
         {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div id="mobile-menu" role="menu" className="md:hidden border-t border-slate-200/70 py-4 space-y-3 bg-white/90 backdrop-blur-lg">
-            <Link 
-              href="/feed" 
+        {mobileMenuMounted && (
+          <div
+            ref={mobileMenuRef}
+            id="mobile-menu"
+            role="menu"
+            className={`md:hidden relative z-10 border-t border-slate-200/70 py-4 space-y-3 bg-white/90 backdrop-blur-lg transition-all duration-200 ${
+              mobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'
+            }`}
+          >
+            <Link
+              href="/feed"
               className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Flöde
             </Link>
-            <Link 
-              href="/artworks" 
+            <Link
+              href="/artworks"
               className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Marknadsplats
             </Link>
-            <Link 
-              href="/users" 
+            <Link
+              href="/users"
               className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Sök användare
             </Link>
-            <Link 
-              href="/favorites" 
+            <Link
+              href="/favorites"
               className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Favoriter
             </Link>
-            <Link 
-              href="/community" 
+            <Link
+              href="/community"
               className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Community
             </Link>
-            <Link 
-              href="/ai" 
+            <Link
+              href="/utmaning"
+              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Utmaning
+            </Link>
+            <Link
+              href="/ai"
               className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               AI-verktyg
             </Link>
-            <Link 
-              href="/notifications" 
+            <Link
+              href="/notifications"
               className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded relative transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -155,16 +274,39 @@ export default function NavBar() {
               )}
             </Link>
             <div className="border-t border-slate-200/70 pt-3 px-4 space-y-2">
-              <Button variant="outline" className="w-full border-slate-300 text-slate-700 hover:bg-slate-900 hover:text-white" asChild>
-                <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
-                  Profil
-                </Link>
-              </Button>
-              <Button className="w-full bg-slate-900 text-white hover:bg-slate-800" asChild>
-                <Link href="/artworks/new" onClick={() => setMobileMenuOpen(false)}>
-                  Lägg upp konst
-                </Link>
-              </Button>
+              {session ? (
+                <>
+                  <Button variant="outline" className="w-full border-slate-300 text-slate-700 hover:bg-slate-900 hover:text-white" asChild>
+                    <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+                      Profil
+                    </Link>
+                  </Button>
+                  <Button className="w-full bg-slate-900 text-white hover:bg-slate-800" asChild>
+                    <Link href="/artworks/new" onClick={() => setMobileMenuOpen(false)}>
+                      Lägg upp konst
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full border-slate-300 text-slate-700 hover:bg-red-500 hover:text-white"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      signOut({ callbackUrl: "/" });
+                    }}
+                  >
+                    Logga ut
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full border-slate-300 text-slate-700 hover:bg-slate-900 hover:text-white"
+                  asChild
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Link href="/auth/signin">Logga in</Link>
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -172,3 +314,4 @@ export default function NavBar() {
     </nav>
   );
 }
+

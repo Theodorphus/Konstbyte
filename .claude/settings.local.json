@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma generate)",
+      "Bash(npm run build)",
+      "Bash(npx prisma generate --no-engine)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(node -e \":*)",
+      "Bash(grep -n \"isSold\\\\|isPublished\\\\|soldAt\" src/app/artworks/[id]/page.tsx)",
+      "Bash(grep -n \"resend\\\\|nodemailer\\\\|EMAIL\\\\|sendMail\" src/app/api/auth/[...nextauth]/route.ts)",
+      "Bash(npx prisma migrate dev --name add_order_flow)",
+      "Bash(grep -n \"findLastIndex\" /c/Users/Theo/konstbyte/src/app/orders/[id]/page.tsx)"
+    ]
+  }
+}

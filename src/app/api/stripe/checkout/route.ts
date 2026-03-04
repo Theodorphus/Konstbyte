@@ -17,11 +17,20 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
     // Create a pending order in the database so we can reconcile after webhook
+    if (artwork.isSold) {
+      return NextResponse.json({ error: 'Artwork already sold' }, { status: 409 });
+    }
+
+    const feePercent = Number(process.env.PLATFORM_FEE_PERCENT ?? 5) / 100;
+    const unitAmount = Math.round(artwork.price * 100);
+
     const order = await prisma.order.create({
       data: {
         buyerId: user.id,
+        sellerId: artwork.ownerId,
         artworkId: artwork.id,
         amount: artwork.price,
+        feeAmount: Math.round(artwork.price * feePercent * 100) / 100,
         status: 'pending'
       }
     });
@@ -31,22 +40,28 @@ export async function POST(request: Request) {
       line_items: [
         {
           price_data: {
-            currency: 'usd',
+            currency: 'sek',
             product_data: { name: artwork.title, images: [artwork.imageUrl] },
-            unit_amount: artwork.price
+            unit_amount: unitAmount,
           },
-          quantity: 1
+          quantity: 1,
         }
       ],
       mode: 'payment',
       customer_email: user.email || undefined,
       metadata: { orderId: order.id, artworkId: artwork.id },
       success_url: successUrl || `${process.env.NEXTAUTH_URL}/success`,
-      cancel_url: cancelUrl || `${process.env.NEXTAUTH_URL}/cancel`
+      cancel_url: cancelUrl || `${process.env.NEXTAUTH_URL}/cancel`,
+    });
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { stripeSessionId: session.id },
     });
 
     return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (err) {
+    console.error('[checkout] error:', err);
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }

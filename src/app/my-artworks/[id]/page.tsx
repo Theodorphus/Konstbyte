@@ -17,7 +17,7 @@ export default function EditArtworkPage() {
       .then((data) => {
         setTitle(data.title || '');
         setDescription(data.description || '');
-        setPrice(String((data.price ?? 0) / 100));
+        setPrice(String(data.price ?? 0));
         setIsPublished(Boolean(data.isPublished));
       });
   }, [params.id]);
@@ -30,7 +30,7 @@ export default function EditArtworkPage() {
       body: JSON.stringify({
         title,
         description,
-        price: Math.round(Number(price) * 100),
+        price: Math.round(Number(price)),
         isPublished
       })
     });

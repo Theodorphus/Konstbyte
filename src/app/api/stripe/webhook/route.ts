@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import type Stripe from 'stripe';
 import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
+import { sendEmail, buyerConfirmationEmail, sellerNotificationEmail } from '../../../../lib/email';
 
 // Use Node runtime so we can access the raw request body for signature verification
 export async function POST(request: Request) {
@@ -9,42 +11,110 @@ export async function POST(request: Request) {
 
   try {
     const buf = Buffer.from(await request.arrayBuffer());
-    let event: any;
+    let eventType = '';
+    let session: Stripe.Checkout.Session | null = null;
 
     if (webhookSecret) {
       try {
-        event = stripe.webhooks.constructEvent(buf, signature, webhookSecret);
+        const event = stripe.webhooks.constructEvent(buf, signature, webhookSecret);
+        eventType = event.type;
+        if (event.type === 'checkout.session.completed') {
+          session = event.data.object as Stripe.Checkout.Session;
+        }
       } catch (err) {
         console.error('Webhook signature verification failed:', err);
         return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
       }
     } else {
       // No webhook secret configured — accept JSON body (not recommended for production)
-      event = JSON.parse(buf.toString());
+      const parsed = JSON.parse(buf.toString()) as {
+        type?: unknown;
+        data?: { object?: unknown };
+      };
+      eventType = typeof parsed.type === 'string' ? parsed.type : '';
+      if (eventType === 'checkout.session.completed' && parsed.data?.object) {
+        session = parsed.data.object as Stripe.Checkout.Session;
+      }
     }
 
-    const type = event.type;
-    if (type === 'checkout.session.completed') {
-      const session = event.data.object;
+    if (eventType === 'checkout.session.completed' && session) {
       const orderId = session.metadata?.orderId;
       try {
         if (orderId) {
-          // Update order status and create payment record
-          await prisma.order.update({ where: { id: orderId }, data: { status: 'paid' } });
-          const amount = session.amount_total ?? session.amount_subtotal ?? undefined;
+          const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+          const amountRaw = session.amount_total ?? session.amount_subtotal ?? 0;
+          const amountSek = amountRaw / 100;
           const stripePaymentId = session.payment_intent || session.id;
-          if (amount && stripePaymentId) {
-            await prisma.payment.create({
+
+          // Fetch order with relations
+          const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            include: {
+              artwork: true,
+              buyer: { select: { name: true, email: true } },
+              seller: { select: { name: true, email: true } },
+            },
+          });
+
+          if (!order) throw new Error(`Order ${orderId} not found`);
+
+          // Update order, mark artwork as sold, create item + events + payment atomically
+          await prisma.$transaction([
+            prisma.order.update({ where: { id: orderId }, data: { status: 'completed' } }),
+            prisma.artwork.update({
+              where: { id: order.artworkId },
+              data: { isSold: true, soldAt: new Date() },
+            }),
+            prisma.orderItem.create({
               data: {
                 orderId,
-                stripeId: String(stripePaymentId),
-                amount: Number(amount)
-              }
+                title: order.artwork.title,
+                price: order.artwork.price,
+                imageUrl: order.artwork.imageUrl,
+              },
+            }),
+            prisma.orderEvent.create({
+              data: { orderId, type: 'payment_completed', message: 'Betalning mottagen via Stripe.' },
+            }),
+            prisma.orderEvent.create({
+              data: { orderId, type: 'processing', message: 'Konstnären packar och förbereder försändelsen.' },
+            }),
+            ...(stripePaymentId
+              ? [prisma.payment.create({
+                  data: { orderId, stripeId: String(stripePaymentId), amount: amountRaw },
+                })]
+              : []),
+          ]);
+
+          // Send confirmation emails (fire-and-forget, don't block webhook response)
+          const buyerEmail = order.buyer.email;
+          const sellerEmail = order.seller?.email;
+
+          if (buyerEmail) {
+            const mail = buyerConfirmationEmail({
+              orderId,
+              artworkTitle: order.artwork.title,
+              imageUrl: order.artwork.imageUrl,
+              artistName: order.seller?.name || 'Konstnären',
+              amountSek,
+              appUrl,
             });
+            sendEmail({ to: buyerEmail, ...mail }).catch(console.error);
+          }
+
+          if (sellerEmail) {
+            const mail = sellerNotificationEmail({
+              orderId,
+              artworkTitle: order.artwork.title,
+              buyerName: order.buyer.name || 'Köparen',
+              amountSek,
+              appUrl,
+            });
+            sendEmail({ to: sellerEmail, ...mail }).catch(console.error);
           }
         }
       } catch (e) {
-        console.error('Failed to update order/payment after webhook:', e);
+        console.error('Failed to process webhook:', e);
       }
     }
 

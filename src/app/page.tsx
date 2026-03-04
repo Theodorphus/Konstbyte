@@ -1,3 +1,25 @@
+import Link from 'next/link';
+import Image from 'next/image';
+import prisma from '../lib/prisma';
+import TestimonialsClient from '../components/TestimonialsClient';
+import { formatSek } from '../lib/currency';
+import SafeImage from '../components/SafeImage';
+
+// --- Typning ---
+type Artwork = {
+  id: string;
+  title: string;
+  description: string | null;
+  price: number;
+  imageUrl: string;
+  isPublished: boolean;
+};
+
+// --- Revalidate homepage artworks every 60 seconds (ISR) ---
+export const revalidate = 60;
+export const dynamic = "force-dynamic";
+
+// --- Metadata ---
 export const metadata = {
   title: 'Konstbyte — Marknadsplats för konst',
   description: 'Upptäck, köp och sälj konst från oberoende konstnärer. Skapa konto och börja handla idag.',
@@ -11,15 +33,6 @@ export const metadata = {
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000'),
 };
-
-// Revalidate homepage artworks every 60 seconds (ISR)
-export const revalidate = 60;
-export const dynamic = "force-dynamic";
-
-import Link from 'next/link';
-import Image from 'next/image';
-import prisma from '../lib/prisma';
-import TestimonialsClient from '../components/TestimonialsClient';
 
 function toBase64(str: string) {
   try {
@@ -44,19 +57,59 @@ function shimmer(w = 700, h = 475) {
   </svg>`;
 }
 
-const heroBlurDataURL = `data:image/svg+xml;base64,${toBase64(shimmer(1200,800))}`;
-const thumbBlurDataURL = `data:image/svg+xml;base64,${toBase64(shimmer(400,400))}`;
+const heroBlurDataURL = `data:image/svg+xml;base64,${toBase64(shimmer(1200, 800))}`;
+const thumbBlurDataURL = `data:image/svg+xml;base64,${toBase64(shimmer(400, 400))}`;
+
+function HomeArtworksGrid({ artworks }: { artworks: Artwork[] }) {
+  return (
+    <div className="mt-10 grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
+      {artworks.map((art) => (
+        <Link key={art.id} href={`/artworks/${art.id}`} className="group">
+          <div className="rounded-2xl bg-white/90 p-6 shadow-md shadow-slate-900/5 ring-1 ring-slate-200/70 transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-xl hover:shadow-slate-900/10">
+            <div className="relative w-full overflow-hidden rounded-2xl bg-slate-50/80 ring-1 ring-slate-200/60">
+              <div className="relative mx-auto aspect-[4/3] w-full max-w-[320px]">
+                <SafeImage
+                  src={art.imageUrl}
+                  alt={art.title}
+                  fill
+                  className="object-contain transition duration-700 ease-out group-hover:scale-[1.03]"
+                  placeholder="blur"
+                  blurDataURL={thumbBlurDataURL}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="font-semibold text-base text-slate-900 truncate">{art.title}</div>
+                <div className="text-sm text-slate-500">{formatSek(art.price)}</div>
+              </div>
+              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200/60">Ny</span>
+            </div>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
 
 export default async function HomePage() {
-  const artworks = await prisma.artwork.findMany({
-    where: { isPublished: true },
-    orderBy: { createdAt: 'desc' },
-    take: 6,
-  });
+  let artworks: Artwork[] = [];
+  let loadError = false;
+  try {
+    artworks = await prisma.artwork.findMany({
+      where: { isPublished: true },
+      orderBy: { createdAt: 'desc' },
+      take: 6,
+    });
+  } catch (e) {
+    loadError = true;
+  }
 
   return (
     <div className="min-h-screen">
+      {/* Hero-section orörd */}
       <section className="relative overflow-hidden rounded-[36px] bg-slate-950 text-white shadow-xl shadow-slate-900/20 ring-1 ring-white/10">
+        {/* ...rest of hero... */}
         <div className="absolute inset-0 z-0 pointer-events-none opacity-35">
           <Image
             src="/weinstock-brush-96240.jpg"
@@ -73,7 +126,7 @@ export default async function HomePage() {
         <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_18%_22%,_rgba(251,191,36,0.12),_transparent_52%),radial-gradient(circle_at_78%_80%,_rgba(251,113,133,0.18),_transparent_56%)]" />
         <div className="absolute -top-20 -right-24 z-10 h-72 w-72 rounded-full bg-amber-300/15 blur-[140px]" />
         <div className="absolute -bottom-44 -left-20 z-10 h-96 w-96 rounded-full bg-rose-300/15 blur-[160px]" />
-
+        {/* ... (existing hero section content) ... */}
         <div className="relative z-20 flex min-h-[360px] items-center px-6 py-12 md:min-h-[460px] md:px-10 md:py-16">
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs uppercase tracking-wide text-white/70 animate-fade-up">
@@ -112,59 +165,58 @@ export default async function HomePage() {
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Senaste</p>
             <h2 className="font-display text-3xl md:text-4xl">Nya konstverk i flödet</h2>
           </div>
-          <Link href="/artworks" aria-label="Visa alla konstverk" className="text-sm font-semibold text-slate-900 hover:text-slate-700">
+          <Link
+            href="/artworks"
+            aria-label="Visa alla konstverk"
+            className="text-sm font-semibold text-slate-900 hover:text-slate-700"
+          >
             Visa alla konstverk →
           </Link>
         </div>
 
-        <div className="mt-10 grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
-          {artworks.map((art) => (
-            <Link key={art.id} href={`/artworks/${art.id}`} className="group">
-              <div className="rounded-2xl bg-white/90 p-6 shadow-md shadow-slate-900/5 ring-1 ring-slate-200/70 transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-xl hover:shadow-slate-900/10">
-                <div className="relative w-full overflow-hidden rounded-2xl bg-slate-50/80 ring-1 ring-slate-200/60">
-                  <div className="relative mx-auto aspect-[4/3] w-full max-w-[320px]">
-                    <Image
-                      src={art.imageUrl}
-                      alt={art.title}
-                      fill
-                      className="object-contain transition duration-700 ease-out group-hover:scale-[1.03]"
-                      placeholder="blur"
-                      blurDataURL={thumbBlurDataURL}
-                    />
-                  </div>
-                </div>
-                <div className="mt-6 flex items-center justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="font-semibold text-base text-slate-900 truncate">{art.title}</div>
-                    <div className="text-sm text-slate-500">{art.price} SEK</div>
-                  </div>
-                  <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200/60">Ny</span>
-                </div>
-              </div>
+        {loadError ? (
+          <div className="mt-10 rounded-2xl border bg-white/80 p-8 text-center text-red-600 font-medium">
+            Tekniskt fel – kunde inte hämta konstverk. Försök igen senare.
+          </div>
+        ) : artworks.length > 0 ? (
+          <HomeArtworksGrid artworks={artworks} />
+        ) : (
+          <div className="mt-10 rounded-2xl border border-slate-200/70 bg-white/80 p-8 text-center">
+            <p className="text-slate-700 font-medium">Inga publicerade konstverk ännu.</p>
+            <p className="mt-2 text-sm text-slate-500">Titta in snart igen eller bli först med att publicera ett verk.</p>
+            <Link
+              href="/artworks/new"
+              className="mt-5 inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+            >
+              Publicera konstverk
             </Link>
-          ))}
-        </div>
+          </div>
+        )}
       </section>
 
+      {/* ...resten av dina sektioner som tidigare... */}
+      {/* De kan förstås också brytas ut till egna komponenter men låt stå för enkelhet just nu */}
       <section className="mt-24">
         <div className="grid gap-6 lg:grid-cols-[0.65fr_1fr]">
           <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Kuratorns val</p>
             <h3 className="font-display mt-3 text-2xl">Tre riktningar att upptäcka</h3>
-            <p className="mt-3 text-sm text-slate-600">Varje vecka handplockar vi verk som speglar vad som rör sig i ateljéerna just nu.</p>
+            <p className="mt-3 text-sm text-slate-600">
+              Varje vecka handplockar vi verk som speglar vad som rör sig i ateljéerna just nu.
+            </p>
             <div className="mt-6 space-y-3">
               {[
                 { title: 'Mjuka pigment', text: 'Pastell, textil och taktila ytor.' },
                 { title: 'Grafisk rytm', text: 'Monokroma serier och tryck.' },
                 { title: 'Nordiskt ljus', text: 'Fotografi med känsla av stillhet.' },
-              ].map((item) => (
+            ].map((item) => (
                 <div key={item.title} className="rounded-2xl border border-slate-200/70 bg-white/85 p-4">
                   <p className="text-sm font-semibold text-slate-900">{item.title}</p>
                   <p className="mt-1 text-xs text-slate-500">{item.text}</p>
-                </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
+        </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {[
               { title: 'Ateljé: Linn Ek', tag: 'Nysläppt', tone: 'bg-amber-200/70' },
@@ -173,20 +225,22 @@ export default async function HomePage() {
               { title: 'Minimalistiskt collage', tag: 'Trend', tone: 'bg-amber-100/70' },
             ].map((item) => (
               <div key={item.title} className="rounded-3xl border border-slate-200/70 bg-white/80 p-5 shadow-sm">
-                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold text-slate-700 ${item.tone}`}>
+                <span
+                  className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold text-slate-700 ${item.tone}`}
+                >
                   {item.tag}
                 </span>
                 <p className="font-display mt-4 text-xl text-slate-900">{item.title}</p>
                 <p className="mt-2 text-sm text-slate-600">Kuraterade verk med tydlig form och känsla.</p>
-              </div>
+        </div>
             ))}
           </div>
-        </div>
+            </div>
       </section>
 
       <section className="mt-28">
         <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] items-center">
-          <div>
+            <div>
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Community</p>
             <h2 className="font-display mt-4 text-3xl md:text-4xl">Ett community för dig som skapar.</h2>
             <p className="mt-4 text-slate-600 max-w-xl">
@@ -214,9 +268,9 @@ export default async function HomePage() {
                 <div key={item.title} className="rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-sm">
                   <h3 className="font-semibold text-slate-900">{item.title}</h3>
                   <p className="mt-2 text-sm text-slate-600">{item.text}</p>
-                </div>
+        </div>
               ))}
-            </div>
+    </div>
           </div>
 
           <div className="space-y-4">
@@ -234,7 +288,10 @@ export default async function HomePage() {
               <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Community live</p>
               <p className="font-display mt-3 text-2xl text-slate-900">Få feedback på din senaste serie.</p>
               <p className="mt-3 text-sm text-slate-600">Små grupper, varm stämning och kreativt fokus.</p>
-              <Link href="/community" className="mt-4 inline-flex items-center text-sm font-semibold text-slate-900 hover:text-slate-700">
+              <Link
+                href="/community"
+                className="mt-4 inline-flex items-center text-sm font-semibold text-slate-900 hover:text-slate-700"
+              >
                 Gå till communityt →
               </Link>
             </div>
@@ -320,13 +377,21 @@ export default async function HomePage() {
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-slate-600">Redo att skapa?</p>
               <h2 className="font-display mt-3 text-3xl md:text-4xl text-slate-900">Starta din butik på Konstbyte.</h2>
-              <p className="mt-3 text-sm text-slate-700 max-w-xl">Bygg din publik, få verktyg för leverans och betalt, och lansera din nästa kollektion med oss.</p>
+              <p className="mt-3 text-sm text-slate-700 max-w-xl">
+                Bygg din publik, få verktyg för leverans och betalt, och lansera din nästa kollektion med oss.
+              </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link href="/artworks/new" className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:bg-slate-800">
+              <Link
+                href="/artworks/new"
+                className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:bg-slate-800"
+              >
                 Skapa butik
               </Link>
-              <Link href="/hur-det-fungerar" className="inline-flex items-center justify-center rounded-full border border-slate-900/30 px-6 py-3 text-sm font-semibold text-slate-900 hover:bg-white/60">
+              <Link
+                href="/hur-det-fungerar"
+                className="inline-flex items-center justify-center rounded-full border border-slate-900/30 px-6 py-3 text-sm font-semibold text-slate-900 hover:bg-white/60"
+              >
                 Hur det fungerar
               </Link>
             </div>
@@ -336,3 +401,4 @@ export default async function HomePage() {
     </div>
   );
 }
+

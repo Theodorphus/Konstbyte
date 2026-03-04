@@ -1,9 +1,11 @@
 import { getCurrentUser } from '../../lib/auth';
 import prisma from '../../lib/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import Image from 'next/image';
+import SafeImage from '../../components/SafeImage';
 import { Button } from '../../components/ui/button';
 import Link from 'next/link';
+import { formatSek } from '../../lib/currency';
+import { PageHeader } from '../../components/PageHeader';
 export const revalidate = 60;
 export const dynamic = "force-dynamic";
 
@@ -65,18 +67,29 @@ export default async function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Min profil</h1>
-          <p className="text-slate-600 mt-1">{user.name || user.email}</p>
-        </div>
+      <PageHeader
+        title="Min profil"
+        description={user.name || (user.email ?? undefined)}
+        className="mb-2"
+      >
         <Button variant="outline" asChild>
           <Link href="/profile/edit">Redigera profil</Link>
         </Button>
-      </div>
+      </PageHeader>
+      {/* Seller info */}
+      <Card className="border-amber-200 bg-amber-50">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm text-amber-800">Sälj konst på Konstbyte</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-amber-700">
+            När ditt konstverk säljs kontaktar Konstbyte dig för utbetalning via Swish eller bank. Plattformen tar 5% provision.
+          </p>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
           <CardHeader>
             <CardTitle className="text-sm">Mina konstverk</CardTitle>
           </CardHeader>
@@ -88,7 +101,7 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
           <CardHeader>
             <CardTitle className="text-sm">Mina köp</CardTitle>
           </CardHeader>
@@ -100,7 +113,7 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
           <CardHeader>
             <CardTitle className="text-sm">Community-inlägg</CardTitle>
           </CardHeader>
@@ -112,7 +125,7 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
           <CardHeader>
             <CardTitle className="text-sm">Favoriter</CardTitle>
           </CardHeader>
@@ -126,7 +139,7 @@ export default async function ProfilePage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
           <CardHeader>
             <CardTitle className="text-sm">Följare</CardTitle>
           </CardHeader>
@@ -138,7 +151,7 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
           <CardHeader>
             <CardTitle className="text-sm">Följer</CardTitle>
           </CardHeader>
@@ -152,7 +165,7 @@ export default async function ProfilePage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
           <CardHeader>
             <CardTitle>Aktivitet</CardTitle>
           </CardHeader>
@@ -190,7 +203,7 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
           <CardHeader>
             <CardTitle>Senaste konstverk</CardTitle>
           </CardHeader>
@@ -200,14 +213,14 @@ export default async function ProfilePage() {
             ) : (
               <div className="space-y-3">
                 {artworks.slice(0, 3).map(art => (
-                  <Link key={art.id} href={`/artworks/${art.id}`} className="block">
-                    <div className="flex gap-3 p-2 hover:bg-slate-50 rounded">
+                  <Link key={art.id} href={`/artworks/${art.id}`} className="group block">
+                    <div className="flex gap-3 p-2 rounded transition-colors duration-200 hover:bg-slate-50">
                       <div className="w-16 h-16 bg-slate-100 rounded overflow-hidden flex-shrink-0 relative">
-                          <Image src={art.imageUrl} alt={art.title} fill className="object-cover" />
+                          <SafeImage src={art.imageUrl} alt={art.title} fill className="object-cover transition-transform duration-300 ease-out motion-reduce:transition-none group-hover:scale-105" />
                         </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold truncate">{art.title}</div>
-                        <div className="text-sm text-slate-600">{art.price} SEK</div>
+                        <div className="text-sm text-slate-600">{formatSek(art.price)}</div>
                       </div>
                     </div>
                   </Link>
@@ -220,7 +233,7 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
           <CardHeader>
             <CardTitle>Senaste köp</CardTitle>
           </CardHeader>
@@ -235,13 +248,13 @@ export default async function ProfilePage() {
             ) : (
               <div className="space-y-3">
                 {orders.slice(0, 3).map(order => (
-                  <div key={order.id} className="flex gap-3 p-2 border rounded">
+                  <div key={order.id} className="flex gap-3 p-2 border rounded transition-colors duration-200 hover:bg-slate-50">
                     <div className="w-16 h-16 bg-slate-100 rounded overflow-hidden flex-shrink-0 relative">
-                      <Image src={order.artwork.imageUrl} alt={order.artwork.title} fill className="object-cover" />
+                      <SafeImage src={order.artwork.imageUrl} alt={order.artwork.title} fill className="object-cover transition-transform duration-300 ease-out motion-reduce:transition-none" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{order.artwork.title}</div>
-                      <div className="text-sm text-slate-600">{order.amount} SEK</div>
+                      <div className="text-sm text-slate-600">{formatSek(order.amount)}</div>
                       <div className="text-xs text-slate-500 capitalize">{order.status}</div>
                     </div>
                   </div>
@@ -252,7 +265,7 @@ export default async function ProfilePage() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
         <CardHeader>
           <CardTitle>Sparade favoriter</CardTitle>
         </CardHeader>
@@ -270,15 +283,15 @@ export default async function ProfilePage() {
                 {favorites.slice(0, 4).map(fav => (
                   <Link key={fav.id} href={`/artworks/${fav.artwork.id}`} className="group">
                     <div className="aspect-square bg-slate-100 rounded overflow-hidden mb-2 relative">
-                      <Image
+                      <SafeImage
                         src={fav.artwork.imageUrl}
                         alt={fav.artwork.title}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform"
+                        className="object-cover transition-transform duration-300 ease-out motion-reduce:transition-none group-hover:scale-105"
                       />
                     </div>
                     <div className="text-xs font-medium truncate">{fav.artwork.title}</div>
-                    <div className="text-xs text-slate-500">{fav.artwork.price} SEK</div>
+                    <div className="text-xs text-slate-500">{formatSek(fav.artwork.price)}</div>
                   </Link>
                 ))}
               </div>

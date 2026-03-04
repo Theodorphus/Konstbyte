@@ -2,5 +2,12 @@
   "extends": [
     "next/core-web-vitals",
     "next/typescript"
+  ],
+  "ignorePatterns": [
+    "konstbyte/**",
+    "prisma/**/*.js",
+    "scripts/**/*.js",
+    "tools/**/*.js",
+    "tailwind.config.js"
   ]
 }
