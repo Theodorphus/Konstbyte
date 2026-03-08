@@ -2,8 +2,7 @@ import './globals.css';
 import React from 'react';
 import Link from 'next/link';
 import { Fraunces, Space_Grotesk } from 'next/font/google';
-import ClientLayout from './ClientLayout'; // <-- ADDED import ClientLayout
-// Removed: import { SessionProvider } from 'next-auth/react'; // <-- LÄGG TILL DENNA RAD (not used in new version)
+import ClientLayout from './ClientLayout';
 
 const displayFont = Fraunces({
   subsets: ['latin'],
@@ -69,63 +68,64 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </main>
             </ClientLayout>
           <footer role="contentinfo" className="border-t border-slate-200/70 bg-gradient-to-b from-white via-[#f7f3ec] to-[#efe7da] text-slate-700">
-            <div className="max-w-7xl mx-auto px-6 py-14">
-              <div className="grid gap-8 md:grid-cols-[1.2fr_1fr_1fr_1fr] text-sm mb-10">
-                <div className="space-y-3">
-                  <div className="font-display text-lg font-semibold tracking-wide flex items-center gap-2 text-slate-900">
+            <div className="max-w-7xl mx-auto px-6 pt-16 pb-10">
+              {/* Top row */}
+              <div className="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr_1fr] text-sm mb-12">
+                {/* Brand */}
+                <div className="space-y-4">
+                  <div className="font-display text-xl font-semibold tracking-wide flex items-center gap-2 text-slate-900">
                     🎨 Konstbyte
                   </div>
-                  <p className="text-slate-600 leading-relaxed">
-                    Konstbyte — ett svenskt community för kreatörer. Köp och sälj unika verk direkt från konstnärer.
+                  <p className="text-slate-600 leading-relaxed max-w-xs">
+                    Ett svenskt community där kreatörer växer tillsammans. Köp och sälj unika verk direkt från konstnärer.
                   </p>
-                  <p className="text-slate-500">📧 konstbyte@gmail.com</p>
-                  <p className="text-slate-500">📍 Göteborg, Sverige</p>
-                  <div className="flex gap-3 pt-2">
-                    <a href="https://facebook.com/konstbyte" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="w-8 h-8 rounded-full border border-slate-200/70 bg-white/70 hover:bg-white flex items-center justify-center transition-colors">
-                      📘
-                    </a>
-                    <a href="https://instagram.com/konstbyte" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-8 h-8 rounded-full border border-slate-200/70 bg-white/70 hover:bg-white flex items-center justify-center transition-colors">
-                      📷
-                    </a>
-                    <a href="https://twitter.com/konstbyte" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="w-8 h-8 rounded-full border border-slate-200/70 bg-white/70 hover:bg-white flex items-center justify-center transition-colors">
-                      🐦
-                    </a>
+                  <div className="space-y-1 text-slate-500 text-xs">
+                    <p>📧 konstbyte@gmail.com</p>
+                    <p>📍 Göteborg, Sverige</p>
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="font-semibold text-slate-900">Marknadsplats</div>
-                  <ul className="space-y-2 text-slate-600">
+
+                {/* Marknadsplats */}
+                <div className="space-y-4">
+                  <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Marknadsplats</div>
+                  <ul className="space-y-2.5 text-slate-600">
                     <li><Link href="/artworks" className="hover:text-slate-900 transition-colors">Alla konstverk</Link></li>
                     <li><Link href="/artworks?category=Målning" className="hover:text-slate-900 transition-colors">Målningar</Link></li>
                     <li><Link href="/artworks?category=Skulptur" className="hover:text-slate-900 transition-colors">Skulpturer</Link></li>
-                    <li><Link href="/artworks/new" className="hover:text-slate-900 transition-colors">Bli konstnär</Link></li>
-                    <li><Link href="/ai/value-art" className="hover:text-slate-900 transition-colors">AI‑värdering</Link></li>
+                    <li><Link href="/artworks/new" className="font-semibold text-amber-700 hover:text-amber-800 transition-colors">Bli konstnär →</Link></li>
+                    <li><Link href="/ai/value-art" className="hover:text-slate-900 transition-colors">AI-värdering</Link></li>
                   </ul>
                 </div>
-                <div className="space-y-3">
-                  <div className="font-semibold text-slate-900">Community</div>
-                  <ul className="space-y-2 text-slate-600">
+
+                {/* Community & Information kombinerat */}
+                <div className="space-y-4">
+                  <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Community</div>
+                  <ul className="space-y-2.5 text-slate-600">
                     <li><Link href="/community" className="hover:text-slate-900 transition-colors">Diskussioner</Link></li>
-                    <li><Link href="/community" className="hover:text-slate-900 transition-colors">Gå med i communityt</Link></li>
-                    <li><Link href="/feed" className="hover:text-slate-900 transition-colors">Ditt flöde</Link></li>
+                    <li><Link href="/feed" className="hover:text-slate-900 transition-colors">Flöde</Link></li>
                     <li><Link href="/users" className="hover:text-slate-900 transition-colors">Hitta konstnärer</Link></li>
-                    <li><Link href="/favorites" className="hover:text-slate-900 transition-colors">Favoriter</Link></li>
+                    <li><Link href="/utmaning" className="hover:text-slate-900 transition-colors">Utmaningar</Link></li>
                   </ul>
                 </div>
-                <div className="space-y-3">
-                  <div className="font-semibold text-slate-900">Information</div>
-                  <ul className="space-y-2 text-slate-600">
+
+                {/* Information & Policies */}
+                <div className="space-y-4">
+                  <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Information</div>
+                  <ul className="space-y-2.5 text-slate-600">
                     <li><Link href="/om-oss" className="hover:text-slate-900 transition-colors">Om Konstbyte</Link></li>
                     <li><Link href="/hur-det-fungerar" className="hover:text-slate-900 transition-colors">Hur det fungerar</Link></li>
-                    <li><Link href="/hur-det-fungerar" className="hover:text-slate-900 transition-colors">Guider</Link></li>
-                    <li><Link href="/avgifter" className="hover:text-slate-900 transition-colors">Avgifter & Priser</Link></li>
-                    <li><Link href="/kontakt" className="hover:text-slate-900 transition-colors">Kontakta oss</Link></li>
+                    <li><Link href="/avgifter" className="hover:text-slate-900 transition-colors">Avgifter & priser</Link></li>
+                    <li><Link href="/policies/faq" className="hover:text-slate-900 transition-colors">Vanliga frågor</Link></li>
+                    <li><Link href="/policies/terms" className="hover:text-slate-900 transition-colors">Användarvillkor</Link></li>
+                    <li><Link href="/policies/privacy" className="hover:text-slate-900 transition-colors">Integritetspolicy</Link></li>
                   </ul>
                 </div>
               </div>
-              <div className="border-t border-slate-200/70 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+
+              {/* Bottom bar */}
+              <div className="border-t border-slate-200/70 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-400">
                 <span>© {currentYear} Konstbyte.se. Alla rättigheter förbehållna.</span>
-                <span>Plattformsavgift: 3% på alla försäljningar. Säker betalning med Stripe.</span>
+                <span className="font-medium text-slate-500">Bara 5% i plattformsavgift — trygg betalning med Stripe.</span>
               </div>
             </div>
           </footer>

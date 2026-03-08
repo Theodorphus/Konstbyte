@@ -90,6 +90,11 @@ body {
   animation-delay: 0.15s;
 }
 
+.animate-fade-up-delay-2 {
+  animation: fade-up 1.2s cubic-bezier(0.2, 0.65, 0.25, 1) both;
+  animation-delay: 0.3s;
+}
+
 .animate-float-slow {
   animation: float-slow 6s ease-in-out infinite;
 }
@@ -97,6 +102,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,
   .animate-fade-up-delay,
+  .animate-fade-up-delay-2,
   .animate-float-slow {
     animation: none;
   }

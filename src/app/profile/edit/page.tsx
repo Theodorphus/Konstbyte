@@ -7,6 +7,9 @@ import { Input } from '../../../components/ui/input';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { UploadButton } from '@uploadthing/react';
+import type { UploadRouter } from '../../../lib/uploadthing';
+import Image from 'next/image';
 
 interface User {
   id: string;
@@ -19,6 +22,7 @@ export default function EditProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [name, setName] = useState('');
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -34,6 +38,7 @@ export default function EditProfilePage() {
         const data = await response.json();
         setUser(data);
         setName(data.name || '');
+        setImageUrl(data.image || null);
       } else if (response.status === 401) {
         router.push('/auth/signin');
       }
@@ -41,6 +46,19 @@ export default function EditProfilePage() {
       console.error('Error fetching profile:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleImageUploaded = async (url: string) => {
+    setImageUrl(url);
+    try {
+      await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: url }),
+      });
+    } catch (error) {
+      console.error('Error saving profile image:', error);
     }
   };
 
@@ -52,7 +70,7 @@ export default function EditProfilePage() {
       const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, image: imageUrl }),
       });
 
       if (response.ok) {
@@ -98,6 +116,8 @@ export default function EditProfilePage() {
     );
   }
 
+  const initial = (user.name || user.email || '?')[0].toUpperCase();
+
   return (
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center justify-between">
@@ -106,6 +126,57 @@ export default function EditProfilePage() {
           <Link href="/profile">Tillbaka</Link>
         </Button>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Profilbild</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col sm:flex-row items-center gap-6">
+          <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-200 flex-shrink-0 flex items-center justify-center relative">
+            {imageUrl ? (
+              <Image
+                src={imageUrl}
+                alt="Profilbild"
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <span className="text-3xl font-semibold text-slate-500">{initial}</span>
+            )}
+          </div>
+          <div className="flex flex-col gap-2 w-full">
+            <UploadButton<UploadRouter, 'profileImage'>
+              endpoint="profileImage"
+              content={{
+                button() {
+                  return <span>Välj bild</span>;
+                },
+                allowedContent({ isUploading }) {
+                  if (isUploading) return 'Laddar upp...';
+                  return 'PNG, JPG, max 4MB';
+                },
+              }}
+              appearance={{
+                button: '!bg-slate-800 hover:!bg-slate-700 !text-white !rounded-lg',
+              }}
+              onClientUploadComplete={(res) => {
+                const url = res?.[0]?.url;
+                if (url) handleImageUploaded(url);
+              }}
+              onUploadError={(error) => alert(error.message)}
+            />
+            {imageUrl && (
+              <button
+                type="button"
+                className="text-xs text-slate-500 hover:text-red-500 underline text-left"
+                onClick={() => handleImageUploaded('')}
+              >
+                Ta bort profilbild
+              </button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -158,8 +229,8 @@ export default function EditProfilePage() {
           <p className="text-sm text-slate-600">
             Radera ditt konto och all tillhörande data. Detta kan inte ångras.
           </p>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="border-red-300 text-red-600 hover:bg-red-50"
             onClick={() => alert('Kontoborttagning är inte implementerad ännu')}
           >

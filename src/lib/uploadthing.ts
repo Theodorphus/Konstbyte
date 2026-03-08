@@ -1,17 +1,39 @@
 import { createUploadthing, type FileRouter } from 'uploadthing/next';
+import { UploadThingError } from 'uploadthing/server';
+import { getCurrentUser } from './auth';
 
 const f = createUploadthing();
 
 export const uploadRouter = {
-  artworkImage: f({ image: { maxFileSize: '8MB', maxFileCount: 1 } })
+  postImage: f({ image: { maxFileSize: '4MB', maxFileCount: 1 } })
     .middleware(async () => {
-      // Add auth validation here when auth is wired for uploads
-      return {};
+      const user = await getCurrentUser();
+      if (!user) throw new UploadThingError('Unauthorized');
+      return { userId: user.id };
     })
     .onUploadComplete(async ({ file }) => {
-      // Persist upload metadata if needed
       return { url: file.url };
+    }),
+
+  artworkImage: f({ image: { maxFileSize: '8MB', maxFileCount: 1 } })
+    .middleware(async () => {
+      const user = await getCurrentUser();
+      if (!user) throw new UploadThingError('Unauthorized');
+      return { userId: user.id };
     })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.url };
+    }),
+
+  profileImage: f({ image: { maxFileSize: '4MB', maxFileCount: 1 } })
+    .middleware(async () => {
+      const user = await getCurrentUser();
+      if (!user) throw new UploadThingError('Unauthorized');
+      return { userId: user.id };
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.url };
+    }),
 } satisfies FileRouter;
 
 export type UploadRouter = typeof uploadRouter;

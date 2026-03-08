@@ -8,6 +8,7 @@ import { Input } from '../../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import UploadImageButton from '../../../components/UploadImageButton';
 import SafeImage from '../../../components/SafeImage';
+import { SHIPPING_OPTIONS } from '../../../lib/shipping';
 
 export default function NewArtworkPage() {
   const router = useRouter();
@@ -16,6 +17,10 @@ export default function NewArtworkPage() {
   const [price, setPrice] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState('malningar');
+  const [shippingType, setShippingType] = useState('overenskommes');
+  const [shippingCost, setShippingCost] = useState('');
+  const [shippingArea, setShippingArea] = useState('');
+  const [shippingCarrier, setShippingCarrier] = useState('');
   const [ownerId, setOwnerId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -47,7 +52,11 @@ export default function NewArtworkPage() {
           price: Number(price),
           imageUrl,
           ownerId,
-          category
+          category,
+          shippingType,
+          shippingCost: shippingType === 'fixed' ? Number(shippingCost) : null,
+          shippingArea: shippingType === 'pickup' ? shippingArea : null,
+          shippingCarrier: shippingType === 'other' ? shippingCarrier : null,
         })
       });
 
@@ -161,6 +170,65 @@ export default function NewArtworkPage() {
               </select>
             </div>
 
+            {/* Shipping settings */}
+            <div className="space-y-3 border border-stone-200 rounded-xl p-4 bg-stone-50">
+              <p className="text-sm font-semibold text-slate-800">Fraktinställningar</p>
+
+              <div>
+                <label className="block text-xs font-medium text-stone-500 mb-1">Fraktalternativ</label>
+                <select
+                  className="w-full p-2 border border-stone-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  value={shippingType}
+                  onChange={(e) => setShippingType(e.target.value)}
+                >
+                  {SHIPPING_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {shippingType === 'fixed' && (
+                <div>
+                  <label className="block text-xs font-medium text-stone-500 mb-1">Fraktkostnad (kr)</label>
+                  <Input
+                    type="number"
+                    placeholder="T.ex. 99"
+                    value={shippingCost}
+                    onChange={(e) => setShippingCost(e.target.value)}
+                    min="0"
+                  />
+                </div>
+              )}
+
+              {shippingType === 'pickup' && (
+                <div>
+                  <label className="block text-xs font-medium text-stone-500 mb-1">Stad / område</label>
+                  <Input
+                    placeholder="T.ex. Stockholm, Södermalm"
+                    value={shippingArea}
+                    onChange={(e) => setShippingArea(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {shippingType === 'other' && (
+                <div>
+                  <label className="block text-xs font-medium text-stone-500 mb-1">Fraktbolagets namn</label>
+                  <Input
+                    placeholder="T.ex. Budbee"
+                    value={shippingCarrier}
+                    onChange={(e) => setShippingCarrier(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {shippingType === 'overenskommes' && (
+                <p className="text-xs text-stone-400">
+                  Du och köparen kommer överens om fraktsätt och kostnad direkt efter köpet.
+                </p>
+              )}
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-2">
                 Bild *
@@ -174,7 +242,11 @@ export default function NewArtworkPage() {
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={isLoading}>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="bg-slate-900 text-white hover:bg-slate-700 border border-slate-900 px-6 font-semibold shadow-sm"
+              >
                 {isLoading ? 'Sparar...' : 'Publicera konstverk'}
               </Button>
               <Button

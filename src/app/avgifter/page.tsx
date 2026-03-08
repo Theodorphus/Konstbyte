@@ -7,7 +7,7 @@ export default function FeesPage() {
         <CardTitle>Avgifter & Priser</CardTitle>
       </CardHeader>
       <CardContent className="text-sm text-slate-600 space-y-2">
-        <p>Plattformsavgift: 3% på alla försäljningar.</p>
+        <p>Plattformsavgift: 5% på alla försäljningar.</p>
         <p>Betalningar hanteras säkert via Stripe.</p>
       </CardContent>
     </Card>

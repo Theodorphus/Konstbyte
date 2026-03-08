@@ -34,9 +34,10 @@ export function buyerConfirmationEmail(opts: {
   imageUrl: string;
   artistName: string;
   amountSek: number;
+  shippingCost: number;
   appUrl: string;
 }) {
-  const { orderId, artworkTitle, imageUrl, artistName, amountSek, appUrl } = opts;
+  const { orderId, artworkTitle, imageUrl, artistName, amountSek, shippingCost, appUrl } = opts;
   return {
     subject: `Orderbekräftelse – ${artworkTitle}`,
     html: `
@@ -51,7 +52,7 @@ export function buyerConfirmationEmail(opts: {
           <tr><td style="padding:6px 0;color:#64748b">Konstverk</td><td style="padding:6px 0;font-weight:600">${artworkTitle}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Konstnär</td><td style="padding:6px 0">${artistName}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Pris</td><td style="padding:6px 0;font-weight:700">${amountSek.toLocaleString('sv-SE')} kr</td></tr>
-          <tr><td style="padding:6px 0;color:#64748b">Frakt</td><td style="padding:6px 0">49 kr (Sverige)</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b">Frakt</td><td style="padding:6px 0">${shippingCost > 0 ? `${Math.round(shippingCost).toLocaleString('sv-SE')} kr` : 'Ingår'}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Leverans</td><td style="padding:6px 0">3–5 arbetsdagar</td></tr>
         </table>
 
@@ -106,6 +107,46 @@ export function sellerNotificationEmail(opts: {
           style="display:inline-block;margin-top:16px;padding:10px 20px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;font-size:14px">
           Visa order
         </a>
+      </div>
+    `,
+  };
+}
+
+export function shippedEmail(opts: {
+  orderId: string;
+  artworkTitle: string;
+  sellerName: string;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  appUrl: string;
+}) {
+  const { orderId, artworkTitle, sellerName, trackingNumber, trackingUrl, appUrl } = opts;
+  return {
+    subject: `Ditt konstverk är på väg! 📦 — ${artworkTitle}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
+        <h2 style="margin-bottom:4px">Ditt konstverk är skickat! 📦</h2>
+        <p style="color:#64748b;margin-top:0">Order #${orderId.slice(0, 8)}</p>
+
+        <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
+          <tr><td style="padding:6px 0;color:#64748b">Konstverk</td><td style="padding:6px 0;font-weight:600">${artworkTitle}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b">Konstnär</td><td style="padding:6px 0">${sellerName}</td></tr>
+          ${trackingNumber ? `<tr><td style="padding:6px 0;color:#64748b">Spårningsnummer</td><td style="padding:6px 0;font-family:monospace;font-weight:600">${trackingNumber}</td></tr>` : ''}
+        </table>
+
+        ${trackingUrl ? `
+        <a href="${trackingUrl}" style="display:inline-block;margin-bottom:16px;padding:10px 20px;background:#f59e0b;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600">
+          Spåra ditt paket →
+        </a>
+        ` : ''}
+
+        <a href="${appUrl}/orders/${orderId}" style="display:inline-block;margin-top:8px;padding:10px 20px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;font-size:14px">
+          Visa order
+        </a>
+
+        <p style="margin-top:24px;font-size:12px;color:#94a3b8">
+          Konstbyte ansvarar inte för frakt eller transportskador. Kontakta säljaren direkt om du har frågor om leveransen.
+        </p>
       </div>
     `,
   };

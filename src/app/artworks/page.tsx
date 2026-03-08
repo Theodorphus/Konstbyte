@@ -1,13 +1,11 @@
 "use client";
 import Link from 'next/link';
-import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { useState, useEffect } from 'react';
 import { formatSek } from '../../lib/currency';
 import SafeImage from '../../components/SafeImage';
 import { PageHeader } from '../../components/PageHeader';
-import { Skeleton } from '../../components/ui/Skeleton';
 
 // --- TYPING ---
 type Artwork = {
@@ -25,60 +23,75 @@ type ArtworksResponse = {
 
 const categories = ['malningar', 'skulpturer', 'fotografi', 'digital'];
 
+function ArtworkCardSkeleton() {
+  return (
+    <div className="rounded-2xl overflow-hidden bg-white/90 ring-1 ring-slate-200/70 shadow-sm animate-pulse">
+      <div className="aspect-[4/3] bg-slate-100" />
+      <div className="p-4 space-y-2">
+        <div className="h-4 bg-slate-100 rounded-md w-3/4" />
+        <div className="h-3 bg-slate-100 rounded-md w-1/2" />
+        <div className="h-4 bg-slate-100 rounded-md w-1/3 mt-3" />
+      </div>
+    </div>
+  );
+}
+
 function ArtworksGrid({ artworks, favoriteIds, toggleFavorite, currentUserId }: {
   artworks: Artwork[];
   favoriteIds: Set<string>;
   toggleFavorite: (artworkId: string, e: React.MouseEvent) => void;
   currentUserId: string | null;
 }) {
+  if (artworks.length === 0) {
+    return (
+      <div className="rounded-2xl border border-slate-200/70 bg-white/80 p-10 text-center">
+        <p className="text-slate-700 font-medium">Inga konstverk matchade din sökning.</p>
+        <p className="mt-2 text-sm text-slate-500">Prova att ändra filter eller sök på något annat.</p>
+        <Button asChild variant="outline" size="sm" className="mt-5">
+          <Link href="/artworks/new">Ladda upp ett verk</Link>
+        </Button>
+      </div>
+    );
+  }
+
   return (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {artworks.length === 0 && (
-            <Card className="sm:col-span-2 lg:col-span-3">
-              <CardContent className="p-6 text-sm text-slate-600 space-y-3">
-            <p>Inga konstverk matchade din sökning.</p>
-                <div className="flex gap-2">
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/artworks/new">Ladda upp första verket</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {artworks.map((art) => (
-            <Link key={art.id} href={`/artworks/${art.id}`} className="group">
-              <Card className="relative overflow-hidden transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-lg">
-                {currentUserId && (
-                  <button
-                    onClick={(e) => toggleFavorite(art.id, e)}
-                    className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-md transition-all"
-                    title={favoriteIds.has(art.id) ? 'Ta bort från favoriter' : 'Lägg till i favoriter'}
-                  >
-                    {favoriteIds.has(art.id) ? '❤️' : '🤍'}
-                  </button>
-                )}
-                <div className="aspect-square bg-slate-100 overflow-hidden relative">
-                  <SafeImage
-                    src={art.imageUrl}
-                    alt={art.title}
-                    fill
-                    className="object-cover transition-transform duration-300 ease-out motion-reduce:transition-none group-hover:scale-105"
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-1 truncate">{art.title}</h3>
-                  {art.description && (
-                    <p className="text-xs text-slate-500 mb-2 line-clamp-2">{art.description}</p>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold">{formatSek(art.price)}</span>
-                    <span className="text-xs text-slate-400 capitalize">{art.category}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
+        <Link key={art.id} href={`/artworks/${art.id}`} className="group">
+          <div className="relative rounded-2xl overflow-hidden bg-white/90 ring-1 ring-slate-200/70 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/10 hover:ring-slate-300/60">
+            {currentUserId && (
+              <button
+                onClick={(e) => toggleFavorite(art.id, e)}
+                aria-label={favoriteIds.has(art.id) ? 'Ta bort från favoriter' : 'Lägg till i favoriter'}
+                className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-md transition-all hover:scale-110"
+              >
+                {favoriteIds.has(art.id) ? '❤️' : '🤍'}
+              </button>
+            )}
+            <div className="aspect-[4/3] bg-slate-100 overflow-hidden">
+              <SafeImage
+                src={art.imageUrl}
+                alt={art.title}
+                fill
+                className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
+              />
+            </div>
+            <div className="p-4">
+              <h3 className="font-semibold text-slate-900 truncate leading-snug">{art.title}</h3>
+              {art.description && (
+                <p className="mt-1 text-xs text-slate-500 line-clamp-2 leading-relaxed">{art.description}</p>
+              )}
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <span className="font-display text-base font-semibold text-slate-900">{formatSek(art.price)}</span>
+                <span className="text-xs text-slate-400 capitalize bg-stone-50 px-2.5 py-0.5 rounded-full ring-1 ring-stone-200/80 flex-shrink-0">
+                  {art.category}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Link>
+      ))}
+    </div>
   );
 }
 
@@ -197,23 +210,23 @@ export default function ArtworksPage() {
   // Huvudreturn för komponenten
   return (
     <div className="space-y-6">
-      {/* Gradient Header */}
-      <div className="-mx-6 -mt-6 mb-8 px-6 py-12 md:py-16 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 text-white">
+      {/* Header */}
+      <div className="-mx-6 -mt-6 mb-6 px-6 py-10 md:py-14 bg-gradient-to-br from-[#f6f2ea] via-amber-50/60 to-stone-100 border-b border-stone-200/80">
         <div className="max-w-7xl mx-auto">
           <PageHeader
-            title="🎨 Marknadsplats"
+            title="Marknadsplats"
             description="Upptäck och köp unik konst från talangfulla konstnärer"
-            className="mb-4 text-white"
+            className="mb-4"
           >
-            <div className="flex gap-3 flex-wrap mb-4">
-              <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
+            <div className="flex gap-2 flex-wrap mb-4">
+              <span className="px-3 py-1.5 bg-white/70 text-stone-600 rounded-full text-sm ring-1 ring-stone-200/80">
                 {total} konstverk
               </span>
-              <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
+              <span className="px-3 py-1.5 bg-white/70 text-stone-600 rounded-full text-sm ring-1 ring-stone-200/80">
                 {categories.length} kategorier
               </span>
             </div>
-            <Button asChild className="bg-white text-orange-600 hover:bg-orange-50 shadow-lg">
+            <Button asChild className="bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-sm border-0">
               <Link href="/artworks/new">Lägg upp konst</Link>
             </Button>
           </PageHeader>
@@ -221,45 +234,42 @@ export default function ArtworksPage() {
       </div>
 
       {/* Filters Section */}
-      <div className="bg-white border-2 border-orange-200 rounded-xl p-6 shadow-lg transition-all duration-200 ease-out motion-reduce:transition-none hover:shadow-xl hover:border-orange-300">
-        <div className="space-y-6">
-          <div className="flex-1">
-            <label className="block text-sm font-semibold mb-2 text-slate-700">🔍 Sök konst</label>
-            <Input
-              placeholder="Sök efter titel, konstnär eller beskrivning..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border-2 border-slate-200 focus:border-orange-500 transition-colors duration-200"
-            />
-          </div>
+      <div className="bg-white border border-stone-200/80 rounded-2xl p-5 shadow-sm">
+        <div className="space-y-5">
+          <Input
+            placeholder="Sök efter titel, konstnär eller beskrivning..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="rounded-xl"
+          />
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <label className="block text-sm font-semibold mb-2 text-slate-700">💰 Minsta pris</label>
+              <label className="block text-xs font-medium mb-1.5 text-stone-500">Minsta pris</label>
               <Input
                 type="number"
                 placeholder="0 kr"
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
-                className="border-2 border-slate-200 focus:border-orange-500 transition-colors duration-200"
+                className="rounded-xl"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2 text-slate-700">💰 Högsta pris</label>
+              <label className="block text-xs font-medium mb-1.5 text-stone-500">Högsta pris</label>
               <Input
                 type="number"
                 placeholder="Obegränsat"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
-                className="border-2 border-slate-200 focus:border-orange-500 transition-colors duration-200"
+                className="rounded-xl"
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-sm font-semibold mb-2 text-slate-700">🔄 Sortera</label>
+              <label className="block text-xs font-medium mb-1.5 text-stone-500">Sortera</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-4 py-2 border-2 border-slate-200 rounded-md focus:border-orange-500 focus:outline-none transition-colors duration-200 bg-white"
+                className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 bg-white text-sm text-slate-700"
               >
                 <option value="newest">Senaste</option>
                 <option value="price-asc">Pris: låg–hög</option>
@@ -268,48 +278,46 @@ export default function ArtworksPage() {
               </select>
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-semibold mb-3 text-slate-700">🎨 Kategorier</label>
-            <div className="flex items-center gap-2 text-sm flex-wrap">
+
+          <div className="flex items-center gap-2 text-sm flex-wrap">
+            <button
+              onClick={() => setSelectedCategory('')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${!selectedCategory ? 'bg-stone-900 text-white' : 'border border-stone-200 text-stone-600 hover:border-stone-400 hover:bg-stone-50'}`}
+            >
+              Alla
+            </button>
+            {categories.map((cat) => (
               <button
-                onClick={() => setSelectedCategory('')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${!selectedCategory ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md' : 'border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50'}`}
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategory === cat ? 'bg-stone-900 text-white' : 'border border-stone-200 text-stone-600 hover:border-stone-400 hover:bg-stone-50'}`}
               >
-                Alla
+                {cat.charAt(0).toUpperCase() + cat.slice(1)}
               </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${selectedCategory === cat ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md' : 'border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50'}`}
-                >
-                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
 
           {/* Active Filters */}
           {(searchQuery || selectedCategory || minPrice || maxPrice) && (
-            <div className="flex flex-wrap gap-2 items-center pt-4 border-t">
-              <span className="text-sm font-medium text-slate-600">Aktiva filter:</span>
+            <div className="flex flex-wrap gap-2 items-center pt-4 border-t border-stone-100">
+              <span className="text-xs text-stone-500">Aktiva filter:</span>
               {searchQuery && (
-                  <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
-                  🔍 &quot;{searchQuery}&quot;
+                <span className="px-3 py-1 bg-stone-100 text-stone-700 rounded-full text-xs">
+                  &quot;{searchQuery}&quot;
                 </span>
               )}
               {selectedCategory && (
-                <span className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium">
+                <span className="px-3 py-1 bg-stone-100 text-stone-700 rounded-full text-xs">
                   {selectedCategory}
                 </span>
               )}
               {minPrice && (
-                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                <span className="px-3 py-1 bg-stone-100 text-stone-700 rounded-full text-xs">
                   Min: {formatSek(Number(minPrice))}
                 </span>
               )}
               {maxPrice && (
-                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                <span className="px-3 py-1 bg-stone-100 text-stone-700 rounded-full text-xs">
                   Max: {formatSek(Number(maxPrice))}
                 </span>
               )}
@@ -321,23 +329,26 @@ export default function ArtworksPage() {
                   setMaxPrice('');
                   setSortBy('newest');
                 }}
-                className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-full text-sm font-medium transition-colors"
+                className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-full text-xs transition-colors"
               >
-                ✖ Rensa alla
+                Rensa
               </button>
             </div>
           )}
         </div>
       </div>
+
       {error && (
-        <Card><CardContent className="text-red-500">{error}</CardContent></Card>
+        <div className="rounded-2xl border border-red-100 bg-red-50/80 p-5 text-sm text-red-700 font-medium">
+          {error}
+        </div>
       )}
       {isLoading ? (
-        <Card>
-          <CardContent className="p-6 text-center text-slate-600">
-            Laddar konstverk...
-          </CardContent>
-        </Card>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <ArtworkCardSkeleton key={i} />
+          ))}
+        </div>
       ) : (
         <ArtworksGrid
           artworks={artworks}
@@ -346,28 +357,28 @@ export default function ArtworksPage() {
           currentUserId={currentUserId}
         />
       )}
+
       {/* Pagination controls */}
       <div className="flex items-center justify-center gap-4 mt-6">
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1}
           aria-label="Föregående sida"
-          className="px-3 py-1 rounded bg-white border hover:bg-slate-50 disabled:opacity-50 focus:outline-2 focus:outline-orange-500"
+          className="px-4 py-1.5 rounded-full border border-stone-200 text-sm text-stone-600 hover:bg-stone-50 disabled:opacity-40 transition-colors"
         >
-          Föregående
+          ← Föregående
         </button>
-        <div className="text-sm text-slate-600">Sida {page} av {Math.max(1, Math.ceil(total / pageSize))}</div>
+        <span className="text-sm text-stone-500">Sida {page} av {Math.max(1, Math.ceil(total / pageSize))}</span>
         <button
           onClick={() => setPage((p) => p + 1)}
           disabled={page >= Math.ceil(total / pageSize)}
           aria-label="Nästa sida"
-          className="px-3 py-1 rounded bg-white border hover:bg-slate-50 disabled:opacity-50 focus:outline-2 focus:outline-orange-500"
+          className="px-4 py-1.5 rounded-full border border-stone-200 text-sm text-stone-600 hover:bg-stone-50 disabled:opacity-40 transition-colors"
         >
-          Nästa
+          Nästa →
         </button>
       </div>
     </div>
-
   );
 }
 

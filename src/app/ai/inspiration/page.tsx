@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import Link from 'next/link';
 
 export default function InspirationPage() {
@@ -18,7 +17,7 @@ export default function InspirationPage() {
     'Porträtt med neonfärger',
     'Surrealistisk trädgård',
     'Geometriska former i varma toner',
-    'Dynamisk rörelse och energi'
+    'Dynamisk rörelse och energi',
   ];
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -31,7 +30,7 @@ export default function InspirationPage() {
       const res = await fetch('/api/ai/inspiration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: prompt || 'Generera kreativa idéer för målning' })
+        body: JSON.stringify({ prompt: prompt || 'Generera kreativa idéer för målning' }),
       });
 
       const data = await res.json();
@@ -54,97 +53,138 @@ export default function InspirationPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <Link href="/ai" className="text-sm text-slate-600 hover:text-slate-900">
-          ← Tillbaka till AI-verktyg
+    <div className="max-w-2xl mx-auto space-y-8">
+
+      {/* Header */}
+      <div className="space-y-4">
+        <Link
+          href="/ai"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-700 transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
+          AI-verktyg
         </Link>
-        <h1 className="text-2xl font-semibold mt-2">AI-inspiration för konst</h1>
-        <p className="text-slate-600 mt-1">Få kreativa idéer och förslag för ditt nästa konstverk</p>
+
+        <div className="rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 p-6 text-white space-y-2 shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
+              </svg>
+            </div>
+            <span className="text-xs font-semibold tracking-widest uppercase text-violet-200">Konstbyte AI</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">AI-inspiration för konst</h1>
+          <p className="text-sm text-violet-100 leading-relaxed">
+            Beskriv en känsla, ett tema eller en stil — och låt AI väcka din kreativitet med skräddarsydda idéer.
+          </p>
+        </div>
       </div>
 
-      <Card>
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Beskriv din idé eller stil (valfritt)
-              </label>
-              <Input
-                placeholder="Ex: Abstrakt natur i kvällsljus"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                Lämna tomt för generella inspirationsidéer
-              </p>
-            </div>
+      {/* Form card */}
+      <div className="rounded-2xl border border-violet-100 bg-white p-6 shadow-sm space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-slate-800">
+              Beskriv din idé eller stil
+              <span className="ml-1.5 text-slate-400 font-normal">(valfritt)</span>
+            </label>
+            <Input
+              placeholder="Ex: Abstrakt natur i kvällsljus"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              className="bg-violet-50 border-violet-200 focus:border-violet-400 focus:ring-violet-100 rounded-xl h-11 placeholder:text-slate-400"
+            />
+            <p className="text-xs text-slate-400">
+              Lämna tomt för generella inspirationsidéer
+            </p>
+          </div>
 
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
-                {error}
-              </div>
+          {error && (
+            <div className="flex items-start gap-2.5 p-3.5 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
+              <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+              </svg>
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-violet-500 text-white text-sm font-semibold hover:bg-violet-600 active:bg-violet-700 transition-colors duration-150 disabled:opacity-50 shadow-sm shadow-violet-100"
+          >
+            {loading ? (
+              <>
+                <svg className="animate-spin h-4 w-4 opacity-80" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Genererar inspiration…
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+                </svg>
+                Skapa inspirationsidéer
+              </>
             )}
+          </button>
+        </form>
+      </div>
 
-            <button type="submit" disabled={loading} className="w-full px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors disabled:opacity-50">
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Genererar inspiration...
-                </span>
-              ) : (
-                'Skapa inspirationsidéer'
-              )}
-            </button>
-          </form>
-        </CardContent>
-      </Card>
-
+      {/* Example prompts */}
       {!result && !loading && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Exempelprompter - Klicka för att använda</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {examplePrompts.map((example, i) => (
-                <button
-                  key={i}
-                  onClick={() => setPrompt(example)}
-                  className="p-3 text-left text-sm border rounded hover:bg-slate-50 hover:border-slate-300 transition"
-                >
-                  {example}
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-3">
+          <p className="text-xs font-semibold tracking-widest uppercase text-slate-500">
+            Prova ett exempel
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {examplePrompts.map((example, i) => (
+              <button
+                key={i}
+                onClick={() => setPrompt(example)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-stone-200 bg-stone-50 text-sm text-slate-600 font-medium hover:bg-stone-100 hover:border-stone-300 transition-all duration-150"
+              >
+                <svg className="w-3 h-3 text-stone-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+                </svg>
+                {example}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
+      {/* Result */}
       {result && (
-        <Card className="bg-slate-50">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Dina inspirationsidéer</CardTitle>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setResult('');
-                  setPrompt('');
-                }}
-              >
-                Ny sökning
-              </Button>
+        <div className="rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 p-6 space-y-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-amber-400 flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+                </svg>
+              </div>
+              <span className="text-sm font-bold text-amber-900">Dina inspirationsidéer</span>
             </div>
-          </CardHeader>
-          <CardContent className="text-sm whitespace-pre-wrap space-y-4">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => { setResult(''); setPrompt(''); }}
+              className="text-xs border-amber-300 text-amber-700 hover:bg-amber-100"
+            >
+              Ny sökning
+            </Button>
+          </div>
+          <div className="h-px bg-amber-200" />
+          <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
             {result}
-          </CardContent>
-        </Card>
+          </p>
+        </div>
       )}
     </div>
   );

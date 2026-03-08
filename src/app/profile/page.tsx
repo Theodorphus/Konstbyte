@@ -32,7 +32,7 @@ export default async function ProfilePage() {
     );
   }
 
-  const [artworks, orders, posts, favorites, followersCount, followingCount] = await Promise.all([
+  const [artworks, orders, soldOrders, posts, favorites, followersCount, followingCount, payoutCount] = await Promise.all([
     prisma.artwork.findMany({
       where: { ownerId: user.id },
       orderBy: { createdAt: 'desc' }
@@ -41,6 +41,11 @@ export default async function ProfilePage() {
       where: { buyerId: user.id },
       include: { artwork: true },
       orderBy: { createdAt: 'desc' }
+    }),
+    prisma.order.findMany({
+      where: { sellerId: user.id, status: { in: ['paid', 'delivered', 'completed'] } },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, shippingStatus: true, status: true },
     }),
     prisma.post.findMany({
       where: { authorId: user.id },
@@ -62,20 +67,32 @@ export default async function ProfilePage() {
     }),
     prisma.follow.count({
       where: { followerId: user.id }
-    })
+    }),
+    prisma.payout.count({ where: { sellerId: user.id } }),
   ]);
+
+  const initial = (user.name || user.email || '?')[0].toUpperCase();
+  const pendingShipCount = soldOrders.filter(o => o.shippingStatus === 'not_shipped').length;
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Min profil"
-        description={user.name || (user.email ?? undefined)}
-        className="mb-2"
-      >
-        <Button variant="outline" asChild>
-          <Link href="/profile/edit">Redigera profil</Link>
+      <div className="rounded-2xl border border-stone-200/80 bg-white/80 px-6 py-6 shadow-sm flex items-center gap-5">
+        <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-amber-100 to-stone-200 flex-shrink-0 flex items-center justify-center relative ring-2 ring-white shadow-md">
+          {user.image ? (
+            <SafeImage src={user.image} alt="Profilbild" fill className="object-cover" />
+          ) : (
+            <span className="font-display text-2xl font-semibold text-stone-600">{initial}</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-400 mb-1">Min profil</p>
+          <h1 className="font-display text-2xl text-slate-900 truncate">{user.name || user.email}</h1>
+          {user.name && <p className="text-sm text-slate-400 truncate mt-0.5">{user.email}</p>}
+        </div>
+        <Button variant="outline" asChild className="flex-shrink-0 border-stone-200 text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900">
+          <Link href="/profile/edit">Redigera</Link>
         </Button>
-      </PageHeader>
+      </div>
       {/* Seller info */}
       <Card className="border-amber-200 bg-amber-50">
         <CardHeader className="pb-2">
@@ -94,7 +111,7 @@ export default async function ProfilePage() {
             <CardTitle className="text-sm">Mina konstverk</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{artworks.length}</div>
+            <div className="font-display text-4xl font-semibold text-slate-900">{artworks.length}</div>
             <Button asChild variant="outline" size="sm" className="mt-3">
               <Link href="/my-artworks">Hantera</Link>
             </Button>
@@ -106,19 +123,54 @@ export default async function ProfilePage() {
             <CardTitle className="text-sm">Mina köp</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{orders.length}</div>
+            <div className="font-display text-4xl font-semibold text-slate-900">{orders.length}</div>
             <Button asChild variant="outline" size="sm" className="mt-3">
               <Link href="/profile/orders">Visa</Link>
             </Button>
           </CardContent>
         </Card>
 
+        <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md border-amber-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              Sålda verk
+              {pendingShipCount > 0 && (
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-500 text-white text-xs font-bold">{pendingShipCount}</span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="font-display text-4xl font-semibold text-slate-900">{soldOrders.length}</div>
+            {pendingShipCount > 0 && (
+              <p className="text-xs text-orange-600 mt-1">{pendingShipCount} väntar på att skickas</p>
+            )}
+            <Button asChild variant="outline" size="sm" className="mt-3 border-amber-300 text-amber-800 hover:bg-amber-50">
+              <Link href="/seller/orders">Hantera</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {payoutCount > 0 && (
+          <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md border-green-200">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Utbetalningar</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="font-display text-4xl font-semibold text-slate-900">{payoutCount}</div>
+              <p className="text-xs text-green-700 mt-1">genomförda utbetalningar</p>
+              <Button asChild variant="outline" size="sm" className="mt-3 border-green-300 text-green-800 hover:bg-green-50">
+                <Link href="/seller/payouts">Visa</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
           <CardHeader>
             <CardTitle className="text-sm">Community-inlägg</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{posts.length}</div>
+            <div className="font-display text-4xl font-semibold text-slate-900">{posts.length}</div>
             <Button asChild variant="outline" size="sm" className="mt-3">
               <Link href="/community">Till community</Link>
             </Button>
@@ -130,7 +182,7 @@ export default async function ProfilePage() {
             <CardTitle className="text-sm">Favoriter</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{favorites.length}</div>
+            <div className="font-display text-4xl font-semibold text-slate-900">{favorites.length}</div>
             <Button asChild variant="outline" size="sm" className="mt-3">
               <Link href="/favorites">Visa</Link>
             </Button>
@@ -144,7 +196,7 @@ export default async function ProfilePage() {
             <CardTitle className="text-sm">Följare</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{followersCount}</div>
+            <div className="font-display text-4xl font-semibold text-slate-900">{followersCount}</div>
             <Button asChild variant="outline" size="sm" className="mt-3">
               <Link href={`/users/${user.id}/followers`}>Visa följare</Link>
             </Button>
@@ -156,7 +208,7 @@ export default async function ProfilePage() {
             <CardTitle className="text-sm">Följer</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{followingCount}</div>
+            <div className="font-display text-4xl font-semibold text-slate-900">{followingCount}</div>
             <Button asChild variant="outline" size="sm" className="mt-3">
               <Link href={`/users/${user.id}/following`}>Visa</Link>
             </Button>
@@ -177,7 +229,7 @@ export default async function ProfilePage() {
                 {artworks.slice(0, 1).map(art => (
                   <div key={art.id} className="flex items-center gap-2 text-slate-600">
                     <span className="text-slate-400">🎨</span>
-                    Lade upp <Link href={`/artworks/${art.id}`} className="text-blue-600 hover:underline">{art.title}</Link>
+                    Lade upp <Link href={`/artworks/${art.id}`} className="text-amber-800 hover:text-amber-700 hover:underline transition-colors">{art.title}</Link>
                   </div>
                 ))}
                 {orders.slice(0, 1).map(order => (
@@ -189,7 +241,7 @@ export default async function ProfilePage() {
                 {favorites.slice(0, 2).map(fav => (
                   <div key={fav.id} className="flex items-center gap-2 text-slate-600">
                     <span className="text-slate-400">❤️</span>
-                    Sparade <Link href={`/artworks/${fav.artwork.id}`} className="text-blue-600 hover:underline">{fav.artwork.title}</Link>
+                    Sparade <Link href={`/artworks/${fav.artwork.id}`} className="text-amber-800 hover:text-amber-700 hover:underline transition-colors">{fav.artwork.title}</Link>
                   </div>
                 ))}
                 {posts.slice(0, 1).map(post => (

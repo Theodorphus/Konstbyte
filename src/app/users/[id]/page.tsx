@@ -179,9 +179,14 @@ export default function UserProfilePage() {
                 </div>
               </div>
               {!isOwnProfile && currentUserId && (
-                <Button onClick={toggleFollow} className="mt-4">
-                  {isFollowing ? 'Sluta följa' : 'Följ'}
-                </Button>
+                <div className="flex gap-2 mt-4">
+                  <Button onClick={toggleFollow}>
+                    {isFollowing ? 'Sluta följa' : 'Följ'}
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <Link href={`/messages/${userId}`}>Skicka meddelande</Link>
+                  </Button>
+                </div>
               )}
               {isOwnProfile && (
                 <Button asChild variant="outline" className="mt-4">

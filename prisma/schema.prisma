@@ -1,6 +1,5 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -31,6 +30,10 @@ model User {
   challengeSubmissions ChallengeSubmission[]
   challengeLikes       ChallengeLike[]
   challengePoints      ChallengePoints?
+  sentMessages         Message[]             @relation("MessageSender")
+  receivedMessages     Message[]             @relation("MessageRecipient")
+  postReactions        PostReaction[]
+  payouts              Payout[]
 }
 
 model Account {
@@ -68,21 +71,27 @@ model VerificationToken {
 }
 
 model Artwork {
-  id          String     @id @default(cuid())
-  title       String
-  imageUrl    String
-  description String?
-  price       Float      @default(0)
-  category    String     @default("malningar")
-  isPublished Boolean    @default(true)
-  isSold      Boolean    @default(false)
-  soldAt      DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  ownerId     String
-  owner       User       @relation("ArtworkOwner", fields: [ownerId], references: [id])
-  orders      Order[]
-  favorites   Favorite[]
+  id              String     @id @default(cuid())
+  title           String
+  imageUrl        String
+  description     String?
+  price           Float      @default(0)
+  category        String     @default("malningar")
+  isPublished     Boolean    @default(true)
+  isSold          Boolean    @default(false)
+  soldAt          DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  ownerId         String
+  // Shipping settings — set by seller per artwork
+  shippingType    String     @default("overenskommes")
+  // "overenskommes" | "fixed" | "pickup" | "postnord" | "dhl" | "schenker" | "other"
+  shippingCost    Float?     // SEK, only used when shippingType = "fixed"
+  shippingArea    String?    // city/area, only used when shippingType = "pickup"
+  shippingCarrier String?    // carrier name, only used when shippingType = "other"
+  owner           User       @relation("ArtworkOwner", fields: [ownerId], references: [id])
+  orders          Order[]
+  favorites       Favorite[]
 }
 
 model Order {
@@ -91,16 +100,40 @@ model Order {
   sellerId  String?
   artworkId String
   amount    Float
-  status          String       @default("pending")
-  feeAmount       Float?
-  stripeSessionId String?
-  createdAt       DateTime     @default(now())
+  status               String       @default("pending")
+  paymentMethod        String       @default("stripe")  // "stripe" | "swish"
+  feeAmount            Float?
+  stripeSessionId      String?
+  swishPaymentId       String?
+  sellerPayoutStatus   String       @default("unpaid")  // "unpaid" | "paid"
+  sellerPayoutNote     String?
+  sellerPayoutAt       DateTime?
+  // Shipping fields — snapshot from artwork at purchase time
+  shippingMethod       String?      // snapshot of artwork.shippingType
+  shippingCost         Float        @default(0)
+  shippingStatus       String       @default("not_shipped")
+  // "not_shipped" | "shipped" | "delivered"
+  trackingNumber       String?
+  trackingUrl          String?
+  // Buyer shipping address — collected in checkout modal
+  shippingName         String?
+  shippingStreet       String?
+  shippingPostalCode   String?
+  shippingCity         String?
+  shippingCountry      String?
+  shippingPhone        String?
+  createdAt            DateTime     @default(now())
   buyer     User         @relation("OrderBuyer", fields: [buyerId], references: [id])
   seller    User?        @relation("OrderSeller", fields: [sellerId], references: [id])
   artwork   Artwork      @relation(fields: [artworkId], references: [id])
   payments  Payment[]
   items     OrderItem[]
   events    OrderEvent[]
+  payout    Payout?
+
+  @@index([sellerId, status])
+  @@index([sellerId, shippingStatus])
+  @@index([buyerId, status])
 }
 
 model OrderItem {
@@ -141,13 +174,27 @@ model Favorite {
 }
 
 model Post {
-  id        String    @id @default(cuid())
+  id        String         @id @default(cuid())
   content   String
-  likes     Int       @default(0)
+  imageUrl  String?
+  likes     Int            @default(0)
   authorId  String
-  createdAt DateTime  @default(now())
-  author    User      @relation(fields: [authorId], references: [id])
+  createdAt DateTime       @default(now())
+  author    User           @relation(fields: [authorId], references: [id])
   comments  Comment[]
+  reactions PostReaction[]
+}
+
+model PostReaction {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  type      String   // "like" | "heart" | "wow"
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([postId, userId])
 }
 
 model Comment {
@@ -180,6 +227,17 @@ model Follow {
   following   User     @relation("Following", fields: [followingId], references: [id])
 
   @@unique([followerId, followingId])
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  recipientId String
+  content     String
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id])
+  recipient   User     @relation("MessageRecipient", fields: [recipientId], references: [id])
 }
 
 model ArtValuationLog {
@@ -242,4 +300,22 @@ model ChallengePoints {
   points    Int      @default(0)
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model Payout {
+  id                 String    @id @default(cuid())
+  sellerId           String
+  orderId            String    @unique
+  amount             Float
+  commissionRate     Float
+  commissionAmount   Float
+  commissionVat      Float
+  sellerPayoutAmount Float
+  method             String    @default("swish") // "bank" | "swish"
+  status             String    @default("pending") // "pending" | "completed"
+  adminNote          String?
+  createdAt          DateTime  @default(now())
+  completedAt        DateTime?
+  seller             User      @relation(fields: [sellerId], references: [id])
+  order              Order     @relation(fields: [orderId], references: [id])
 }

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 declare global {
   // allow global across hot reloads in dev
@@ -6,7 +7,12 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-export const prisma = global.prisma ?? new PrismaClient();
+function createPrisma() {
+  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+  return new PrismaClient({ adapter });
+}
+
+export const prisma = global.prisma ?? createPrisma();
 if (process.env.NODE_ENV !== 'production') global.prisma = prisma;
 
 export default prisma;

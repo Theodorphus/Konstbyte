@@ -15,24 +15,23 @@ export default function NavBar() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    // Fetch unread notification count
+    if (!session) return;
+
     const fetchCount = async () => {
       try {
         const res = await fetch('/api/notifications/count');
+        if (!res.ok) return;
         const data = await res.json();
         setUnreadCount(data.count || 0);
-      } catch (error) {
-        console.error('Failed to fetch notification count:', error);
+      } catch {
+        // Fail silently — notifications are non-critical
       }
     };
 
     fetchCount();
-    
-    // Poll every 30 seconds
     const interval = setInterval(fetchCount, 30000);
-    
     return () => clearInterval(interval);
-  }, []);
+  }, [session]);
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -107,70 +106,80 @@ export default function NavBar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="/feed" className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors">
-              Flöde
-            </Link>
-            <Link href="/artworks" className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors">
+          <div className="hidden md:flex items-center gap-6">
+            <Link href="/artworks" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
               Marknadsplats
             </Link>
-            <Link href="/users" className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors">
-              Sök användare
+            <Link href="/community" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
+              Community
             </Link>
-            <Link href="/favorites" className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors">
-              Favoriter
-            </Link>
-            <Link href="/community" className="text-sm font-semibold text-slate-900 hover:text-slate-900 transition-colors rounded-full border border-slate-200/70 px-3 py-1.5 bg-white/60 hover:bg-white">
-              Gå med i communityt
-            </Link>
-            <Link href="/utmaning" className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors">
+            <Link href="/utmaning" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
               Utmaning
             </Link>
-            <Link href="/ai" className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors">
+            <Link href="/ai" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
               AI-verktyg
             </Link>
           </div>
 
           {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             {session ? (
               <>
-                <Link href="/notifications" className="relative p-2 text-slate-700 hover:text-slate-900 transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <Link
+                  href="/messages"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  Meddelanden
+                </Link>
+                <Link href="/notifications" className="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
-              {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-amber-200 text-slate-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 bg-amber-400 text-slate-900 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
                 </Link>
-                <Button variant="outline" size="sm" asChild className="border-slate-300 text-slate-700 hover:bg-slate-900 hover:text-white">
+                <div className="w-px h-5 bg-slate-200 mx-1" />
+                <Button variant="outline" size="sm" asChild className="border-slate-200 text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900">
                   <Link href="/profile">Profil</Link>
                 </Button>
-                <Button size="sm" asChild className="bg-slate-900 text-white hover:bg-slate-800 shadow-md focus:outline-none focus:ring-2 focus:ring-slate-300/70">
+                <Button size="sm" asChild className="bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-sm shadow-amber-200/50">
                   <Link href="/artworks/new">Lägg upp konst</Link>
                 </Button>
                 <Button
-                variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="border-slate-300 text-slate-700 hover:bg-red-500 hover:text-white"
+                  className="text-slate-500 hover:text-red-600 hover:bg-red-50"
                   onClick={() => signOut({ callbackUrl: "/" })}
                 >
                   Logga ut
                 </Button>
               </>
             ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-slate-300 text-slate-700 hover:bg-slate-900 hover:text-white"
-                asChild
-              >
-                <Link href="/auth/signin">Logga in</Link>
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-slate-200 text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900"
+                  asChild
+                >
+                  <Link href="/auth/signin">Logga in</Link>
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-sm shadow-amber-200/50"
+                  asChild
+                >
+                  <Link href="/artworks/new">Bli konstnär</Link>
+                </Button>
+              </>
             )}
-      </div>
+          </div>
 
           {/* Mobile menu button */}
           <button
@@ -213,66 +222,56 @@ export default function NavBar() {
             }`}
           >
             <Link
-              href="/feed"
-              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Flöde
-            </Link>
-            <Link
               href="/artworks"
-              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
+              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Marknadsplats
             </Link>
             <Link
-              href="/users"
-              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Sök användare
-            </Link>
-            <Link
-              href="/favorites"
-              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Favoriter
-            </Link>
-            <Link
               href="/community"
-              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
+              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Community
             </Link>
             <Link
               href="/utmaning"
-              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
+              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Utmaning
             </Link>
             <Link
               href="/ai"
-              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded transition-colors"
+              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               AI-verktyg
             </Link>
-            <Link
-              href="/notifications"
-              className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded relative transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Notifikationer
-              {unreadCount > 0 && (
-                <span className="ml-2 bg-amber-200 text-slate-900 text-xs font-bold rounded-full px-2 py-0.5">
-                  {unreadCount}
-                </span>
-              )}
-            </Link>
+            {session && (
+              <>
+                <Link
+                  href="/messages"
+                  className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded-lg transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Meddelanden
+                </Link>
+                <Link
+                  href="/notifications"
+                  className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded-lg relative transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Notifikationer
+                  {unreadCount > 0 && (
+                    <span className="ml-2 bg-amber-200 text-slate-900 text-xs font-bold rounded-full px-2 py-0.5">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
+              </>
+            )}
             <div className="border-t border-slate-200/70 pt-3 px-4 space-y-2">
               {session ? (
                 <>
@@ -298,14 +297,24 @@ export default function NavBar() {
                   </Button>
                 </>
               ) : (
-                <Button
-                  variant="outline"
-                  className="w-full border-slate-300 text-slate-700 hover:bg-slate-900 hover:text-white"
-                  asChild
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Link href="/auth/signin">Logga in</Link>
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    className="w-full border-slate-300 text-slate-700 hover:bg-slate-900 hover:text-white"
+                    asChild
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Link href="/auth/signin">Logga in</Link>
+                  </Button>
+                  <Button
+                    className="w-full bg-amber-400 text-slate-950 hover:bg-amber-300"
+                    asChild
+                  >
+                    <Link href="/artworks/new" onClick={() => setMobileMenuOpen(false)}>
+                      Bli konstnär
+                    </Link>
+                  </Button>
+                </>
               )}
             </div>
           </div>

@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import prisma from '../lib/prisma';
-import TestimonialsClient from '../components/TestimonialsClient';
 import { formatSek } from '../lib/currency';
 import SafeImage from '../components/SafeImage';
+import HomepageCommunityPreview from '../components/HomepageCommunityPreview';
 
 // --- Typning ---
 type Artwork = {
@@ -13,10 +13,9 @@ type Artwork = {
   price: number;
   imageUrl: string;
   isPublished: boolean;
+  owner: { name: string | null };
 };
 
-// --- Revalidate homepage artworks every 60 seconds (ISR) ---
-export const revalidate = 60;
 export const dynamic = "force-dynamic";
 
 // --- Metadata ---
@@ -62,28 +61,27 @@ const thumbBlurDataURL = `data:image/svg+xml;base64,${toBase64(shimmer(400, 400)
 
 function HomeArtworksGrid({ artworks }: { artworks: Artwork[] }) {
   return (
-    <div className="mt-10 grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
       {artworks.map((art) => (
         <Link key={art.id} href={`/artworks/${art.id}`} className="group">
-          <div className="rounded-2xl bg-white/90 p-6 shadow-md shadow-slate-900/5 ring-1 ring-slate-200/70 transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-xl hover:shadow-slate-900/10">
-            <div className="relative w-full overflow-hidden rounded-2xl bg-slate-50/80 ring-1 ring-slate-200/60">
-              <div className="relative mx-auto aspect-[4/3] w-full max-w-[320px]">
-                <SafeImage
-                  src={art.imageUrl}
-                  alt={art.title}
-                  fill
-                  className="object-contain transition duration-700 ease-out group-hover:scale-[1.03]"
-                  placeholder="blur"
-                  blurDataURL={thumbBlurDataURL}
-                />
-              </div>
+          <div className="rounded-3xl bg-white/90 shadow-md shadow-slate-900/5 ring-1 ring-slate-200/70 transition duration-300 hover:-translate-y-1.5 hover:bg-white hover:shadow-xl hover:shadow-slate-900/10 overflow-hidden">
+            <div className="relative w-full aspect-[4/3] overflow-hidden bg-slate-50">
+              <SafeImage
+                src={art.imageUrl}
+                alt={art.title}
+                fill
+                className="object-cover transition duration-500 ease-out group-hover:scale-[1.05]"
+                placeholder="blur"
+                blurDataURL={thumbBlurDataURL}
+              />
             </div>
-            <div className="mt-6 flex items-center justify-between gap-3">
-              <div className="space-y-1">
-                <div className="font-semibold text-base text-slate-900 truncate">{art.title}</div>
-                <div className="text-sm text-slate-500">{formatSek(art.price)}</div>
+            <div className="p-5">
+              <div className="font-semibold text-base text-slate-900 truncate leading-snug">{art.title}</div>
+              <div className="mt-1 text-xs text-slate-400 truncate">{art.owner.name ?? 'Okänd konstnär'}</div>
+              <div className="mt-3 flex items-center justify-between">
+                <div className="font-display text-sm font-semibold text-slate-800">{formatSek(art.price)}</div>
+                <span className="text-xs text-slate-400 group-hover:text-amber-700 transition-colors duration-200">Visa →</span>
               </div>
-              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200/60">Ny</span>
             </div>
           </div>
         </Link>
@@ -100,6 +98,7 @@ export default async function HomePage() {
       where: { isPublished: true },
       orderBy: { createdAt: 'desc' },
       take: 6,
+      include: { owner: { select: { name: true } } },
     });
   } catch (e) {
     loadError = true;
@@ -107,52 +106,58 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero-section orörd */}
-      <section className="relative overflow-hidden rounded-[36px] bg-slate-950 text-white shadow-xl shadow-slate-900/20 ring-1 ring-white/10">
-        {/* ...rest of hero... */}
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-35">
+      <section className="relative overflow-hidden rounded-[36px] bg-slate-950 text-white shadow-2xl shadow-slate-900/30 ring-1 ring-white/[0.07]">
+        {/* Background image — positioned right so the paint action sits behind text on dark left */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
           <Image
             src="/weinstock-brush-96240.jpg"
             alt="Färgstarkt penseldrag i ateljé"
             fill
-            className="object-cover object-center"
+            className="object-cover object-[65%_center] opacity-50"
             priority
             placeholder="blur"
             blurDataURL={heroBlurDataURL}
           />
         </div>
-        <div className="absolute inset-0 z-10 bg-gradient-to-b from-slate-950/50 via-slate-900/45 to-slate-950/75" />
-        <div className="absolute inset-0 z-10 bg-[radial-gradient(120%_120%_at_50%_0%,_rgba(255,255,255,0.14),_transparent_48%),radial-gradient(85%_85%_at_50%_100%,_rgba(0,0,0,0.55),_transparent_64%)]" />
-        <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_18%_22%,_rgba(251,191,36,0.12),_transparent_52%),radial-gradient(circle_at_78%_80%,_rgba(251,113,133,0.18),_transparent_56%)]" />
-        <div className="absolute -top-20 -right-24 z-10 h-72 w-72 rounded-full bg-amber-300/15 blur-[140px]" />
-        <div className="absolute -bottom-44 -left-20 z-10 h-96 w-96 rounded-full bg-rose-300/15 blur-[160px]" />
-        {/* ... (existing hero section content) ... */}
-        <div className="relative z-20 flex min-h-[360px] items-center px-6 py-12 md:min-h-[460px] md:px-10 md:py-16">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs uppercase tracking-wide text-white/70 animate-fade-up">
+
+        {/* Overlay 1: left-to-right — dark on text side, transparent on paint side */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/60 to-slate-950/10" />
+
+        {/* Overlay 2: bottom vignette for grounding */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-slate-950/75 via-transparent to-transparent" />
+
+        {/* Overlay 3: subtle warm glow left side */}
+        <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_12%_65%,_rgba(251,191,36,0.09),_transparent_48%)]" />
+
+        {/* Soft bloom top-right */}
+        <div className="absolute -top-16 right-8 z-10 h-72 w-72 rounded-full bg-amber-200/[0.07] blur-[100px]" />
+
+        <div className="relative z-20 flex min-h-[520px] items-center px-8 py-16 md:min-h-[640px] md:px-16 md:py-24">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.18] bg-white/[0.07] px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] text-white/55 backdrop-blur-sm animate-fade-up">
               Skapa. Dela. Tillsammans.
             </span>
-            <h1 className="font-display mt-6 text-4xl md:text-5xl lg:text-6xl leading-tight text-white/95 animate-fade-up-delay">
+            <h1 className="font-display mt-7 text-5xl md:text-6xl lg:text-[4.5rem] leading-[1.05] text-white/96 animate-fade-up-delay">
               Här möts svenska konstnärer som vill utvecklas.
             </h1>
-            <p className="mt-5 max-w-xl text-base md:text-lg text-white/80 leading-relaxed animate-fade-up-delay">
-              Visa upp dina verk, inspirera andra och upptäck ett community som drivs av skaparglädje och nyfikenhet.
+            <p className="mt-6 max-w-lg text-base md:text-lg text-white/62 leading-[1.75] animate-fade-up-delay">
+              Visa upp dina verk, inspirera andra och hitta ett community drivet av skaparglädje — oavsett nivå.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-4">
+            <div className="mt-12 flex flex-wrap gap-4 animate-fade-up-delay-2">
+              <Link
+                href="/artworks/new"
+                aria-label="Bli konstnär på Konstbyte"
+                className="inline-flex items-center justify-center rounded-full bg-amber-300 px-8 py-3.5 text-sm font-semibold text-slate-950 shadow-lg shadow-amber-400/25 transition-all duration-300 hover:bg-amber-200 hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-300/35 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-amber-300/60"
+              >
+                Bli konstnär
+              </Link>
               <Link
                 href="/artworks"
                 aria-label="Utforska konstverk"
-                className="inline-flex items-center justify-center rounded-full bg-amber-200 px-7 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-amber-200/35 transition duration-300 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-white/70"
+                className="inline-flex items-center justify-center rounded-full border border-white/[0.22] bg-white/[0.08] px-8 py-3.5 text-sm font-semibold text-white/80 backdrop-blur-md transition-all duration-300 hover:bg-white/[0.14] hover:border-white/[0.32] hover:text-white focus:outline-none focus:ring-2 focus:ring-white/25"
               >
                 Utforska konst
-              </Link>
-              <Link
-                href="/artworks/new"
-                aria-label="Sälj din konst"
-                className="inline-flex items-center justify-center rounded-full border border-white/30 px-7 py-3 text-sm font-semibold text-white/90 transition duration-300 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/40"
-              >
-                Bli konstnär
               </Link>
             </div>
           </div>
@@ -160,147 +165,44 @@ export default async function HomePage() {
       </section>
 
       <section className="mt-24">
-        <div className="flex flex-wrap items-end justify-between gap-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Senaste</p>
-            <h2 className="font-display text-3xl md:text-4xl">Nya konstverk i flödet</h2>
+            <h2 className="font-display mt-1 text-3xl md:text-4xl">Nya konstverk i flödet</h2>
           </div>
           <Link
             href="/artworks"
             aria-label="Visa alla konstverk"
-            className="text-sm font-semibold text-slate-900 hover:text-slate-700"
+            className="text-sm font-semibold text-slate-900 underline-offset-2 hover:text-slate-600 hover:underline transition-colors"
           >
             Visa alla konstverk →
           </Link>
         </div>
 
         {loadError ? (
-          <div className="mt-10 rounded-2xl border bg-white/80 p-8 text-center text-red-600 font-medium">
-            Tekniskt fel – kunde inte hämta konstverk. Försök igen senare.
+          <div className="mt-10 rounded-2xl border border-red-100 bg-red-50/80 p-8 text-center text-red-700 font-medium">
+            Tekniskt fel — kunde inte hämta konstverk. Försök igen senare.
           </div>
         ) : artworks.length > 0 ? (
           <HomeArtworksGrid artworks={artworks} />
         ) : (
-          <div className="mt-10 rounded-2xl border border-slate-200/70 bg-white/80 p-8 text-center">
-            <p className="text-slate-700 font-medium">Inga publicerade konstverk ännu.</p>
-            <p className="mt-2 text-sm text-slate-500">Titta in snart igen eller bli först med att publicera ett verk.</p>
+          <div className="mt-10 rounded-2xl border border-slate-200/70 bg-white/80 p-10 text-center">
+            <p className="text-slate-700 font-medium text-base">Inga publicerade konstverk ännu.</p>
+            <p className="mt-2 text-sm text-slate-500">Titta in snart igen — eller bli den första att publicera ett verk.</p>
             <Link
               href="/artworks/new"
-              className="mt-5 inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+              className="mt-6 inline-flex items-center justify-center rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-slate-950 shadow-sm hover:bg-amber-300 transition-colors"
             >
-              Publicera konstverk
+              Publicera ditt första verk
             </Link>
           </div>
         )}
       </section>
 
-      {/* ...resten av dina sektioner som tidigare... */}
-      {/* De kan förstås också brytas ut till egna komponenter men låt stå för enkelhet just nu */}
-      <section className="mt-24">
-        <div className="grid gap-6 lg:grid-cols-[0.65fr_1fr]">
-          <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Kuratorns val</p>
-            <h3 className="font-display mt-3 text-2xl">Tre riktningar att upptäcka</h3>
-            <p className="mt-3 text-sm text-slate-600">
-              Varje vecka handplockar vi verk som speglar vad som rör sig i ateljéerna just nu.
-            </p>
-            <div className="mt-6 space-y-3">
-              {[
-                { title: 'Mjuka pigment', text: 'Pastell, textil och taktila ytor.' },
-                { title: 'Grafisk rytm', text: 'Monokroma serier och tryck.' },
-                { title: 'Nordiskt ljus', text: 'Fotografi med känsla av stillhet.' },
-            ].map((item) => (
-                <div key={item.title} className="rounded-2xl border border-slate-200/70 bg-white/85 p-4">
-                  <p className="text-sm font-semibold text-slate-900">{item.title}</p>
-                  <p className="mt-1 text-xs text-slate-500">{item.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {[
-              { title: 'Ateljé: Linn Ek', tag: 'Nysläppt', tone: 'bg-amber-200/70' },
-              { title: 'Samlare väljer', tag: 'Topplista', tone: 'bg-rose-200/70' },
-              { title: 'Skulptur i fokus', tag: 'Tema', tone: 'bg-sky-200/70' },
-              { title: 'Minimalistiskt collage', tag: 'Trend', tone: 'bg-amber-100/70' },
-            ].map((item) => (
-              <div key={item.title} className="rounded-3xl border border-slate-200/70 bg-white/80 p-5 shadow-sm">
-                <span
-                  className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold text-slate-700 ${item.tone}`}
-                >
-                  {item.tag}
-                </span>
-                <p className="font-display mt-4 text-xl text-slate-900">{item.title}</p>
-                <p className="mt-2 text-sm text-slate-600">Kuraterade verk med tydlig form och känsla.</p>
-        </div>
-            ))}
-          </div>
-            </div>
-      </section>
+      <HomepageCommunityPreview />
 
       <section className="mt-28">
-        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] items-center">
-            <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Community</p>
-            <h2 className="font-display mt-4 text-3xl md:text-4xl">Ett community för dig som skapar.</h2>
-            <p className="mt-4 text-slate-600 max-w-xl">
-              Bygg relationer, dela din process och hitta nya samarbeten i ett varmt, nyfiket sammanhang.
-            </p>
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {[
-                {
-                  title: '🎥 Dela din process',
-                  text: 'Visa skisser, tankar och bakom kulisserna.',
-                },
-                {
-                  title: '💬 Få feedback',
-                  text: 'Utvecklas genom konstruktiva samtal.',
-                },
-                {
-                  title: '🎙️ Delta i live-sessioner',
-                  text: 'Möt konstnärer och gäster i realtid.',
-                },
-                {
-                  title: '🤝 Hitta andra kreatörer',
-                  text: 'Skapa kontakter och samarbeta över genrer.',
-                },
-              ].map((item) => (
-                <div key={item.title} className="rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-sm">
-                  <h3 className="font-semibold text-slate-900">{item.title}</h3>
-                  <p className="mt-2 text-sm text-slate-600">{item.text}</p>
-        </div>
-              ))}
-    </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="rounded-3xl bg-gradient-to-br from-amber-200/80 via-orange-200/70 to-rose-200/70 p-6 shadow-lg">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Veckans möten</p>
-              <p className="font-display mt-3 text-2xl text-slate-900">Skaparkväll med öppna ateljéer.</p>
-              <p className="mt-3 text-sm text-slate-600">Dela arbetsprocesser och få nya perspektiv.</p>
-              <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-slate-700">
-                <span className="rounded-full bg-white/70 px-3 py-1">Öppet samtal</span>
-                <span className="rounded-full bg-white/70 px-3 py-1">Portföljtips</span>
-                <span className="rounded-full bg-white/70 px-3 py-1">Nya vänner</span>
-              </div>
-            </div>
-            <div className="rounded-3xl border border-slate-200/70 bg-white/85 p-6 shadow-lg">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Community live</p>
-              <p className="font-display mt-3 text-2xl text-slate-900">Få feedback på din senaste serie.</p>
-              <p className="mt-3 text-sm text-slate-600">Små grupper, varm stämning och kreativt fokus.</p>
-              <Link
-                href="/community"
-                className="mt-4 inline-flex items-center text-sm font-semibold text-slate-900 hover:text-slate-700"
-              >
-                Gå till communityt →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="mt-28">
-        <div className="rounded-3xl border border-slate-200/70 bg-white/85 p-8 shadow-lg">
+        <div className="rounded-3xl border border-slate-200/70 bg-white/85 p-8 md:p-10 shadow-lg">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Hur det fungerar</p>
@@ -310,16 +212,48 @@ export default async function HomePage() {
               Läs guiden →
             </Link>
           </div>
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
             {[
-              { step: '01', title: '🖌️ Skapa profil', text: 'Bygg en konstnärssida och samla dina verk.' },
-              { step: '02', title: '🖼️ Publicera verk', text: 'Lägg upp konst, priser och frakt på minuter.' },
-              { step: '03', title: '💫 Sälj tryggt', text: 'Få betalt direkt och följ leveransen.' },
+              {
+                step: '01',
+                icon: (
+                  <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                ),
+                title: 'Bygg din konstnärssida',
+                text: 'Skapa din profil, lägg till bio och presentera vem du är som konstnär.',
+              },
+              {
+                step: '02',
+                icon: (
+                  <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                ),
+                title: 'Lägg upp dina verk på minuter',
+                text: 'Ladda upp bild, sätt pris och välj fraktsätt — allt på under fem minuter.',
+              },
+              {
+                step: '03',
+                icon: (
+                  <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                ),
+                title: 'Sälj tryggt & få betalt',
+                text: 'Stripe hanterar betalningen. Du spårar ordern och pengarna landar direkt hos dig.',
+              },
             ].map((item) => (
-              <div key={item.step} className="rounded-2xl border border-slate-200/70 bg-amber-100/50 p-6">
-                <span className="text-2xl font-semibold tracking-[0.3em] text-slate-400">{item.step}</span>
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">{item.title}</h3>
-                <p className="mt-3 text-sm text-slate-600">{item.text}</p>
+              <div key={item.step} className="rounded-2xl border border-slate-200/60 bg-amber-50/60 p-7 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-amber-100 ring-1 ring-amber-200/70">
+                    {item.icon}
+                  </div>
+                  <span className="text-3xl font-bold tracking-[0.25em] text-slate-200">{item.step}</span>
+                </div>
+                <h3 className="text-base font-semibold text-slate-900">{item.title}</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">{item.text}</p>
               </div>
             ))}
           </div>
@@ -327,70 +261,93 @@ export default async function HomePage() {
       </section>
 
       <section className="mt-24">
-        <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-8 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-6">
+        <div className="rounded-3xl border border-slate-200/70 bg-white/80 px-8 py-9 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Tryggt & transparent</p>
-              <h2 className="font-display mt-3 text-3xl md:text-4xl">En plattform byggd för tydlighet.</h2>
+              <h2 className="font-display mt-2 text-2xl md:text-3xl">En plattform byggd för tydlighet.</h2>
             </div>
             <Link href="/avgifter" className="text-sm font-semibold text-slate-900 hover:text-slate-700">
-              Se avgifter →
+              Se alla avgifter →
             </Link>
           </div>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { label: 'Plattformsavgift', value: '3%' },
-              { label: 'Trygg betalning', value: 'Stripe' },
-              { label: 'Kuraterade verk', value: 'Handplockat' },
-              { label: 'Leverans', value: 'Spårbar' },
+              {
+                icon: (
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ),
+                value: 'Bara 5%',
+                label: 'Plattformsavgift — ingen dolda kostnader',
+              },
+              {
+                icon: (
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                ),
+                value: 'Stripe',
+                label: 'Trygg & krypterad betalning',
+              },
+              {
+                icon: (
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                ),
+                value: 'Handplockat',
+                label: 'Kuraterade verk av riktiga konstnärer',
+              },
+              {
+                icon: (
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                ),
+                value: 'Spårbar',
+                label: 'Leverans med full spårning',
+              },
             ].map((item) => (
-              <div key={item.label} className="rounded-2xl border border-slate-200/70 bg-amber-100/50 p-4 text-center">
-                <div className="text-lg font-semibold text-slate-900">{item.value}</div>
-                <div className="text-xs uppercase tracking-[0.2em] text-slate-500">{item.label}</div>
+              <div key={item.label} className="flex items-start gap-4 rounded-2xl border border-slate-200/60 bg-amber-50/50 p-5">
+                <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-amber-100 ring-1 ring-amber-200/70">
+                  {item.icon}
+                </div>
+                <div>
+                  <div className="text-base font-bold text-slate-900">{item.value}</div>
+                  <div className="mt-0.5 text-xs text-slate-500 leading-snug">{item.label}</div>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="mt-28">
-        <div className="rounded-3xl bg-white/80 p-8 shadow-xl ring-1 ring-amber-100">
-          <div className="flex flex-wrap items-center justify-between gap-6">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Omdömen</p>
-              <h2 className="font-display mt-3 text-3xl md:text-4xl">Konstnärer och samlare om Konstbyte</h2>
-            </div>
-            <Link href="/community" className="text-sm font-semibold text-slate-900 hover:text-slate-700">
-              Läs fler berättelser →
-            </Link>
-          </div>
-          <div className="mt-8">
-            <TestimonialsClient />
-          </div>
-        </div>
-      </section>
-
       <section className="mt-28 pb-24">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-300 via-rose-300 to-sky-300 p-10 md:p-14">
-          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/40 blur-2xl" />
-          <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-300 via-rose-300 to-sky-300 p-10 md:p-14">
+          <div className="absolute -right-12 -top-12 h-52 w-52 rounded-full bg-white/30 blur-3xl pointer-events-none" />
+          <div className="absolute left-1/2 bottom-0 h-32 w-80 -translate-x-1/2 rounded-full bg-white/20 blur-2xl pointer-events-none" />
+          <div className="relative flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-600">Redo att skapa?</p>
-              <h2 className="font-display mt-3 text-3xl md:text-4xl text-slate-900">Starta din butik på Konstbyte.</h2>
-              <p className="mt-3 text-sm text-slate-700 max-w-xl">
-                Bygg din publik, få verktyg för leverans och betalt, och lansera din nästa kollektion med oss.
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-600/80 font-medium">Redo att skapa?</p>
+              <h2 className="font-display mt-3 text-3xl md:text-4xl lg:text-5xl text-slate-900 leading-tight">
+                Starta din konstnärssida idag.
+              </h2>
+              <p className="mt-3 text-sm md:text-base text-slate-700/90 max-w-md leading-relaxed">
+                Bygg din publik, visa upp dina verk och börja sälja — allt på ett ställe, med bara 5% i avgift.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
               <Link
                 href="/artworks/new"
-                className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:bg-slate-800"
+                className="inline-flex items-center justify-center rounded-full bg-slate-900 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-colors"
               >
-                Skapa butik
+                Kom igång gratis
               </Link>
               <Link
                 href="/hur-det-fungerar"
-                className="inline-flex items-center justify-center rounded-full border border-slate-900/30 px-6 py-3 text-sm font-semibold text-slate-900 hover:bg-white/60"
+                className="inline-flex items-center justify-center rounded-full border border-slate-900/25 bg-white/50 px-7 py-3.5 text-sm font-semibold text-slate-900 hover:bg-white/75 backdrop-blur-sm transition-colors"
               >
                 Hur det fungerar
               </Link>
