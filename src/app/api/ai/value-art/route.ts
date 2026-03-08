@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma";
 import { getCurrentUser } from "../../../../lib/auth";
+import sharp from "sharp";
 
 // POST /api/ai/value-art
 export async function POST(request: Request) {
@@ -34,16 +35,15 @@ export async function POST(request: Request) {
     if (!imgRes.ok) {
       return NextResponse.json({ error: "Kunde inte hämta bilden för analys." }, { status: 400 });
     }
-    const rawContentType = imgRes.headers.get("content-type") ?? "";
-    const detectedMime = rawContentType.split(";")[0].trim();
-    // Fall back to guessing from URL extension if content-type is not an image
-    const ext = imageUrl.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
-    const extMime: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif" };
-    const mimeType = detectedMime.startsWith("image/") ? detectedMime : (extMime[ext] ?? "image/jpeg");
-    console.log("[value-art] Using MIME type:", mimeType);
     const arrayBuffer = await imgRes.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString("base64");
-    const dataUrl = `data:${mimeType};base64,${base64}`;
+    // Resize to max 1024px and convert to JPEG to keep payload small for Groq
+    const resized = await sharp(Buffer.from(arrayBuffer))
+      .resize(1024, 1024, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 80 })
+      .toBuffer();
+    const base64 = resized.toString("base64");
+    const dataUrl = `data:image/jpeg;base64,${base64}`;
+    console.log("[value-art] Image resized, base64 length:", base64.length);
 
     const infoText = `
 - Konstnär: ${artist || "Okänd"}
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: "llama-3.2-90b-vision-preview",
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
         messages: [
           {
             role: "user",
