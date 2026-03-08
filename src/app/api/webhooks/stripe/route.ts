@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       if (order.seller) {
         await prisma.notification.create({
           data: {
-            userId: order.sellerId,
+            userId: order.sellerId!,
             type: 'new_order',
             message: `Ditt konstverk "${order.artwork.title}" har sålts! Förbered för frakt.`,
             link: `/orders/${orderId}`,
