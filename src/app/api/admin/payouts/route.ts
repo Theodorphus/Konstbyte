@@ -114,6 +114,7 @@ export async function PATCH(request: NextRequest) {
         imageUrl: order.artwork.imageUrl ?? '',
         artistName: order.seller?.name ?? 'Konstnären',
         amountSek,
+        shippingCost: order.shippingCost,
         appUrl,
       });
       await sendEmail({ to: order.buyer.email, subject, html });
