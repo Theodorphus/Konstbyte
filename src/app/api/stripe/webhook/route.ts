@@ -97,6 +97,7 @@ export async function POST(request: Request) {
               imageUrl: order.artwork.imageUrl,
               artistName: order.seller?.name || 'Konstnären',
               amountSek,
+              shippingCost: order.shippingCost,
               appUrl,
             });
             sendEmail({ to: buyerEmail, ...mail }).catch(console.error);
