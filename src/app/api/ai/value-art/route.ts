@@ -27,6 +27,19 @@ export async function POST(request: Request) {
     const { imageUrl, artist, artType, style, sizeMaterial, provenance, other } = body;
     if (!imageUrl) return NextResponse.json({ error: "imageUrl required" }, { status: 400 });
 
+    // Fetch image and convert to base64 for Groq vision
+    console.log("[value-art] Fetching image:", imageUrl);
+    const imgRes = await fetch(imageUrl);
+    console.log("[value-art] Image fetch status:", imgRes.status, imgRes.headers.get("content-type"));
+    if (!imgRes.ok) {
+      return NextResponse.json({ error: "Kunde inte hämta bilden för analys." }, { status: 400 });
+    }
+    const contentType = imgRes.headers.get("content-type") ?? "image/jpeg";
+    const mimeType = contentType.split(";")[0].trim();
+    const arrayBuffer = await imgRes.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString("base64");
+    const dataUrl = `data:${mimeType};base64,${base64}`;
+
     const infoText = `
 - Konstnär: ${artist || "Okänd"}
 - Typ av konstverk: ${artType || "Ej angivet"}
@@ -46,7 +59,7 @@ export async function POST(request: Request) {
             role: "user",
             content: [
               { type: "text", text: `Du är en erfaren konstvärderare. Värdera konstverket på bifogad bild och utgå även från informationen:\n${infoText}\nSvara på svenska och ge gärna en motivering och ett uppskattat prisintervall.` },
-              { type: "image_url", image_url: { url: imageUrl } },
+              { type: "image_url", image_url: { url: dataUrl } },
             ],
           },
         ],
