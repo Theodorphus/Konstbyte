@@ -34,8 +34,13 @@ export async function POST(request: Request) {
     if (!imgRes.ok) {
       return NextResponse.json({ error: "Kunde inte hämta bilden för analys." }, { status: 400 });
     }
-    const contentType = imgRes.headers.get("content-type") ?? "image/jpeg";
-    const mimeType = contentType.split(";")[0].trim();
+    const rawContentType = imgRes.headers.get("content-type") ?? "";
+    const detectedMime = rawContentType.split(";")[0].trim();
+    // Fall back to guessing from URL extension if content-type is not an image
+    const ext = imageUrl.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
+    const extMime: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif" };
+    const mimeType = detectedMime.startsWith("image/") ? detectedMime : (extMime[ext] ?? "image/jpeg");
+    console.log("[value-art] Using MIME type:", mimeType);
     const arrayBuffer = await imgRes.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString("base64");
     const dataUrl = `data:${mimeType};base64,${base64}`;
