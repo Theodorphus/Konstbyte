@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        model: "llama-3.2-11b-vision-preview",
         messages: [
           {
             role: "user",
@@ -57,7 +57,8 @@ export async function POST(request: Request) {
 
     const completion = await res.json();
     if (!res.ok) {
-      return NextResponse.json({ error: completion?.error?.message ?? "AI-anrop misslyckades." }, { status: res.status });
+      console.error("[value-art] Groq error:", JSON.stringify(completion));
+      return NextResponse.json({ error: completion?.error?.message ?? "AI-anrop misslyckades.", details: completion }, { status: res.status });
     }
 
     await prisma.artValuationLog.create({ data: { userId: user.id } });
