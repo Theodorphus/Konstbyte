@@ -2,17 +2,6 @@ import { NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma";
 import { getCurrentUser } from "../../../../lib/auth";
 
-async function fetchImageAsBase64(imageUrl: string): Promise<{ base64: string; mimeType: string }> {
-  const response = await fetch(imageUrl);
-  if (!response.ok) throw new Error("Could not fetch image");
-  const arrayBuffer = await response.arrayBuffer();
-  const ext = imageUrl.split('.').pop()?.toLowerCase() || "";
-  let mimeType = "image/jpeg";
-  if (ext === "png") mimeType = "image/png";
-  if (ext === "webp") mimeType = "image/webp";
-  return { base64: Buffer.from(arrayBuffer).toString("base64"), mimeType };
-}
-
 // POST /api/ai/value-art
 export async function POST(request: Request) {
   try {
@@ -38,14 +27,6 @@ export async function POST(request: Request) {
     const { imageUrl, artist, artType, style, sizeMaterial, provenance, other } = body;
     if (!imageUrl) return NextResponse.json({ error: "imageUrl required" }, { status: 400 });
 
-    let base64: string;
-    let mimeType: string;
-    try {
-      ({ base64, mimeType } = await fetchImageAsBase64(imageUrl));
-    } catch {
-      return NextResponse.json({ error: "Det gick inte att hämta eller läsa bilduppladdningen." }, { status: 400 });
-    }
-
     const infoText = `
 - Konstnär: ${artist || "Okänd"}
 - Typ av konstverk: ${artType || "Ej angivet"}
@@ -65,7 +46,7 @@ export async function POST(request: Request) {
             role: "user",
             content: [
               { type: "text", text: `Du är en erfaren konstvärderare. Värdera konstverket på bifogad bild och utgå även från informationen:\n${infoText}\nSvara på svenska och ge gärna en motivering och ett uppskattat prisintervall.` },
-              { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64}` } },
+              { type: "image_url", image_url: { url: imageUrl } },
             ],
           },
         ],
