@@ -17,8 +17,12 @@ const bodyFont = Space_Grotesk({
 });
 
 export const metadata = {
-  title: 'Konstbyte',
-  description: 'Marknadsplats för konst'
+  title: {
+    default: 'Konstbyte — Marknadsplats för konst',
+    template: '%s | Konstbyte',
+  },
+  description: 'Köp och sälj original konst direkt från svenska konstnärer. Hitta målningar, teckningar, skulpturer och mer på Konstbyte.',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_METADATA_BASE || 'https://konstbyte.se'),
 };
 
 const currentYear = new Date().getFullYear();
@@ -29,12 +33,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#0f172a" />
-        <meta property="og:title" content="Konstbyte" />
-        <meta property="og:description" content="Marknadsplats för konst" />
-        <meta property="og:image" content="/og-image.png" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="icon" href="/favicon-32.png" sizes="32x32" />
+        <link rel="icon" href="/favicon-96x96.png" sizes="96x96" />
         <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify({

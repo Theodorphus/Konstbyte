@@ -9,32 +9,25 @@ export async function POST(request: Request) {
   const signature = request.headers.get('stripe-signature') || '';
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+  if (!webhookSecret) {
+    console.error('STRIPE_WEBHOOK_SECRET is not configured');
+    return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
+  }
+
   try {
     const buf = Buffer.from(await request.arrayBuffer());
     let eventType = '';
     let session: Stripe.Checkout.Session | null = null;
 
-    if (webhookSecret) {
-      try {
-        const event = stripe.webhooks.constructEvent(buf, signature, webhookSecret);
-        eventType = event.type;
-        if (event.type === 'checkout.session.completed') {
-          session = event.data.object as Stripe.Checkout.Session;
-        }
-      } catch (err) {
-        console.error('Webhook signature verification failed:', err);
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+    try {
+      const event = stripe.webhooks.constructEvent(buf, signature, webhookSecret);
+      eventType = event.type;
+      if (event.type === 'checkout.session.completed') {
+        session = event.data.object as Stripe.Checkout.Session;
       }
-    } else {
-      // No webhook secret configured — accept JSON body (not recommended for production)
-      const parsed = JSON.parse(buf.toString()) as {
-        type?: unknown;
-        data?: { object?: unknown };
-      };
-      eventType = typeof parsed.type === 'string' ? parsed.type : '';
-      if (eventType === 'checkout.session.completed' && parsed.data?.object) {
-        session = parsed.data.object as Stripe.Checkout.Session;
-      }
+    } catch (err) {
+      console.error('Webhook signature verification failed:', err);
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
     if (eventType === 'checkout.session.completed' && session) {

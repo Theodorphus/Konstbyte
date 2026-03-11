@@ -480,18 +480,7 @@ export default function CheckoutModal({
                 loading={loadingMethod === 'stripe'}
               />
 
-              <PaymentOptionCard
-                icon={
-                  <svg className="w-5 h-5 text-[#00B064]" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.07c1.4-.07 2.38.61 3.2.64.94-.03 1.88-.78 3.1-.84C18.46 6.8 20.41 8.08 21 9.8c-2.7 1.45-2.17 5.11.44 6.23-.44 1.45-1.04 2.87-2.39 4.25z"/>
-                    <path d="M12.03 6.9c-.22-2.74 2.04-5.07 4.84-5.17.27 2.8-2.3 5.23-4.84 5.17z"/>
-                  </svg>
-                }
-                title="Swish"
-                subtitle="Skanna QR-kod med Swish-appen"
-                onClick={selectSwish}
-                loading={loadingMethod === 'swish'}
-              />
+              {/* Swish: disabled until production mTLS is configured */}
 
               <LegalNote />
             </div>

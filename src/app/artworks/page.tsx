@@ -109,6 +109,12 @@ export default function ArtworksPage() {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3500);
+  }
 
   useEffect(() => {
     let isCurrent = true;
@@ -176,7 +182,7 @@ export default function ArtworksPage() {
     e.preventDefault();
     e.stopPropagation();
     if (!currentUserId) {
-      alert('Du måste vara inloggad för att spara favoriter');
+      showToast('Du måste vara inloggad för att spara favoriter');
       return;
     }
     const isFavorited = favoriteIds.has(artworkId);
@@ -210,6 +216,12 @@ export default function ArtworksPage() {
   // Huvudreturn för komponenten
   return (
     <div className="space-y-6">
+      {/* Toast notification */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-sm px-5 py-3 rounded-xl shadow-lg animate-fade-in">
+          {toast}
+        </div>
+      )}
       {/* Header */}
       <div className="-mx-6 -mt-6 mb-6 px-6 py-10 md:py-14 bg-gradient-to-br from-[#f6f2ea] via-amber-50/60 to-stone-100 border-b border-stone-200/80">
         <div className="max-w-7xl mx-auto">

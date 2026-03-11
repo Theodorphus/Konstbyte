@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const ownerId  = searchParams.get('ownerId');
-    const search   = searchParams.get('search') || undefined;
+    const search   = searchParams.get('search')?.slice(0, 100) || undefined;
     const category = searchParams.get('category') || undefined;
     const minPrice = searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined;
     const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined;

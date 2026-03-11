@@ -29,9 +29,7 @@ export async function POST(request: Request) {
     if (!imageUrl) return NextResponse.json({ error: "imageUrl required" }, { status: 400 });
 
     // Fetch image and convert to base64 for Groq vision
-    console.log("[value-art] Fetching image:", imageUrl);
     const imgRes = await fetch(imageUrl);
-    console.log("[value-art] Image fetch status:", imgRes.status, imgRes.headers.get("content-type"));
     if (!imgRes.ok) {
       return NextResponse.json({ error: "Kunde inte hämta bilden för analys." }, { status: 400 });
     }
@@ -43,7 +41,6 @@ export async function POST(request: Request) {
       .toBuffer();
     const base64 = resized.toString("base64");
     const dataUrl = `data:image/jpeg;base64,${base64}`;
-    console.log("[value-art] Image resized, base64 length:", base64.length);
 
     const infoText = `
 - Konstnär: ${artist || "Okänd"}
@@ -75,8 +72,7 @@ export async function POST(request: Request) {
 
     const completion = await res.json();
     if (!res.ok) {
-      console.error("[value-art] Groq error:", JSON.stringify(completion));
-      return NextResponse.json({ error: completion?.error?.message ?? "AI-anrop misslyckades.", details: completion }, { status: res.status });
+      return NextResponse.json({ error: completion?.error?.message ?? "AI-anrop misslyckades." }, { status: res.status });
     }
 
     await prisma.artValuationLog.create({ data: { userId: user.id } });
