@@ -24,6 +24,21 @@ export const metadata = {
   },
   description: 'Köp och sälj original konst direkt från svenska konstnärer. Hitta målningar, teckningar, skulpturer och mer på Konstbyte.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_METADATA_BASE || 'https://konstbyte.se'),
+  openGraph: {
+    title: 'Konstbyte — Marknadsplats för konst',
+    description: 'Köp och sälj original konst direkt från svenska konstnärer. Hitta målningar, teckningar, skulpturer och mer på Konstbyte.',
+    url: process.env.NEXT_PUBLIC_METADATA_BASE || 'https://konstbyte.se',
+    siteName: 'Konstbyte',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Konstbyte — Marknadsplats för konst' }],
+    locale: 'sv_SE',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Konstbyte — Marknadsplats för konst',
+    description: 'Köp och sälj original konst direkt från svenska konstnärer.',
+    images: ['/og-image.png'],
+  },
 };
 
 const currentYear = new Date().getFullYear();
