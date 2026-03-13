@@ -106,41 +106,35 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <section className="relative overflow-hidden rounded-[36px] bg-slate-950 text-white shadow-2xl shadow-slate-900/30 ring-1 ring-white/[0.07]">
-        {/* Background image — positioned right so the paint action sits behind text on dark left */}
+      <section className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-amber-300 via-rose-300 to-sky-300 shadow-2xl shadow-rose-300/30">
+        {/* Background image — subtle, lets the gradient dominate */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <Image
             src="/weinstock-brush-96240.jpg"
             alt="Färgstarkt penseldrag i ateljé"
             fill
-            className="object-cover object-[65%_center] opacity-50"
+            className="object-cover object-[65%_center] opacity-20 mix-blend-multiply"
             priority
             placeholder="blur"
             blurDataURL={heroBlurDataURL}
           />
         </div>
 
-        {/* Overlay 1: left-to-right — dark on text side, transparent on paint side */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/60 to-slate-950/10" />
+        {/* White bloom top-right — matches CTA section */}
+        <div className="absolute -right-12 -top-12 z-10 h-64 w-64 rounded-full bg-white/30 blur-3xl pointer-events-none" />
 
-        {/* Overlay 2: bottom vignette for grounding */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-slate-950/75 via-transparent to-transparent" />
-
-        {/* Overlay 3: subtle warm glow left side */}
-        <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_12%_65%,_rgba(251,191,36,0.09),_transparent_48%)]" />
-
-        {/* Soft bloom top-right */}
-        <div className="absolute -top-16 right-8 z-10 h-72 w-72 rounded-full bg-amber-200/[0.07] blur-[100px]" />
+        {/* White bloom bottom-center — matches CTA section */}
+        <div className="absolute left-1/2 bottom-0 z-10 h-32 w-80 -translate-x-1/2 rounded-full bg-white/20 blur-2xl pointer-events-none" />
 
         <div className="relative z-20 flex min-h-[520px] items-center px-8 py-16 md:min-h-[640px] md:px-16 md:py-24">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.18] bg-white/[0.07] px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] text-white/55 backdrop-blur-sm animate-fade-up">
+            <span className="inline-flex items-center gap-2 rounded-full border border-slate-900/20 bg-white/40 px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] text-slate-600/80 font-medium backdrop-blur-sm animate-fade-up">
               Skapa. Dela. Tillsammans.
             </span>
-            <h1 className="font-display mt-7 text-5xl md:text-6xl lg:text-[4.5rem] leading-[1.05] text-white/96 animate-fade-up-delay">
+            <h1 className="font-display mt-7 text-5xl md:text-6xl lg:text-[4.5rem] leading-[1.05] text-slate-900 animate-fade-up-delay">
               Här möts svenska konstnärer som vill utvecklas.
             </h1>
-            <p className="mt-6 max-w-lg text-base md:text-lg text-white/62 leading-[1.75] animate-fade-up-delay">
+            <p className="mt-6 max-w-lg text-base md:text-lg text-slate-700/90 leading-[1.75] animate-fade-up-delay">
               Visa upp dina verk, inspirera andra och hitta ett community drivet av skaparglädje — oavsett nivå.
             </p>
 
@@ -148,14 +142,14 @@ export default async function HomePage() {
               <Link
                 href="/artworks/new"
                 aria-label="Bli konstnär på Konstbyte"
-                className="inline-flex items-center justify-center rounded-full bg-amber-300 px-8 py-3.5 text-sm font-semibold text-slate-950 shadow-lg shadow-amber-400/25 transition-all duration-300 hover:bg-amber-200 hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-300/35 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-amber-300/60"
+                className="inline-flex items-center justify-center rounded-full bg-slate-900 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all duration-300 hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-900/40"
               >
                 Bli konstnär
               </Link>
               <Link
                 href="/artworks"
                 aria-label="Utforska konstverk"
-                className="inline-flex items-center justify-center rounded-full border border-white/[0.22] bg-white/[0.08] px-8 py-3.5 text-sm font-semibold text-white/80 backdrop-blur-md transition-all duration-300 hover:bg-white/[0.14] hover:border-white/[0.32] hover:text-white focus:outline-none focus:ring-2 focus:ring-white/25"
+                className="inline-flex items-center justify-center rounded-full border border-slate-900/25 bg-white/50 px-8 py-3.5 text-sm font-semibold text-slate-900 backdrop-blur-sm transition-all duration-300 hover:bg-white/75 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
               >
                 Utforska konst
               </Link>
