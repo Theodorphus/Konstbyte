@@ -2,6 +2,7 @@ import './globals.css';
 import React from 'react';
 import Link from 'next/link';
 import { Fraunces, Space_Grotesk } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import ClientLayout from './ClientLayout';
 
 const displayFont = Fraunces({
@@ -133,6 +134,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </footer>
         </div>
+        <Analytics />
       </body>
     </html>
   );
