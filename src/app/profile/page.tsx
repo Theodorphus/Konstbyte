@@ -132,38 +132,38 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-8 pb-16">
 
-      {/* Banner + avatar + info */}
-      <div className="rounded-3xl overflow-hidden shadow-lg">
+      {/* Banner + profil */}
+      <div className="relative">
         {/* Banner */}
-        <div className={`h-36 md:h-48 bg-gradient-to-br ${bannerGradient} relative`}>
-          <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px]" />
-        </div>
-        {/* Profile info row */}
-        <div className="bg-white/95 border-x border-b border-stone-200/80 px-6 pb-6">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12">
-            {/* Avatar */}
-            <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden ring-4 ring-white shadow-xl bg-gradient-to-br from-amber-100 to-rose-100 flex-shrink-0 flex items-center justify-center relative">
-              {fullUser?.image ? (
-                <SafeImage src={fullUser.image} alt="Profilbild" fill className="object-cover" />
-              ) : (
-                <span className="font-display text-4xl font-semibold text-stone-500">{initial}</span>
-              )}
-            </div>
-            <div className="flex-1 min-w-0 pb-1 sm:mb-1">
+        <div className={`h-32 md:h-44 rounded-3xl bg-gradient-to-br ${bannerGradient} shadow-sm`} />
+
+        {/* Profilkort — hänger nedanför bannern, avataren sticker upp */}
+        <div className="relative -mt-6 mx-0 z-10 rounded-2xl bg-white border border-stone-200/70 shadow-sm px-6 pb-6 pt-14">
+          {/* Avatar — absolut, centrerad vid kortets överkant */}
+          <div className="absolute -top-10 left-6 w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden ring-4 ring-white shadow-lg bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center flex-shrink-0">
+            {fullUser?.image ? (
+              <SafeImage src={fullUser.image} alt="Profilbild" fill className="object-cover" />
+            ) : (
+              <span className="font-display text-3xl font-semibold text-stone-500">{initial}</span>
+            )}
+          </div>
+
+          {/* Namn + redigera-knapp */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
               <h1 className="font-display text-2xl md:text-3xl text-slate-900 truncate leading-tight">
                 {user.name || user.email}
               </h1>
-              {user.name && <p className="text-sm text-slate-400 truncate">{user.email}</p>}
-              {fullUser?.bio && (
-                <p className="mt-2 text-sm text-slate-600 leading-relaxed max-w-xl">{fullUser.bio}</p>
-              )}
-              {!fullUser?.bio && (
+              {user.name && <p className="text-sm text-slate-400 truncate mt-0.5">{user.email}</p>}
+              {fullUser?.bio ? (
+                <p className="mt-2 text-sm text-slate-600 leading-relaxed max-w-lg">{fullUser.bio}</p>
+              ) : (
                 <Link href="/profile/edit" className="mt-2 inline-block text-xs text-slate-400 hover:text-amber-700 transition-colors">
                   + Lägg till bio
                 </Link>
               )}
             </div>
-            <Button variant="outline" asChild className="flex-shrink-0 border-stone-200 text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900 self-start sm:self-auto">
+            <Button variant="outline" asChild className="flex-shrink-0 border-stone-200 text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900 mt-1">
               <Link href="/profile/edit">Redigera profil</Link>
             </Button>
           </div>
