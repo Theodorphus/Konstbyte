@@ -259,6 +259,7 @@ model Challenge {
   title       String
   description String
   themePrompt String
+  imageUrl    String?
   weekNumber  Int
   year        Int
   startsAt    DateTime

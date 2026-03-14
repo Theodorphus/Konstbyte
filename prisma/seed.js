@@ -1,6 +1,12 @@
+require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
+const { PrismaPg } = require('@prisma/adapter-pg');
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
+const prisma = new PrismaClient({ adapter });
 
 const users = [
   { email: 'anna.lind@konstbyte.test', name: 'Anna Lind' },
@@ -272,7 +278,25 @@ async function main() {
   }
 }
 
+async function seedChallenge() {
+  await prisma.challenge.upsert({
+    where: { weekNumber_year: { weekNumber: 11, year: 2026 } },
+    update: {},
+    create: {
+      title: 'Måla en Spelkaraktär',
+      description: 'Skapa en målning inspirerad av en karaktär från ett valfritt tv-spel.',
+      themePrompt: 'Tolka en spelkaraktär i din egen stil — oavsett om det är realistiskt, abstrakt eller expressivt. Välj fritt bland klassiska eller moderna spel.',
+      imageUrl: null,
+      weekNumber: 11,
+      year: 2026,
+      startsAt: new Date('2026-03-09T00:00:00.000Z'),
+      endsAt: new Date('2026-03-22T23:59:59.000Z'),
+    },
+  });
+}
+
 main()
+  .then(() => seedChallenge())
   .catch((error) => {
     console.error('Seed failed:', error);
     process.exit(1);

@@ -90,16 +90,37 @@ function HomeArtworksGrid({ artworks }: { artworks: Artwork[] }) {
   );
 }
 
+type CurrentChallenge = {
+  id: string;
+  title: string;
+  themePrompt: string;
+  imageUrl: string | null;
+  weekNumber: number;
+  year: number;
+  endsAt: Date;
+  isActive: boolean;
+};
+
 export default async function HomePage() {
   let artworks: Artwork[] = [];
   let loadError = false;
+  let currentChallenge: CurrentChallenge | null = null;
   try {
+    const now = new Date();
     artworks = await prisma.artwork.findMany({
       where: { isPublished: true },
       orderBy: { createdAt: 'desc' },
       take: 6,
       include: { owner: { select: { name: true } } },
     });
+    const challenge = await prisma.challenge.findFirst({
+      where: { startsAt: { lte: now } },
+      orderBy: { startsAt: 'desc' },
+      select: { id: true, title: true, themePrompt: true, imageUrl: true, weekNumber: true, year: true, endsAt: true },
+    });
+    if (challenge) {
+      currentChallenge = { ...challenge, isActive: challenge.endsAt > now };
+    }
   } catch (e) {
     loadError = true;
   }
@@ -111,7 +132,7 @@ export default async function HomePage() {
         <div className="absolute inset-0 z-0 pointer-events-none">
           <Image
             src="/weinstock-brush-96240.jpg"
-            alt="Färgstarkt penseldrag i ateljé"
+            alt=''
             fill
             className="object-cover object-[65%_center] opacity-20 mix-blend-multiply"
             priority
@@ -157,6 +178,58 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Weekly Challenge */}
+      {currentChallenge && (
+        <section className="mt-16">
+          <Link href="/utmaning" className="group block">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-950 via-indigo-950 to-slate-900 shadow-xl shadow-violet-900/20 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-2xl group-hover:shadow-violet-900/30">
+              {/* Color accents */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_5%_90%,_rgba(251,191,36,0.45),_transparent_50%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_95%_5%,_rgba(232,72,142,0.35),_transparent_50%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_60%_55%,_rgba(99,102,241,0.22),_transparent_50%)]" />
+
+              <div className="relative flex flex-col md:flex-row">
+                {/* Image */}
+                {currentChallenge.imageUrl && (
+                  <div className="md:w-64 lg:w-80 flex-shrink-0 relative aspect-video md:aspect-auto md:min-h-[220px] overflow-hidden">
+                    <SafeImage
+                      src={currentChallenge.imageUrl}
+                      alt={currentChallenge.title}
+                      fill
+                      className="object-cover opacity-80 group-hover:opacity-90 transition-opacity duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-violet-950/60 hidden md:block" />
+                  </div>
+                )}
+
+                {/* Content */}
+                <div className="flex-1 p-7 md:p-9 flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 border border-amber-400/30 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-amber-300 font-semibold">
+                      🎨 Veckans utmaning
+                    </span>
+                    <span className="text-[10px] uppercase tracking-[0.15em] text-white/35">
+                      Vecka {currentChallenge.weekNumber} · {currentChallenge.year}
+                    </span>
+                  </div>
+                  <h2 className="font-display text-2xl md:text-3xl text-white leading-tight mb-3">
+                    {currentChallenge.title}
+                  </h2>
+                  <p className="text-white/60 text-sm leading-relaxed max-w-lg mb-6">
+                    {currentChallenge.themePrompt}
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-300 text-slate-950 text-sm font-semibold group-hover:bg-amber-200 transition-colors">
+                      {currentChallenge.isActive ? 'Delta nu' : 'Se resultaten'} →
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </section>
+      )}
 
       <section className="mt-24">
         <div className="flex flex-wrap items-end justify-between gap-4">

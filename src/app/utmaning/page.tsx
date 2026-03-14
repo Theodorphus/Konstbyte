@@ -24,6 +24,7 @@ type Challenge = {
   title: string;
   description: string;
   themePrompt: string;
+  imageUrl: string | null;
   weekNumber: number;
   year: number;
   startsAt: string;
@@ -173,6 +174,19 @@ export default function UtmaningPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-10 pb-16">
 
+      {/* Challenge image banner */}
+      {current?.imageUrl && (
+        <div className="relative w-full aspect-[16/7] overflow-hidden rounded-2xl bg-slate-100 shadow-md">
+          <SafeImage
+            src={current.imageUrl}
+            alt={current.title}
+            fill
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        </div>
+      )}
+
       {/* Hero */}
       {current ? (
         <div className={`relative overflow-hidden rounded-2xl text-white ${
@@ -249,6 +263,52 @@ export default function UtmaningPage() {
           <p className="text-slate-500 text-sm">Ingen aktiv utmaning just nu. Se Hall of Fame nedan.</p>
         </div>
       )}
+
+      {/* About the challenge */}
+      <div className="rounded-2xl border border-stone-200/80 bg-white/90 p-7 md:p-9 shadow-sm space-y-6">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.25em] text-stone-400 mb-2">Om utmaningen</p>
+          <p className="text-slate-700 leading-relaxed">
+            Skapa en målning baserad på veckans tema och tävla om att bli veckans vinnare!
+          </p>
+          <p className="text-slate-600 leading-relaxed mt-3">
+            Varje vecka slumpas ett nytt tema fram — allt från spelkaraktärer till naturmotiv och abstrakta uttryck.
+            Din uppgift är att skapa en målning inom tidsgränsen och ladda upp den här på Konstbyte.
+          </p>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-3">
+          <div className="rounded-xl bg-amber-50 border border-amber-100 p-5">
+            <p className="text-lg mb-2">🏆</p>
+            <h3 className="font-semibold text-sm text-slate-900 mb-2">Vad kan du vinna?</h3>
+            <ul className="text-xs text-slate-600 space-y-1.5 leading-snug">
+              <li>Publicitet på framsidan av Konstbyte</li>
+              <li>En plats i Hall of Fame</li>
+              <li>Möjlighet att sälja ditt verk direkt via plattformen</li>
+              <li>Poäng i topplistan (deltagande + likes + bonuspoäng för vinst)</li>
+            </ul>
+          </div>
+
+          <div className="rounded-xl bg-violet-50 border border-violet-100 p-5">
+            <p className="text-lg mb-2">💡</p>
+            <h3 className="font-semibold text-sm text-slate-900 mb-2">Vem kan delta?</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Alla konstnärer — nybörjare som erfarna. Det viktiga är kreativitet, inte perfektion.
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-sky-50 border border-sky-100 p-5">
+            <p className="text-lg mb-2">🎯</p>
+            <h3 className="font-semibold text-sm text-slate-900 mb-2">Hur deltar du?</h3>
+            <ol className="text-xs text-slate-600 space-y-1.5 leading-snug list-decimal list-inside">
+              <li>Skapa en målning baserad på veckans tema</li>
+              <li>Ladda upp den här på sidan</li>
+              <li>Samla likes och röster</li>
+              <li>Vänta på resultatet när veckan är slut</li>
+            </ol>
+          </div>
+        </div>
+      </div>
 
       {/* Submit form */}
       {showForm && current?.isActive && (

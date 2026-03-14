@@ -75,6 +75,7 @@ export async function GET() {
         title: challenge.title,
         description: challenge.description,
         themePrompt: challenge.themePrompt,
+        imageUrl: challenge.imageUrl ?? null,
         weekNumber: challenge.weekNumber,
         year: challenge.year,
         startsAt: challenge.startsAt,
@@ -115,7 +116,7 @@ export async function GET() {
 // Admin: create a new challenge
 export async function POST(request: Request) {
   try {
-    const { title, description, themePrompt, weekNumber, year, startsAt, endsAt } = await request.json();
+    const { title, description, themePrompt, imageUrl, weekNumber, year, startsAt, endsAt } = await request.json();
     if (!title || !weekNumber || !year || !startsAt || !endsAt) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
@@ -124,6 +125,7 @@ export async function POST(request: Request) {
         title,
         description: description ?? '',
         themePrompt: themePrompt ?? '',
+        imageUrl: imageUrl ?? null,
         weekNumber: Number(weekNumber),
         year: Number(year),
         startsAt: new Date(startsAt),
