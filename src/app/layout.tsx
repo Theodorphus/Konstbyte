@@ -111,7 +111,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <li><Link href="/artworks" className="hover:text-slate-900 transition-colors">Alla konstverk</Link></li>
                     <li><Link href="/artworks?category=Målning" className="hover:text-slate-900 transition-colors">Målningar</Link></li>
                     <li><Link href="/artworks?category=Skulptur" className="hover:text-slate-900 transition-colors">Skulpturer</Link></li>
-                    <li><Link href="/artworks/new" className="font-semibold text-amber-700 hover:text-amber-800 transition-colors">Bli konstnär →</Link></li>
+                    <li><Link href="/join" className="font-semibold text-amber-700 hover:text-amber-800 transition-colors">Bli konstnär →</Link></li>
                     <li><Link href="/ai/value-art" className="hover:text-slate-900 transition-colors">AI-värdering</Link></li>
                   </ul>
                 </div>
