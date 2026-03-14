@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Veckans Konstutmaning | Konstbyte',
     description: 'Skapa en målning baserad på veckans tema och tävla om att bli veckans vinnare på Konstbyte.',
-    images: ['/weinstock-brush-96240.jpg'],
+    images: ['/og-image.png'],
     type: 'website',
   },
   twitter: {

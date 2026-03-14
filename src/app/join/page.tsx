@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Gå med i Konstbyte',
     description: 'Sälj din konst, delta i tävlingar och hitta ditt community. Bara 5% i avgift.',
-    images: ['/weinstock-brush-96240.jpg'],
+    images: ['/og-image.png'],
   },
 };
 

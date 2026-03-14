@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Community | Konstbyte',
     description: 'Hitta inspiration, ge feedback och väx tillsammans med andra konstnärer.',
-    images: ['/weinstock-brush-96240.jpg'],
+    images: ['/og-image.png'],
     type: 'website',
   },
   twitter: {

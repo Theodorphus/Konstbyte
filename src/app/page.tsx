@@ -25,7 +25,7 @@ export const metadata = {
   openGraph: {
     title: 'Konstbyte — Marknadsplats för konst',
     description: 'Upptäck, köp och sälj konst från oberoende konstnärer.',
-    images: ['/weinstock-brush-96240.jpg'],
+    images: ['/og-image.png'],
   },
   twitter: {
     card: 'summary_large_image',
