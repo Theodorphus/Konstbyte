@@ -17,7 +17,7 @@ function AvatarCircle({ name, image, email }: { name: string | null; image: stri
   if (image) {
     return (
       <div className="relative w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
-        <Image src={image} alt={name ?? 'User'} fill className="object-cover" />
+        <Image src={image} alt={name ?? 'User'} fill sizes="36px" className="object-cover" />
       </div>
     );
   }

@@ -8,13 +8,14 @@ type SafeImageProps = Omit<ImageProps, 'src'> & {
   fallbackSrc?: string;
 };
 
-const DEFAULT_FALLBACK_SRC = '/weinstock-brush-96240.jpg';
+const DEFAULT_FALLBACK_SRC = '/og-image.png';
 
 export default function SafeImage({
   src,
   fallbackSrc = DEFAULT_FALLBACK_SRC,
   onError,
   alt,
+  sizes = '(max-width: 768px) 100vw, 50vw',
   ...props
 }: SafeImageProps) {
   const [currentSrc, setCurrentSrc] = useState(
@@ -30,6 +31,7 @@ export default function SafeImage({
       {...props}
       src={currentSrc}
       alt={alt}
+      sizes={sizes}
       onError={(event) => {
         if (currentSrc !== fallbackSrc) {
           setCurrentSrc(fallbackSrc);

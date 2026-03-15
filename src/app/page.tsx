@@ -56,7 +56,6 @@ function shimmer(w = 700, h = 475) {
   </svg>`;
 }
 
-const heroBlurDataURL = `data:image/svg+xml;base64,${toBase64(shimmer(1200, 800))}`;
 const thumbBlurDataURL = `data:image/svg+xml;base64,${toBase64(shimmer(400, 400))}`;
 
 function HomeArtworksGrid({ artworks }: { artworks: Artwork[] }) {
@@ -128,18 +127,6 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen">
       <section className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-amber-300 via-rose-300 to-sky-300 shadow-2xl shadow-rose-300/30">
-        {/* Background image — subtle, lets the gradient dominate */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <Image
-            src="/weinstock-brush-96240.jpg"
-            alt=''
-            fill
-            className="object-cover object-[65%_center] opacity-20 mix-blend-multiply"
-            priority
-            placeholder="blur"
-            blurDataURL={heroBlurDataURL}
-          />
-        </div>
 
         {/* White bloom top-right — matches CTA section */}
         <div className="absolute -right-12 -top-12 z-10 h-64 w-64 rounded-full bg-white/30 blur-3xl pointer-events-none" />
