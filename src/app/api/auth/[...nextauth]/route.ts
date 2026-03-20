@@ -61,6 +61,12 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'database'
   },
+  callbacks: {
+    session({ session, user }) {
+      if (session.user) session.user.id = user.id;
+      return session;
+    },
+  },
   debug: process.env.NODE_ENV === 'development',
   secret: process.env.NEXTAUTH_SECRET,
   pages: {

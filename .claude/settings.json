@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma:*)",
+      "Bash(node -e \":*)",
+      "Bash(grep -rh \"from ''''\\\\.\\\\.\" src/app/[locale]/ --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(find src/app/[locale] -name \"PolicyLayout*\")",
+      "Bash(find src/app/[locale] -name \"*.tsx\" -maxdepth 2)"
+    ]
+  }
+}

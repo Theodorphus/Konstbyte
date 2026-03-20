@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { signOut, useSession } from "next-auth/react";
+import { useTranslations } from 'next-intl';
+import LocaleSwitcher from './LocaleSwitcher';
 
 export default function NavBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -13,6 +15,7 @@ export default function NavBar() {
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const { data: session, status } = useSession();
+  const t = useTranslations('nav');
 
   useEffect(() => {
     if (!session) return;
@@ -97,32 +100,33 @@ export default function NavBar() {
   }, [mobileMenuOpen]);
 
   return (
-    <nav aria-label="Huvudnavigering" className="relative sticky top-0 z-50 border-b border-slate-200/70 bg-white/70 backdrop-blur-lg shadow-sm">
+    <nav aria-label={t('home_label')} className="relative sticky top-0 z-50 border-b border-slate-200/70 bg-white/70 backdrop-blur-lg shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" aria-label="Startsida - Konstbyte" className="font-display text-lg font-semibold tracking-wide text-slate-900 hover:text-slate-700 transition-colors">
+          <Link href="/" aria-label={t('home_label')} className="font-display text-lg font-semibold tracking-wide text-slate-900 hover:text-slate-700 transition-colors">
             🎨 Konstbyte
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             <Link href="/artworks" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
-              Marknadsplats
+              {t('marketplace')}
             </Link>
             <Link href="/community" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
-              Community
+              {t('community')}
             </Link>
             <Link href="/utmaning" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
-              Utmaning
+              {t('challenge')}
             </Link>
             <Link href="/ai" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
-              AI-verktyg
+              {t('ai_tools')}
             </Link>
           </div>
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-2">
+            <LocaleSwitcher />
             {session ? (
               <>
                 <Link
@@ -132,7 +136,7 @@ export default function NavBar() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
-                  Meddelanden
+                  {t('messages')}
                 </Link>
                 <Link href="/notifications" className="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,10 +150,10 @@ export default function NavBar() {
                 </Link>
                 <div className="w-px h-5 bg-slate-200 mx-1" />
                 <Button variant="outline" size="sm" asChild className="border-slate-200 text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900">
-                  <Link href="/profile">Profil</Link>
+                  <Link href="/profile">{t('profile')}</Link>
                 </Button>
                 <Button size="sm" asChild className="bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-sm shadow-amber-200/50">
-                  <Link href="/artworks/new">Lägg upp konst</Link>
+                  <Link href="/artworks/new">{t('upload_art')}</Link>
                 </Button>
                 <Button
                   variant="ghost"
@@ -157,7 +161,7 @@ export default function NavBar() {
                   className="text-slate-500 hover:text-red-600 hover:bg-red-50"
                   onClick={() => signOut({ callbackUrl: "/" })}
                 >
-                  Logga ut
+                  {t('sign_out')}
                 </Button>
               </>
             ) : (
@@ -168,14 +172,14 @@ export default function NavBar() {
                   className="border-slate-200 text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900"
                   asChild
                 >
-                  <Link href="/auth/signin">Logga in</Link>
+                  <Link href="/auth/signin">{t('sign_in')}</Link>
                 </Button>
                 <Button
                   size="sm"
                   className="bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-sm shadow-amber-200/50"
                   asChild
                 >
-                  <Link href="/artworks/new">Bli konstnär</Link>
+                  <Link href="/artworks/new">{t('become_artist')}</Link>
                 </Button>
               </>
             )}
@@ -187,7 +191,7 @@ export default function NavBar() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-controls="mobile-menu"
             aria-expanded={mobileMenuOpen}
-            aria-label={mobileMenuOpen ? 'Stäng mobilmeny' : 'Öppna mobilmeny'}
+            aria-label={mobileMenuOpen ? t('close_menu') : t('open_menu')}
             className="md:hidden p-2 text-slate-700 hover:text-slate-900 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,7 +207,7 @@ export default function NavBar() {
         {mobileMenuMounted && (
           <button
             type="button"
-            aria-label="Stäng mobilmeny"
+            aria-label={t('close_menu')}
             onClick={() => setMobileMenuOpen(false)}
             className={`md:hidden fixed inset-0 top-16 bg-slate-900/20 backdrop-blur-[1px] transition-opacity duration-200 ${
               mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -226,28 +230,28 @@ export default function NavBar() {
               className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Marknadsplats
+              {t('marketplace')}
             </Link>
             <Link
               href="/community"
               className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Community
+              {t('community')}
             </Link>
             <Link
               href="/utmaning"
               className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Utmaning
+              {t('challenge')}
             </Link>
             <Link
               href="/ai"
               className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              AI-verktyg
+              {t('ai_tools')}
             </Link>
             {session && (
               <>
@@ -256,14 +260,14 @@ export default function NavBar() {
                   className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded-lg transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Meddelanden
+                  {t('messages')}
                 </Link>
                 <Link
                   href="/notifications"
                   className="block px-4 py-2 text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 rounded-lg relative transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Notifikationer
+                  {t('notifications')}
                   {unreadCount > 0 && (
                     <span className="ml-2 bg-amber-200 text-slate-900 text-xs font-bold rounded-full px-2 py-0.5">
                       {unreadCount}
@@ -272,17 +276,20 @@ export default function NavBar() {
                 </Link>
               </>
             )}
+            <div className="px-4 pt-1">
+              <LocaleSwitcher />
+            </div>
             <div className="border-t border-slate-200/70 pt-3 px-4 space-y-2">
               {session ? (
                 <>
                   <Button variant="outline" className="w-full border-slate-300 text-slate-700 hover:bg-slate-900 hover:text-white" asChild>
                     <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
-                      Profil
+                      {t('profile')}
                     </Link>
                   </Button>
                   <Button className="w-full bg-slate-900 text-white hover:bg-slate-800" asChild>
                     <Link href="/artworks/new" onClick={() => setMobileMenuOpen(false)}>
-                      Lägg upp konst
+                      {t('upload_art')}
                     </Link>
                   </Button>
                   <Button
@@ -293,7 +300,7 @@ export default function NavBar() {
                       signOut({ callbackUrl: "/" });
                     }}
                   >
-                    Logga ut
+                    {t('sign_out')}
                   </Button>
                 </>
               ) : (
@@ -304,14 +311,14 @@ export default function NavBar() {
                     asChild
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <Link href="/auth/signin">Logga in</Link>
+                    <Link href="/auth/signin">{t('sign_in')}</Link>
                   </Button>
                   <Button
                     className="w-full bg-amber-400 text-slate-950 hover:bg-amber-300"
                     asChild
                   >
                     <Link href="/artworks/new" onClick={() => setMobileMenuOpen(false)}>
-                      Bli konstnär
+                      {t('become_artist')}
                     </Link>
                   </Button>
                 </>
@@ -323,4 +330,3 @@ export default function NavBar() {
     </nav>
   );
 }
-
