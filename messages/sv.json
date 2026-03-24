@@ -43,7 +43,7 @@
     "terms": "Användarvillkor",
     "privacy": "Integritetspolicy",
     "all_rights_reserved": "Alla rättigheter förbehållna.",
-    "fee_tagline": "Bara 5% i plattformsavgift — trygg betalning med Stripe."
+    "fee_tagline": "Bara 3% i plattformsavgift — trygg betalning med Stripe."
   },
   "home": {
     "badge": "Skapa. Dela. Tillsammans.",
@@ -79,7 +79,7 @@
     "trust_label": "Tryggt & transparent",
     "trust_title": "En plattform byggd för tydlighet.",
     "see_all_fees": "Se alla avgifter →",
-    "trust1_value": "Bara 5%",
+    "trust1_value": "Bara 3%",
     "trust1_label": "Plattformsavgift — ingen dolda kostnader",
     "trust2_value": "Stripe",
     "trust2_label": "Trygg & krypterad betalning",
@@ -89,7 +89,7 @@
     "trust4_label": "Leverans med full spårning",
     "cta_label": "Redo att skapa?",
     "cta_title": "Starta din konstnärssida idag.",
-    "cta_description": "Bygg din publik, visa upp dina verk och börja sälja — allt på ett ställe, med bara 5% i avgift.",
+    "cta_description": "Bygg din publik, visa upp dina verk och börja sälja — allt på ett ställe, med bara 3% i avgift.",
     "cta_start": "Kom igång gratis",
     "cta_how": "Hur det fungerar"
   },
@@ -447,7 +447,7 @@
     "delivery_address_label": "Leveransadress",
     "mark_received": "Markera som mottaget",
     "payout_title": "Utbetalning",
-    "payout_desc": "Konstbyte hanterar utbetalning via Swish eller banköverföring inom 3–5 arbetsdagar efter att köparen bekräftat mottagandet. Plattformens provision är 5%.",
+    "payout_desc": "Konstbyte hanterar utbetalning via Swish eller banköverföring inom 3–5 arbetsdagar efter att köparen bekräftat mottagandet. Plattformens provision är 3%.",
     "payout_done": "Utbetalning genomförd",
     "contact_support": "Vid frågor om din order, kontakta",
     "disclaimer": "Konstbyte är en teknisk plattform och ansvarar inte för frakt, skador eller transaktioner."
@@ -654,20 +654,20 @@
     "meta_title": "Gå med i Konstbyte — Marknadsplats för svenska konstnärer",
     "meta_description": "Skapa ett gratis konto och börja sälja din konst, delta i veckoutmaningar och träffa Sveriges nya konstcommunity.",
     "meta_og_title": "Gå med i Konstbyte",
-    "meta_og_description": "Sälj din konst, delta i tävlingar och hitta ditt community. Bara 5% i avgift.",
+    "meta_og_description": "Sälj din konst, delta i tävlingar och hitta ditt community. Bara 3% i avgift.",
     "hero_badge": "Gratis att gå med",
     "hero_heading": "Skapa, dela och sälj din konst.",
     "hero_subtext": "Gå med i Sveriges nya konstcommunity. Visa upp dina verk, tävla i veckans utmaning och börja sälja — allt på ett ställe.",
     "hero_cta_primary": "Skapa gratis konto →",
     "hero_cta_secondary": "Utforska konst",
-    "hero_footnote": "Bara 5% vid försäljning — inga dolda avgifter.",
+    "hero_footnote": "Bara 3% vid försäljning — inga dolda avgifter.",
     "benefits_label": "Varför Konstbyte?",
     "benefits_heading": "Allt du behöver på ett ställe.",
     "benefits": [
       { "icon": "🎨", "title": "Sälj din konst enkelt", "desc": "Ladda upp verk på under fem minuter. Stripe hanterar betalningen — du får pengarna direkt." },
       { "icon": "🏆", "title": "Delta i veckoutmaningar", "desc": "Tävla om att bli veckans vinnare, samla poäng och bygg ditt rykte som konstnär." },
       { "icon": "👥", "title": "Hitta ditt community", "desc": "Diskutera, inspireras och följ andra konstnärer. Väx tillsammans med likasinnade." },
-      { "icon": "💰", "title": "Bara 5% i avgift", "desc": "Ingen månadsavgift, inga dolda kostnader. Vi tar bara 5% vid försäljning — det är allt." },
+      { "icon": "💰", "title": "Bara 3% i avgift", "desc": "Ingen månadsavgift, inga dolda kostnader. Vi tar bara 3% vid försäljning — det är allt." },
       { "icon": "📦", "title": "Trygg leverans", "desc": "Full spårning på varje order. Köparen betalar frakten — du sköter paketeringen." },
       { "icon": "🤖", "title": "AI-värdering", "desc": "Osäker på priset? Låt vår AI-verktyg hjälpa dig att sätta rätt pris på ditt verk." }
     ],
@@ -771,7 +771,7 @@
     "bank_transfer": "Banköverföring",
     "note_placeholder": "Anteckning (valfri, t.ex. Swish-kvitto)",
     "order_total": "Ordertotal",
-    "commission": "Provision (5%)",
+    "commission": "Provision (3%)",
     "to_seller": "Till säljaren",
     "paid_badge": "Utbetald",
     "provision_label": "Provision",
@@ -806,7 +806,7 @@
   },
   "fees": {
     "title": "Avgifter & priser",
-    "platform_fee": "Plattformsavgift: 5% på alla försäljningar.",
+    "platform_fee": "Plattformsavgift: 3% på alla försäljningar.",
     "stripe_note": "Betalningar hanteras säkert via Stripe."
   },
   "contact": {

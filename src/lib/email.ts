@@ -100,7 +100,7 @@ export function sellerNotificationEmail(opts: {
         </p>
         <p style="font-size:14px;color:#475569;margin-top:12px;padding:12px;background:#f1f5f9;border-radius:6px">
           💰 <strong>Utbetalning:</strong> Konstbyte hanterar utbetalningen till dig via Swish eller banköverföring
-          inom 3–5 arbetsdagar efter att köparen bekräftat mottagandet. Plattformens provision är 5%.
+          inom 3–5 arbetsdagar efter att köparen bekräftat mottagandet. Plattformens provision är 3%.
         </p>
 
         <a href="${appUrl}/orders/${orderId}"

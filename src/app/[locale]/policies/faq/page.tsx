@@ -39,7 +39,7 @@ const faqData: FAQSection[] = [
       },
       {
         question: 'Vad kostar det att köpa?',
-        answer: 'Du betalar det pris säljaren satt. Inga extra avgifter läggs på för köparen — plattformsavgiften (5 %) dras från säljarens intäkt.',
+        answer: 'Du betalar det pris säljaren satt. Inga extra avgifter läggs på för köparen — plattformsavgiften (3 %) dras från säljarens intäkt.',
       },
       {
         question: 'Hur vet jag att konstverket är äkta?',
@@ -57,7 +57,7 @@ const faqData: FAQSection[] = [
       },
       {
         question: 'Vad kostar det att sälja?',
-        answer: 'Det kostar ingenting att lägga upp konstverk. Konstbyte tar en plattformsavgift på 5 % av försäljningspriset vid genomförda köp. Stripe tar ut en separat transaktionsavgift.',
+        answer: 'Det kostar ingenting att lägga upp konstverk. Konstbyte tar en plattformsavgift på 3 % av försäljningspriset vid genomförda köp. Stripe tar ut en separat transaktionsavgift.',
       },
       {
         question: 'Hur och när får jag betalt?',

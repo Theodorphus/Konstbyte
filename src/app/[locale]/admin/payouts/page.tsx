@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
 // Must match PLATFORM_FEE_PERCENT env var
-const COMMISSION_RATE = 0.05;
+const COMMISSION_RATE = 0.03;
 
 interface Order {
   id: string;

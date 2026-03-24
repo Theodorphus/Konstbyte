@@ -6,5 +6,5 @@ export function calculatePayout(orderAmount: number, commissionRate: number) {
 }
 
 export function defaultCommissionRate(): number {
-  return (Number(process.env.PLATFORM_FEE_PERCENT) || 5) / 100;
+  return (Number(process.env.PLATFORM_FEE_PERCENT) || 3) / 100;
 }

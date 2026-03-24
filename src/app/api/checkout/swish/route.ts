@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Du kan inte köpa ditt eget konstverk' }, { status: 400 });
     }
 
-    const feePercent = Number(process.env.PLATFORM_FEE_PERCENT ?? 5) / 100;
+    const feePercent = Number(process.env.PLATFORM_FEE_PERCENT ?? 3) / 100;
 
     // Determine shipping cost — only "fixed" type adds to total
     const shippingCost = artwork.shippingType === 'fixed' ? (artwork.shippingCost ?? 0) : 0;

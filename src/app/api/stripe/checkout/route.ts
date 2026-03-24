@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Artwork already sold' }, { status: 409 });
     }
 
-    const feePercent = Number(process.env.PLATFORM_FEE_PERCENT ?? 5) / 100;
+    const feePercent = Number(process.env.PLATFORM_FEE_PERCENT ?? 3) / 100;
     const unitAmount = Math.round(artwork.price * 100);
 
     const order = await prisma.order.create({

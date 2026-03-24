@@ -43,7 +43,7 @@
     "terms": "Terms of service",
     "privacy": "Privacy policy",
     "all_rights_reserved": "All rights reserved.",
-    "fee_tagline": "Only 5% platform fee — secure payments with Stripe."
+    "fee_tagline": "Only 3% platform fee — secure payments with Stripe."
   },
   "home": {
     "badge": "Create. Share. Together.",
@@ -79,7 +79,7 @@
     "trust_label": "Safe & transparent",
     "trust_title": "A platform built for clarity.",
     "see_all_fees": "See all fees →",
-    "trust1_value": "Only 5%",
+    "trust1_value": "Only 3%",
     "trust1_label": "Platform fee — no hidden costs",
     "trust2_value": "Stripe",
     "trust2_label": "Secure & encrypted payments",
@@ -89,7 +89,7 @@
     "trust4_label": "Delivery with full tracking",
     "cta_label": "Ready to create?",
     "cta_title": "Start your artist page today.",
-    "cta_description": "Build your audience, showcase your work and start selling — all in one place, with only 5% fee.",
+    "cta_description": "Build your audience, showcase your work and start selling — all in one place, with only 3% fee.",
     "cta_start": "Get started for free",
     "cta_how": "How it works"
   },
@@ -447,7 +447,7 @@
     "delivery_address_label": "Delivery address",
     "mark_received": "Mark as received",
     "payout_title": "Payout",
-    "payout_desc": "Konstbyte handles payouts via Swish or bank transfer within 3–5 business days after the buyer confirms receipt. The platform commission is 5%.",
+    "payout_desc": "Konstbyte handles payouts via Swish or bank transfer within 3–5 business days after the buyer confirms receipt. The platform commission is 3%.",
     "payout_done": "Payout completed",
     "contact_support": "For questions about your order, contact",
     "disclaimer": "Konstbyte is a technical platform and is not responsible for shipping, damages or transactions."
@@ -654,20 +654,20 @@
     "meta_title": "Join Konstbyte — Marketplace for Swedish Artists",
     "meta_description": "Create a free account and start selling your art, participate in weekly challenges and meet Sweden's new art community.",
     "meta_og_title": "Join Konstbyte",
-    "meta_og_description": "Sell your art, enter competitions and find your community. Only 5% commission.",
+    "meta_og_description": "Sell your art, enter competitions and find your community. Only 3% commission.",
     "hero_badge": "Free to join",
     "hero_heading": "Create, share and sell your art.",
     "hero_subtext": "Join Sweden's new art community. Showcase your works, compete in weekly challenges and start selling — all in one place.",
     "hero_cta_primary": "Create free account →",
     "hero_cta_secondary": "Explore art",
-    "hero_footnote": "Only 5% on sales — no hidden fees.",
+    "hero_footnote": "Only 3% on sales — no hidden fees.",
     "benefits_label": "Why Konstbyte?",
     "benefits_heading": "Everything you need in one place.",
     "benefits": [
       { "icon": "🎨", "title": "Sell your art easily", "desc": "Upload a work in under five minutes. Stripe handles the payment — you get the money directly." },
       { "icon": "🏆", "title": "Join weekly challenges", "desc": "Compete to be the weekly winner, earn points and build your reputation as an artist." },
       { "icon": "👥", "title": "Find your community", "desc": "Discuss, get inspired and follow other artists. Grow together with like-minded creators." },
-      { "icon": "💰", "title": "Only 5% commission", "desc": "No monthly fee, no hidden costs. We only take 5% on sales — that's it." },
+      { "icon": "💰", "title": "Only 3% commission", "desc": "No monthly fee, no hidden costs. We only take 3% on sales — that's it." },
       { "icon": "📦", "title": "Safe delivery", "desc": "Full tracking on every order. The buyer pays shipping — you handle the packaging." },
       { "icon": "🤖", "title": "AI valuation", "desc": "Unsure about the price? Let our AI tool help you set the right price for your work." }
     ],
@@ -811,7 +811,7 @@
     "bank_transfer": "Bank transfer",
     "note_placeholder": "Note (optional, e.g. Swish receipt)",
     "order_total": "Order total",
-    "commission": "Commission (5%)",
+    "commission": "Commission (3%)",
     "to_seller": "To seller",
     "paid_badge": "Paid",
     "provision_label": "Commission",
@@ -846,7 +846,7 @@
   },
   "fees": {
     "title": "Fees & pricing",
-    "platform_fee": "Platform fee: 5% on all sales.",
+    "platform_fee": "Platform fee: 3% on all sales.",
     "stripe_note": "Payments are handled securely via Stripe."
   },
   "contact": {

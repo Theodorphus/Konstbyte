@@ -27,7 +27,7 @@ export default async function KopvillkorPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">2. Priser och avgifter</h2>
         <p>
-          Priserna på konstverken sätts av respektive konstnär och anges i svenska kronor (SEK) inklusive moms, om inget annat anges. Konstbyte tar en plattformsavgift om 5 % av försäljningspriset, vilket redan är inräknat i det pris du ser som köpare.
+          Priserna på konstverken sätts av respektive konstnär och anges i svenska kronor (SEK) inklusive moms, om inget annat anges. Konstbyte tar en plattformsavgift om 3 % av försäljningspriset, vilket redan är inräknat i det pris du ser som köpare.
         </p>
         <p>
           Eventuell frakt tillkommer och kommuniceras separat.

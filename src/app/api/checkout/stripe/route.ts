@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Du kan inte köpa ditt eget konstverk' }, { status: 400 });
     }
 
-    const feePercent = Number(process.env.PLATFORM_FEE_PERCENT ?? 5) / 100;
+    const feePercent = Number(process.env.PLATFORM_FEE_PERCENT ?? 3) / 100;
     const unitAmount = Math.round(artwork.price * 100); // SEK in öre
 
     // Determine shipping cost — only "fixed" type adds to total

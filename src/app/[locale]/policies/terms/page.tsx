@@ -52,7 +52,7 @@ export default async function TermsPage() {
           'Om en säljare inte levererar ett sålt konstverk',
         ]} />
         <p>
-          Vid betalning via Stripe gäller Stripes egna villkor. Konstbyte tar en plattformsavgift på 5 % vid genomförda köp.
+          Vid betalning via Stripe gäller Stripes egna villkor. Konstbyte tar en plattformsavgift på 3 % vid genomförda köp.
         </p>
       </PolicySection>
 

@@ -134,9 +134,9 @@ export default function ValueArtPage() {
   }
 
   const exampleImages = [
-    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400",
-    "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400",
-    "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400",
+    "/examples/artwork-1.jpg",
+    "/examples/artwork-2.jpg",
+    "/examples/artwork-3.jpg",
   ];
 
   const tips = t.raw("tips") as string[];

@@ -45,7 +45,7 @@ export default async function AnvandarvillkorPage() {
           <li>du har rätt att sälja de verk du lägger upp – de är dina egna originalskapelser eller verk du har licens att sälja</li>
           <li>bilder och beskrivningar är rättvisande och inte vilseledande</li>
           <li>du ansvarar för att packa och skicka verk i enlighet med den information du anger</li>
-          <li>du förstår att Konstbyte tar en provision om 5 % på varje försäljning</li>
+          <li>du förstår att Konstbyte tar en provision om 3 % på varje försäljning</li>
         </ul>
       </section>
 
