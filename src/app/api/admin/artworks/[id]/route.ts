@@ -16,8 +16,17 @@ export async function DELETE(
 ) {
   try {
     const user = await getCurrentUser();
-    if (!user || !isAdmin(user.email)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    if (!isAdmin(user.email)) {
+      const adminEmails = (process.env.ADMIN_EMAIL ?? '').split(',').map(e => e.trim()).filter(Boolean);
+      return NextResponse.json({
+        error: 'Unauthorized - not an admin',
+        userEmail: user.email,
+        adminEmails,
+      }, { status: 403 });
     }
 
     const { id } = await params;
