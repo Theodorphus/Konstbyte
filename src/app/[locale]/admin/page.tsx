@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
 import { formatSek } from '@/lib/currency';
 import ChallengeAdmin from './ChallengeAdmin';
+import ArtworksAdmin from './ArtworksAdmin';
 import { getTranslations } from 'next-intl/server';
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,18 @@ export default async function AdminPage() {
 
   const [users, artworks, challenges, resendHealth] = await Promise.all([
     prisma.user.findMany({ orderBy: { createdAt: 'desc' } }),
-    prisma.artwork.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.artwork.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    }),
     prisma.challenge.findMany({
       orderBy: { startsAt: 'desc' },
       include: { _count: { select: { submissions: true } } },
@@ -54,16 +66,18 @@ export default async function AdminPage() {
         </p>
         <p className="mt-1 text-sm text-slate-600">{resendHealth.message || t('no_status_msg')}</p>
       </section>
-      <section>
-        <h2 className="text-lg font-medium">{t('artworks_section')}</h2>
-        <ul className="mt-2 space-y-1">
-          {artworks.map((art) => (
-            <li key={art.id} className="text-sm">
-              {art.title} — {formatSek(art.price)}
-            </li>
-          ))}
-        </ul>
-      </section>
+      <ArtworksAdmin
+        initial={artworks.map(art => ({
+          id: art.id,
+          title: art.title,
+          price: art.price,
+          imageUrl: art.imageUrl,
+          owner: {
+            name: art.owner?.name || null,
+            email: art.owner?.email || 'unknown@email.com',
+          },
+        }))}
+      />
       <section>
         <h2 className="text-lg font-medium">{t('users_section')}</h2>
         <ul className="mt-2 space-y-1">

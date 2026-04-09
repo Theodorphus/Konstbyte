@@ -778,7 +778,11 @@
     "paid_out_label": "Utbetalat",
     "no_completed": "Inga genomförda utbetalningar ännu.",
     "error_unknown": "Okänt fel",
-    "error_fetch": "Kunde inte hämta data"
+    "error_fetch": "Kunde inte hämta data",
+    "artworks_moderation": "Konstverk (moderering)",
+    "delete_artwork": "Ta bort",
+    "deleting_artwork": "Tar bort...",
+    "confirm_delete": "Är du säker på att du vill ta bort detta konstverk?"
   },
   "about": {
     "title": "Om Konstbyte",

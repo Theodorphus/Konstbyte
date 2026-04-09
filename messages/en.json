@@ -818,7 +818,11 @@
     "paid_out_label": "Paid out",
     "no_completed": "No completed payouts yet.",
     "error_unknown": "Unknown error",
-    "error_fetch": "Could not fetch data"
+    "error_fetch": "Could not fetch data",
+    "artworks_moderation": "Artworks (moderation)",
+    "delete_artwork": "Delete",
+    "deleting_artwork": "Deleting...",
+    "confirm_delete": "Are you sure you want to delete this artwork?"
   },
   "about": {
     "title": "About Konstbyte",
