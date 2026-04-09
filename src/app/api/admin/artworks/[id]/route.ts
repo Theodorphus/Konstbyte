@@ -41,7 +41,13 @@ export async function DELETE(
     }
 
     // Allow deletion even if artwork has orders (admin moderation)
-    await prisma.artwork.delete({ where: { id } });
+    // First delete related records due to foreign key constraints
+    await prisma.$transaction([
+      // Delete favorites that reference this artwork
+      prisma.favorite.deleteMany({ where: { artworkId: id } }),
+      // Delete the artwork
+      prisma.artwork.delete({ where: { id } }),
+    ]);
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
