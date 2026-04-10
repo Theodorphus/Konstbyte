@@ -18,7 +18,7 @@ export function Step1Images({ images, onChange, onNext }: Step1ImagesProps) {
       <div>
         <h2 className="text-2xl font-semibold text-slate-900 mb-2">Ladda upp dina konstverk</h2>
         <p className="text-slate-600">
-          Du kan ladda upp mellan 1 och 10 bilder av varje konstverk. Du kan välja huvudbild och arrangera dem som du vill.
+          Varje bild du laddar upp blir ett separat konstverk med eget pris. Du kan ladda upp upp till 10 bilder och arrangera dem som du vill.
         </p>
       </div>
 

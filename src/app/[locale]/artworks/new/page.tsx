@@ -6,11 +6,28 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { StepIndicator } from '@/components/upload/StepIndicator';
 import { Step1Images } from '@/components/upload/Step1Images';
-import { Step2Details, type ArtworkDetailsFormValues } from '@/components/upload/Step2Details';
+import { Step2BulkDetails } from '@/components/upload/Step2BulkDetails';
 import { Step3Collections } from '@/components/upload/Step3Collections';
-import { createArtworkWithImages, type UploadedImage } from '@/app/actions/artwork-actions';
+import {
+  createMultipleArtworks,
+  type UploadedImage,
+  type ArtworkSlotDetails,
+} from '@/app/actions/artwork-actions';
 import { useTranslations } from 'next-intl';
 import { AlertCircle } from 'lucide-react';
+
+interface ArtworkSlot {
+  url: string;
+  sortOrder: number;
+  details: ArtworkSlotDetails | null;
+}
+
+interface SharedShippingValues {
+  shippingType: string;
+  shippingCost?: number;
+  shippingArea?: string;
+  shippingCarrier?: string;
+}
 
 export default function NewArtworkPage() {
   const router = useRouter();
@@ -22,9 +39,8 @@ export default function NewArtworkPage() {
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
-  const [images, setImages] = useState<UploadedImage[]>([]);
-  const [details, setDetails] = useState<ArtworkDetailsFormValues | null>(null);
-  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
+  const [artworkSlots, setArtworkSlots] = useState<ArtworkSlot[]>([]);
+  const [sharedShipping, setSharedShipping] = useState<SharedShippingValues | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,7 +67,7 @@ export default function NewArtworkPage() {
   }, []);
 
   const handleStep1Next = () => {
-    if (images.length === 0) {
+    if (artworkSlots.length === 0) {
       setError('Du måste ladda upp minst en bild');
       return;
     }
@@ -59,14 +75,28 @@ export default function NewArtworkPage() {
     setCurrentStep(2);
   };
 
-  const handleStep2Next = (formData: ArtworkDetailsFormValues) => {
-    setDetails(formData);
+  const handleStep1ImagesChange = (images: UploadedImage[]) => {
+    // Convert UploadedImage[] to ArtworkSlot[]
+    const slots: ArtworkSlot[] = images.map((img, idx) => ({
+      url: img.url,
+      sortOrder: idx,
+      details: null,
+    }));
+    setArtworkSlots(slots);
+  };
+
+  const handleStep2Next = (
+    slots: ArtworkSlot[],
+    shipping: SharedShippingValues
+  ) => {
+    setArtworkSlots(slots);
+    setSharedShipping(shipping);
     setError(null);
     setCurrentStep(3);
   };
 
   const handleStep3Submit = async (collectionId: string | null) => {
-    if (!details) {
+    if (!sharedShipping || artworkSlots.length === 0) {
       setError('Form data is missing');
       return;
     }
@@ -75,21 +105,27 @@ export default function NewArtworkPage() {
     setError(null);
 
     try {
-      const result = await createArtworkWithImages({
-        images,
-        ...details,
+      const result = await createMultipleArtworks({
+        slots: artworkSlots.map((slot) => ({
+          url: slot.url,
+          details: slot.details!,
+        })),
+        shippingType: sharedShipping.shippingType,
+        shippingCost: sharedShipping.shippingCost,
+        shippingArea: sharedShipping.shippingArea,
+        shippingCarrier: sharedShipping.shippingCarrier,
         collectionId,
       });
 
-      if (result.success && result.artworkId) {
-        router.push(`/artworks/${result.artworkId}`);
+      if (result.success && result.artworkIds.length > 0) {
+        router.push(`/artworks?ownerId=${ownerId}`);
       } else {
-        throw new Error('Failed to create artwork');
+        throw new Error('Failed to create artworks');
       }
     } catch (err) {
-      console.error('Error creating artwork:', err);
+      console.error('Error creating artworks:', err);
       setError(
-        err instanceof Error ? err.message : 'Kunde inte skapa konstverket. Försök igen senare.'
+        err instanceof Error ? err.message : 'Kunde inte skapa konstverken. Försök igen senare.'
       );
       setIsSubmitting(false);
     }
@@ -152,24 +188,18 @@ export default function NewArtworkPage() {
           <div>
             {currentStep === 1 && (
               <Step1Images
-                images={images}
-                onChange={setImages}
+                images={artworkSlots.map((s) => ({ url: s.url, isMain: false, sortOrder: s.sortOrder }))}
+                onChange={handleStep1ImagesChange}
                 onNext={handleStep1Next}
               />
             )}
 
-            {currentStep === 2 && details === null && (
-              <Step2Details
+            {currentStep === 2 && (
+              <Step2BulkDetails
+                slots={artworkSlots}
                 onBack={() => setCurrentStep(1)}
                 onNext={handleStep2Next}
-              />
-            )}
-
-            {currentStep === 2 && details !== null && (
-              <Step2Details
-                defaultValues={details}
-                onBack={() => setCurrentStep(1)}
-                onNext={handleStep2Next}
+                defaultShipping={sharedShipping || undefined}
               />
             )}
 

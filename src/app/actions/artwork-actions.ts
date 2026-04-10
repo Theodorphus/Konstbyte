@@ -96,3 +96,98 @@ export async function createArtworkWithImages(input: CreateArtworkInput) {
     throw error;
   }
 }
+
+export interface ArtworkSlotDetails {
+  title: string;
+  price: number;
+  category: string;
+  description?: string;
+  technique?: string;
+  dimensions?: string;
+}
+
+export interface CreateMultipleArtworksInput {
+  slots: Array<{
+    url: string;
+    details: ArtworkSlotDetails;
+  }>;
+  shippingType: string;
+  shippingCost?: number;
+  shippingArea?: string;
+  shippingCarrier?: string;
+  collectionId?: string | null;
+}
+
+export async function createMultipleArtworks(input: CreateMultipleArtworksInput) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      throw new Error('Unauthorized');
+    }
+
+    if (!input.slots || input.slots.length === 0) {
+      throw new Error('At least one artwork is required');
+    }
+
+    const artworkIds = await prisma.$transaction(async (tx) => {
+      const ids: string[] = [];
+
+      for (const slot of input.slots) {
+        // 1. Create artwork
+        const newArtwork = await tx.artwork.create({
+          data: {
+            title: slot.details.title.trim(),
+            description: slot.details.description?.trim() || null,
+            price: slot.details.price,
+            category: slot.details.category,
+            imageUrl: slot.url, // set to the image URL (each artwork has one image)
+            ownerId: user.id,
+            technique: slot.details.technique?.trim() || null,
+            dimensions: slot.details.dimensions?.trim() || null,
+            shippingType: input.shippingType,
+            shippingCost: input.shippingCost || null,
+            shippingArea: input.shippingArea?.trim() || null,
+            shippingCarrier: input.shippingCarrier?.trim() || null,
+            isPublished: true,
+          },
+        });
+
+        // 2. Create artwork image (one per artwork)
+        await tx.artworkImage.create({
+          data: {
+            artworkId: newArtwork.id,
+            url: slot.url,
+            isMain: true,
+            sortOrder: 0,
+          },
+        });
+
+        // 3. Add to collection if provided
+        if (input.collectionId) {
+          await tx.collectionItem.create({
+            data: {
+              collectionId: input.collectionId,
+              artworkId: newArtwork.id,
+            },
+          });
+        }
+
+        ids.push(newArtwork.id);
+      }
+
+      return ids;
+    });
+
+    // Revalidate related pages
+    revalidatePath('/artworks');
+    revalidatePath(`/users/${user.id}`);
+
+    return {
+      success: true,
+      artworkIds,
+    };
+  } catch (error) {
+    console.error('Error creating multiple artworks:', error);
+    throw error;
+  }
+}

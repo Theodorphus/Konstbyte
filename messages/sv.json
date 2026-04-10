@@ -227,7 +227,13 @@
     "collection_desc_label": "Beskrivning",
     "collection_title_placeholder": "T.ex. Blå period",
     "publishing": "Publicerar...",
-    "collections": "Utforska samlingar"
+    "collections": "Utforska samlingar",
+    "bulk_upload_title": "Prissätt och beskriv dina verk",
+    "bulk_upload_instruction": "Varje bild är ett eget konstverk. Fyll i titel och pris för var och en.",
+    "artwork_slot_label": "Konstverk {number}",
+    "shared_shipping_label": "Frakt (gäller alla verk)",
+    "more_details_toggle": "Mer information",
+    "completion_status": "Fyll i titel och pris för alla {total} konstverk ({completed} av {total} klara)"
   },
   "collections": {
     "title": "Samlingar",
