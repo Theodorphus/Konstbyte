@@ -13,7 +13,7 @@ interface Artwork {
   id: string;
   title: string;
   description: string | null;
-  price: number;
+  price: number | null;
   imageUrl: string;
   category: string;
   isPublished: boolean;
@@ -52,7 +52,7 @@ export default function EditArtworkPage() {
         setArtwork(data);
         setTitle(data.title);
         setDescription(data.description || '');
-        setPrice(data.price.toString());
+        setPrice(data.price ? data.price.toString() : '');
         setCategory(data.category);
         setIsPublished(data.isPublished);
       } else if (response.status === 404) {
