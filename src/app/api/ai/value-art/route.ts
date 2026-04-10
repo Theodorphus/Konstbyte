@@ -16,12 +16,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Du måste vara inloggad för att värdera konstverk." }, { status: 401 });
     }
 
-    const lastValuation = await prisma.artValuationLog.findFirst({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
+    const valuationsToday = await prisma.artValuationLog.count({
+      where: {
+        userId: user.id,
+        createdAt: {
+          gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24),
+        },
+      },
     });
-    if (lastValuation && (new Date().getTime() - new Date(lastValuation.createdAt).getTime() < 1000 * 60 * 60 * 24)) {
-      return NextResponse.json({ error: "Du kan bara värdera ett konstverk per dag. Försök igen imorgon." }, { status: 429 });
+    if (valuationsToday >= 3) {
+      return NextResponse.json({ error: "Du kan bara värdera 3 konstverk per dag. Försök igen imorgon." }, { status: 429 });
     }
 
     const body = await request.json();
