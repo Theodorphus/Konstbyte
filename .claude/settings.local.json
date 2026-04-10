@@ -10,7 +10,9 @@
       "Bash(grep -n \"resend\\\\|nodemailer\\\\|EMAIL\\\\|sendMail\" src/app/api/auth/[...nextauth]/route.ts)",
       "Bash(npx prisma migrate dev --name add_order_flow)",
       "Bash(grep -n \"findLastIndex\" /c/Users/Theo/konstbyte/src/app/orders/[id]/page.tsx)",
-      "Bash(node -e \"require\\(''date-fns''\\)\")"
+      "Bash(node -e \"require\\(''date-fns''\\)\")",
+      "Bash(ls -d prisma/migrations/202*_add_instagram/)",
+      "Bash(git push:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Theo\\konstbyte\\src\\app\\messages"

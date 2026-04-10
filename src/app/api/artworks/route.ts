@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { title:       { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
+        { owner:       { name: { contains: search, mode: 'insensitive' } } },
       ];
     }
 
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
       { createdAt: 'desc' };
 
     const [list, total] = await Promise.all([
-      prisma.artwork.findMany({ where, orderBy, skip, take }),
+      prisma.artwork.findMany({ where, orderBy, skip, take, include: { owner: true } }),
       prisma.artwork.count({ where }),
     ]);
 

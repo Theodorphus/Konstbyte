@@ -16,6 +16,7 @@ type Artwork = {
   price: number;
   imageUrl: string;
   category: string;
+  owner?: { name: string | null } | null;
 };
 type ArtworksResponse = {
   items: Artwork[];
@@ -82,6 +83,9 @@ function ArtworksGrid({ artworks, favoriteIds, toggleFavorite, currentUserId, ca
             </div>
             <div className="p-4">
               <h3 className="font-semibold text-slate-900 truncate leading-snug">{art.title}</h3>
+              {art.owner?.name && (
+                <p className="mt-1 text-xs text-slate-500">{art.owner.name}</p>
+              )}
               {art.description && (
                 <p className="mt-1 text-xs text-slate-500 line-clamp-2 leading-relaxed">{art.description}</p>
               )}
