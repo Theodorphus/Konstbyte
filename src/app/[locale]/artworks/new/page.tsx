@@ -1,96 +1,125 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import UploadImageButton from '@/components/UploadImageButton';
-import SafeImage from '@/components/SafeImage';
-import { SHIPPING_OPTIONS } from '@/lib/shipping';
+import { Card, CardContent } from '@/components/ui/card';
+import { StepIndicator } from '@/components/upload/StepIndicator';
+import { Step1Images } from '@/components/upload/Step1Images';
+import { Step2Details, type ArtworkDetailsFormValues } from '@/components/upload/Step2Details';
+import { Step3Collections } from '@/components/upload/Step3Collections';
+import { createArtworkWithImages, type UploadedImage } from '@/app/actions/artwork-actions';
 import { useTranslations } from 'next-intl';
+import { AlertCircle } from 'lucide-react';
 
 export default function NewArtworkPage() {
   const router = useRouter();
   const t = useTranslations('artworks');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [category, setCategory] = useState('malningar');
-  const [shippingType, setShippingType] = useState('overenskommes');
-  const [shippingCost, setShippingCost] = useState('');
-  const [shippingArea, setShippingArea] = useState('');
-  const [shippingCarrier, setShippingCarrier] = useState('');
-  const [ownerId, setOwnerId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
+  // Auth check
+  const [ownerId, setOwnerId] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Wizard state
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [images, setImages] = useState<UploadedImage[]>([]);
+  const [details, setDetails] = useState<ArtworkDetailsFormValues | null>(null);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Check authentication
   useEffect(() => {
-    fetch('/api/me')
-      .then((res) => res.json())
-      .then((data) => setOwnerId(data?.user?.id ?? null))
-      .catch(() => setOwnerId(null));
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/me');
+        if (response.ok) {
+          const data = await response.json();
+          setOwnerId(data?.user?.id || null);
+        } else {
+          setOwnerId(null);
+        }
+      } catch (err) {
+        console.error('Auth check failed:', err);
+        setOwnerId(null);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!imageUrl || !ownerId || !title || !price) {
-      setError(t('fill_required'));
+  const handleStep1Next = () => {
+    if (images.length === 0) {
+      setError('Du måste ladda upp minst en bild');
+      return;
+    }
+    setError(null);
+    setCurrentStep(2);
+  };
+
+  const handleStep2Next = (formData: ArtworkDetailsFormValues) => {
+    setDetails(formData);
+    setError(null);
+    setCurrentStep(3);
+  };
+
+  const handleStep3Submit = async (collectionId: string | null) => {
+    if (!details) {
+      setError('Form data is missing');
       return;
     }
 
-    setIsLoading(true);
-    setError('');
+    setIsSubmitting(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/artworks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          description,
-          price: Number(price),
-          imageUrl,
-          ownerId,
-          category,
-          shippingType,
-          shippingCost: shippingType === 'fixed' ? Number(shippingCost) : null,
-          shippingArea: shippingType === 'pickup' ? shippingArea : null,
-          shippingCarrier: shippingType === 'other' ? shippingCarrier : null,
-        })
+      const result = await createArtworkWithImages({
+        images,
+        ...details,
+        collectionId,
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        setError(data.error || t('error_generic'));
-        setIsLoading(false);
-        return;
+      if (result.success && result.artworkId) {
+        router.push(`/artworks/${result.artworkId}`);
+      } else {
+        throw new Error('Failed to create artwork');
       }
-
-      const result = await response.json();
-      router.push(`/artworks/${result.id}`);
-    } catch (error) {
-      console.error('Error creating artwork:', error);
-      setError(t('network_error_upload'));
-      setIsLoading(false);
+    } catch (err) {
+      console.error('Error creating artwork:', err);
+      setError(
+        err instanceof Error ? err.message : 'Kunde inte skapa konstverket. Försök igen senare.'
+      );
+      setIsSubmitting(false);
     }
+  };
+
+  // Loading state
+  if (authLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-48 bg-slate-200 rounded animate-pulse" />
+        <div className="h-40 bg-white/80 rounded-2xl animate-pulse" />
+      </div>
+    );
   }
 
+  // Not authenticated
   if (!ownerId) {
     return (
-      <div className="max-w-md mx-auto py-12 text-center">
+      <div className="max-w-md mx-auto">
         <Card>
-          <CardContent className="p-6 space-y-4">
-            <p className="text-slate-600">{t('sign_in_to_upload')}</p>
-            <div className="flex gap-2 justify-center">
-              <Button asChild>
-                <Link href="/auth/signin">{t('sign_in_btn')}</Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href="/auth/register">{t('register_btn')}</Link>
-              </Button>
+          <CardContent className="p-6 text-center space-y-4">
+            <h1 className="text-xl font-semibold text-slate-900">{t('sign_in_to_upload')}</h1>
+            <p className="text-slate-600">Du måste vara inloggad för att ladda upp konst.</p>
+            <div className="flex flex-col gap-2 pt-2">
+              <Link href="/auth/signin" className="inline-flex justify-center px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors">
+                Logga in
+              </Link>
+              <Link href="/auth/register" className="inline-flex justify-center px-4 py-2 border border-slate-200 text-slate-900 rounded-lg hover:bg-slate-50 transition-colors">
+                Registrera dig
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -99,169 +128,66 @@ export default function NewArtworkPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-12">
-      <div className="mb-8">
-        <Link href="/artworks" className="text-sm text-slate-600 hover:text-slate-900">
-          {t('back_to_marketplace')}
-        </Link>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-semibold text-slate-900">
+          {t('new_artwork_title')}
+        </h1>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>{t('new_artwork_title')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
-                {error}
-              </div>
+        <CardContent className="p-6 sm:p-8 space-y-8">
+          {/* Step indicator */}
+          <StepIndicator currentStep={currentStep} />
+
+          {/* Error message */}
+          {error && (
+            <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <p className="text-sm font-medium">{error}</p>
+            </div>
+          )}
+
+          {/* Step content */}
+          <div>
+            {currentStep === 1 && (
+              <Step1Images
+                images={images}
+                onChange={setImages}
+                onNext={handleStep1Next}
+              />
             )}
 
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                {t('title_label')}
-              </label>
-              <Input
-                required
-                placeholder={t('title_placeholder')}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+            {currentStep === 2 && details === null && (
+              <Step2Details
+                onBack={() => setCurrentStep(1)}
+                onNext={handleStep2Next}
               />
-            </div>
+            )}
 
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                {t('description')}
-              </label>
-              <textarea
-                placeholder={t('description_placeholder')}
-                className="w-full p-2 border rounded text-sm"
-                rows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+            {currentStep === 2 && details !== null && (
+              <Step2Details
+                defaultValues={details}
+                onBack={() => setCurrentStep(1)}
+                onNext={handleStep2Next}
               />
-            </div>
+            )}
 
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                {t('price_label')}
-              </label>
-              <Input
-                type="number"
-                required
-                placeholder="1000"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
+            {currentStep === 3 && (
+              <Step3Collections
+                onBack={() => setCurrentStep(2)}
+                onSubmit={handleStep3Submit}
+                isSubmitting={isSubmitting}
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                {t('category')}
-              </label>
-              <select
-                className="w-full p-2 border rounded text-sm"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                <option value="malningar">{t('paintings')}</option>
-                <option value="skulpturer">{t('sculptures')}</option>
-                <option value="fotografi">{t('photography')}</option>
-                <option value="digital">{t('digital')}</option>
-              </select>
-            </div>
-
-            {/* Shipping settings */}
-            <div className="space-y-3 border border-stone-200 rounded-xl p-4 bg-stone-50">
-              <p className="text-sm font-semibold text-slate-800">{t('shipping_settings')}</p>
-
-              <div>
-                <label className="block text-xs font-medium text-stone-500 mb-1">{t('shipping_options_label')}</label>
-                <select
-                  className="w-full p-2 border border-stone-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  value={shippingType}
-                  onChange={(e) => setShippingType(e.target.value)}
-                >
-                  {SHIPPING_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {shippingType === 'fixed' && (
-                <div>
-                  <label className="block text-xs font-medium text-stone-500 mb-1">{t('shipping_cost_label')}</label>
-                  <Input
-                    type="number"
-                    placeholder={t('shipping_cost_placeholder')}
-                    value={shippingCost}
-                    onChange={(e) => setShippingCost(e.target.value)}
-                    min="0"
-                  />
-                </div>
-              )}
-
-              {shippingType === 'pickup' && (
-                <div>
-                  <label className="block text-xs font-medium text-stone-500 mb-1">{t('pickup_area_label')}</label>
-                  <Input
-                    placeholder={t('pickup_area_placeholder')}
-                    value={shippingArea}
-                    onChange={(e) => setShippingArea(e.target.value)}
-                  />
-                </div>
-              )}
-
-              {shippingType === 'other' && (
-                <div>
-                  <label className="block text-xs font-medium text-stone-500 mb-1">{t('carrier_label')}</label>
-                  <Input
-                    placeholder={t('carrier_placeholder')}
-                    value={shippingCarrier}
-                    onChange={(e) => setShippingCarrier(e.target.value)}
-                  />
-                </div>
-              )}
-
-              {shippingType === 'overenskommes' && (
-                <p className="text-xs text-stone-400">
-                  {t('shipping_agreement')}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                {t('image_label')}
-              </label>
-              <UploadImageButton onUploaded={setImageUrl} />
-              {imageUrl && (
-                <div className="mt-2 relative w-full h-64">
-                  <SafeImage src={imageUrl} alt={t('preview')} fill className="object-cover rounded border" />
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="bg-slate-900 text-white hover:bg-slate-700 border border-slate-900 px-6 font-semibold shadow-sm"
-              >
-                {isLoading ? t('saving') : t('publish_artwork')}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-              >
-                {t('cancel')}
-              </Button>
-            </div>
-          </form>
+            )}
+          </div>
         </CardContent>
       </Card>
+
+      {/* Progress indicator text */}
+      <div className="text-center text-sm text-slate-500">
+        Steg {currentStep} av 3
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { formatSek } from '@/lib/currency';
 import SafeImage from '@/components/SafeImage';
 import { PageHeader } from '@/components/PageHeader';
+import { CollectionStrip } from '@/components/collections/CollectionStrip';
 import { useTranslations } from 'next-intl';
 
 // --- TYPING ---
@@ -131,6 +132,7 @@ export default function ArtworksPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [collections, setCollections] = useState<any[]>([]);
 
   const categoryLabels: Record<string, string> = {
     malningar: t('paintings'),
@@ -173,6 +175,22 @@ export default function ArtworksPage() {
 
   useEffect(() => {
     fetchFavorites();
+  }, []);
+
+  // Fetch collections for the featured section
+  useEffect(() => {
+    const fetchCollections = async () => {
+      try {
+        const response = await fetch('/api/collections?limit=6');
+        if (response.ok) {
+          const data = await response.json();
+          setCollections(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching collections:', error);
+      }
+    };
+    fetchCollections();
   }, []);
 
   // Fetch search results (artists) when search query changes
@@ -438,6 +456,16 @@ export default function ArtworksPage() {
               </Link>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Featured collections */}
+      {collections.length > 0 && (
+        <div className="py-6 border-t border-slate-200/70">
+          <CollectionStrip
+            collections={collections}
+            title="Utforska samlingar"
+          />
         </div>
       )}
 

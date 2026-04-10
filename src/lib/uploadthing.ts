@@ -15,7 +15,7 @@ export const uploadRouter = {
       return { url: file.url };
     }),
 
-  artworkImage: f({ image: { maxFileSize: '8MB', maxFileCount: 1 } })
+  artworkImage: f({ image: { maxFileSize: '8MB', maxFileCount: 10 } })
     .middleware(async () => {
       const user = await getCurrentUser();
       if (!user) throw new UploadThingError('Unauthorized');

@@ -9,6 +9,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { formatSek } from '@/lib/currency';
 import StatusCard from '@/components/StatusCard';
+import { CollectionStrip } from '@/components/collections/CollectionStrip';
 import { useTranslations } from 'next-intl';
 
 interface User {
@@ -40,6 +41,7 @@ export default function UserProfilePage() {
 
   const [user, setUser] = useState<User | null>(null);
   const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [collections, setCollections] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -48,6 +50,7 @@ export default function UserProfilePage() {
   useEffect(() => {
     fetchUser();
     fetchArtworks();
+    fetchCollections();
     checkFollowStatus();
   }, [userId]);
 
@@ -74,6 +77,18 @@ export default function UserProfilePage() {
       }
     } catch (error) {
       console.error('Error fetching artworks:', error);
+    }
+  };
+
+  const fetchCollections = async () => {
+    try {
+      const response = await fetch(`/api/collections?artistId=${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setCollections(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching collections:', error);
     }
   };
 
@@ -214,6 +229,16 @@ export default function UserProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Collections section */}
+      {collections.length > 0 && (
+        <div>
+          <CollectionStrip
+            collections={collections}
+            title={`${user?.name || 'Konstnärens'} samlingar`}
+          />
+        </div>
+      )}
 
       <Card className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
         <CardHeader>

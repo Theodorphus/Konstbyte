@@ -36,6 +36,7 @@ model User {
   receivedMessages     Message[]             @relation("MessageRecipient")
   postReactions        PostReaction[]
   payouts              Payout[]
+  collections          Collection[]
 }
 
 model Account {
@@ -91,9 +92,13 @@ model Artwork {
   shippingCost    Float?     // SEK, only used when shippingType = "fixed"
   shippingArea    String?    // city/area, only used when shippingType = "pickup"
   shippingCarrier String?    // carrier name, only used when shippingType = "other"
+  technique       String?
+  dimensions      String?
   owner           User       @relation("ArtworkOwner", fields: [ownerId], references: [id])
   orders          Order[]
   favorites       Favorite[]
+  images          ArtworkImage[]
+  collectionItems CollectionItem[]
 }
 
 model Order {
@@ -321,4 +326,41 @@ model Payout {
   completedAt        DateTime?
   seller             User      @relation(fields: [sellerId], references: [id])
   order              Order     @relation(fields: [orderId], references: [id])
+}
+
+model ArtworkImage {
+  id        String   @id @default(cuid())
+  artworkId String
+  url       String
+  isMain    Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+
+  @@index([artworkId])
+}
+
+model Collection {
+  id          String           @id @default(cuid())
+  artistId    String
+  title       String
+  description String?
+  coverImage  String?
+  createdAt   DateTime         @default(now())
+  artist      User             @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  items       CollectionItem[]
+
+  @@index([artistId])
+}
+
+model CollectionItem {
+  id           String     @id @default(cuid())
+  collectionId String
+  artworkId    String
+  createdAt    DateTime   @default(now())
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  artwork      Artwork    @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, artworkId])
+  @@index([collectionId])
 }
