@@ -17,7 +17,9 @@
       "Bash(ls /c/Users/46709/Konstbyte-main/src/app/[locale]/)",
       "Bash(ls /c/Users/46709/Konstbyte-main/src/app/[locale]/users/)",
       "Bash(cat /c/Users/46709/Konstbyte-main/src/app/[locale]/artworks/[id]/edit/page.tsx)",
-      "Bash(git commit -m ':*)"
+      "Bash(git commit -m ':*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m 'fix: prevent infinite loop in Step2BulkDetails by memoizing callbacks:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Theo\\konstbyte\\src\\app\\messages"

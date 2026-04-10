@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertCircle } from 'lucide-react';
@@ -49,21 +49,25 @@ export function Step2BulkDetails({
     new Map(slots.map((s, i) => [i, s.details]))
   );
 
-  const handleSlotComplete = (index: number, details: ArtworkSlotDetails) => {
-    const newDetails = new Map(slotDetails);
-    newDetails.set(index, details);
-    setSlotDetails(newDetails);
-    const completed = Array.from(newDetails.values()).filter((d) => d !== null).length;
-    setCompletedCount(completed);
-  };
+  const handleSlotComplete = useCallback((index: number, details: ArtworkSlotDetails) => {
+    setSlotDetails((prev) => {
+      const newDetails = new Map(prev);
+      newDetails.set(index, details);
+      const completed = Array.from(newDetails.values()).filter((d) => d !== null).length;
+      setCompletedCount(completed);
+      return newDetails;
+    });
+  }, []);
 
-  const handleSlotIncomplete = (index: number) => {
-    const newDetails = new Map(slotDetails);
-    newDetails.delete(index);
-    setSlotDetails(newDetails);
-    const completed = Array.from(newDetails.values()).filter((d) => d !== null).length;
-    setCompletedCount(completed);
-  };
+  const handleSlotIncomplete = useCallback((index: number) => {
+    setSlotDetails((prev) => {
+      const newDetails = new Map(prev);
+      newDetails.delete(index);
+      const completed = Array.from(newDetails.values()).filter((d) => d !== null).length;
+      setCompletedCount(completed);
+      return newDetails;
+    });
+  }, []);
 
   const isAllComplete = completedCount === slots.length;
 
