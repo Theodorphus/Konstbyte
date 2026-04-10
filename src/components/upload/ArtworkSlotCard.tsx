@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -39,6 +39,7 @@ export function ArtworkSlotCard({
 }: ArtworkSlotCardProps) {
   const t = useTranslations('artworks');
   const [isExpanded, setIsExpanded] = useState(false);
+  const prevValidRef = useRef<boolean>(false);
 
   const {
     register,
@@ -57,13 +58,16 @@ export function ArtworkSlotCard({
 
   const values = watch();
 
-  // Emit completion/incompletion status
+  // Emit completion/incompletion status only when validity changes
   useEffect(() => {
-    if (isValid) {
+    if (isValid && !prevValidRef.current) {
+      // Became valid
       onComplete(values as ArtworkSlotDetails);
-    } else {
+    } else if (!isValid && prevValidRef.current) {
+      // Became invalid
       onIncomplete();
     }
+    prevValidRef.current = isValid;
   }, [isValid, values, onComplete, onIncomplete]);
 
   return (
