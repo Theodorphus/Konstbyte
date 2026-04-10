@@ -16,6 +16,8 @@ interface User {
   name: string | null;
   email: string;
   image: string | null;
+  bio: string | null;
+  instagram: string | null;
   _count: {
     artworks: number;
     followers: number;
@@ -166,6 +168,19 @@ export default function UserProfilePage() {
             <div className="flex-1">
               <h1 className="text-2xl font-bold">{user.name || t('anonymous_user')}</h1>
               <p className="text-slate-600">{user.email}</p>
+              {user.bio && <p className="text-slate-600 mt-2">{user.bio}</p>}
+              {user.instagram && (
+                <p className="text-slate-600 mt-1">
+                  <a
+                    href={`https://instagram.com/${user.instagram.replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-amber-600 hover:text-amber-700 underline"
+                  >
+                    @{user.instagram.replace(/^@/, '')}
+                  </a>
+                </p>
+              )}
               <div className="flex gap-6 mt-4 text-sm">
                 <Link href={`/users/${userId}/followers`} className="hover:text-slate-900">
                   <span className="font-bold">{user._count.followers}</span> {t('followers_label')}

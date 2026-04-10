@@ -10,7 +10,7 @@ export async function GET() {
     }
     const full = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { id: true, name: true, email: true, image: true, bio: true },
+      select: { id: true, name: true, email: true, image: true, bio: true, instagram: true },
     });
     return NextResponse.json(full);
   } catch (error) {
@@ -24,13 +24,14 @@ export async function PUT(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { name, image, bio } = await request.json();
+    const { name, image, bio, instagram } = await request.json();
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         ...(name !== undefined ? { name: name || user.name } : {}),
         ...(image !== undefined ? { image: image || null } : {}),
         ...(bio !== undefined ? { bio: bio || null } : {}),
+        ...(instagram !== undefined ? { instagram: instagram || null } : {}),
       },
     });
     return NextResponse.json(updatedUser);

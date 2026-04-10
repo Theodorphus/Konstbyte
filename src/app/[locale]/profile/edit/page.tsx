@@ -17,6 +17,7 @@ interface User {
   email: string;
   image: string | null;
   bio: string | null;
+  instagram: string | null;
 }
 
 export default function EditProfilePage() {
@@ -25,6 +26,7 @@ export default function EditProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
+  const [instagram, setInstagram] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -36,6 +38,7 @@ export default function EditProfilePage() {
         setUser(data);
         setName(data.name || '');
         setBio(data.bio || '');
+        setInstagram(data.instagram || '');
         setImageUrl(data.image || null);
       })
       .catch(status => { if (status === 401) router.push('/auth/signin'); })
@@ -58,7 +61,7 @@ export default function EditProfilePage() {
       const res = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, image: imageUrl, bio }),
+        body: JSON.stringify({ name, image: imageUrl, bio, instagram }),
       });
       if (res.ok) router.push('/profile');
       else alert(t('update_failed'));
@@ -159,6 +162,17 @@ export default function EditProfilePage() {
                 className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-300 transition-colors resize-none"
               />
               <p className="text-xs text-slate-400">{t('bio_chars', { count: bio.length })}</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700">Instagram</label>
+              <Input
+                value={instagram}
+                onChange={e => setInstagram(e.target.value)}
+                placeholder="@yourusername"
+                maxLength={100}
+              />
+              <p className="text-xs text-slate-400">Ditt Instagram-användarnamn (valfritt)</p>
             </div>
 
             <div className="flex gap-2 pt-2">

@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
       OR: [
         { name: { contains: query, mode: 'insensitive' as const } },
         { email: { contains: query, mode: 'insensitive' as const } },
+        { instagram: { contains: query, mode: 'insensitive' as const } },
       ],
     };
 
