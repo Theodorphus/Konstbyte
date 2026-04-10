@@ -22,6 +22,17 @@ type ArtworksResponse = {
   items: Artwork[];
   total: number;
 };
+type Artist = {
+  id: string;
+  name: string | null;
+  email: string;
+  image: string | null;
+  _count: { artworks: number };
+};
+type SearchResponse = {
+  users: Artist[];
+  artworks: Artwork[];
+};
 
 const categories = ['malningar', 'skulpturer', 'fotografi', 'digital'];
 
@@ -110,6 +121,7 @@ export default function ArtworksPage() {
   const [page, setPage] = useState<number>(1);
   const pageSize = 12;
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Artist[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [minPrice, setMinPrice] = useState<string>('');
@@ -162,6 +174,28 @@ export default function ArtworksPage() {
   useEffect(() => {
     fetchFavorites();
   }, []);
+
+  // Fetch search results (artists) when search query changes
+  useEffect(() => {
+    let isCurrent = true;
+    if (searchQuery.trim().length >= 2) {
+      const fetchSearchResults = async () => {
+        try {
+          const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+          if (response.ok && isCurrent) {
+            const data: SearchResponse = await response.json();
+            setSearchResults(data.users || []);
+          }
+        } catch (error) {
+          // silently ignore search errors
+        }
+      };
+      fetchSearchResults();
+    } else {
+      setSearchResults([]);
+    }
+    return () => { isCurrent = false; };
+  }, [searchQuery]);
 
   const buildQuery = (pageNumber = 1) => {
     const params = new URLSearchParams();
@@ -370,6 +404,43 @@ export default function ArtworksPage() {
           {error}
         </div>
       )}
+
+      {/* Artist Search Results */}
+      {searchResults.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-slate-900">Konstnärer</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {searchResults.map((artist) => (
+              <Link
+                key={artist.id}
+                href={`/artworks?ownerId=${artist.id}`}
+                className="group"
+              >
+                <div className="rounded-2xl border border-slate-200/70 bg-white/90 p-5 text-center hover:shadow-md transition-all hover:-translate-y-1">
+                  <div className="w-16 h-16 rounded-full mx-auto mb-3 bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center text-2xl font-semibold text-slate-700 flex-shrink-0">
+                    {artist.image ? (
+                      <img
+                        src={artist.image}
+                        alt={artist.name || 'Artist'}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      artist.name?.[0]?.toUpperCase() || '?'
+                    )}
+                  </div>
+                  <h3 className="font-semibold text-slate-900 truncate">
+                    {artist.name || 'Okänd konstnär'}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {artist._count.artworks} {artist._count.artworks === 1 ? 'verk' : 'verk'}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
