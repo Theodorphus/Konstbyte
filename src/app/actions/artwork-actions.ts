@@ -138,14 +138,14 @@ export async function createMultipleArtworks(input: CreateMultipleArtworksInput)
           data: {
             title: slot.details.title.trim(),
             description: slot.details.description?.trim() || null,
-            price: slot.details.price,
+            price: typeof slot.details.price === 'string' ? parseFloat(slot.details.price) : slot.details.price,
             category: slot.details.category,
             imageUrl: slot.url, // set to the image URL (each artwork has one image)
             ownerId: user.id,
             technique: slot.details.technique?.trim() || null,
             dimensions: slot.details.dimensions?.trim() || null,
             shippingType: input.shippingType,
-            shippingCost: input.shippingCost || null,
+            shippingCost: input.shippingCost ? (typeof input.shippingCost === 'string' ? parseFloat(input.shippingCost) : input.shippingCost) : null,
             shippingArea: input.shippingArea?.trim() || null,
             shippingCarrier: input.shippingCarrier?.trim() || null,
             isPublished: true,
