@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -40,6 +40,11 @@ export function ArtworkSlotCard({
   const t = useTranslations('artworks');
   const [isExpanded, setIsExpanded] = useState(false);
   const prevValidRef = useRef<boolean>(false);
+  // Use refs for callbacks to avoid stale closures without adding them to dep array
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  const onIncompleteRef = useRef(onIncomplete);
+  onIncompleteRef.current = onIncomplete;
 
   const {
     register,
@@ -58,17 +63,16 @@ export function ArtworkSlotCard({
 
   const values = watch();
 
-  // Emit completion/incompletion status only when validity changes
+  // Notify parent whenever form is valid (with current values), or when it becomes invalid
   useEffect(() => {
-    if (isValid && !prevValidRef.current) {
-      // Became valid
-      onComplete(values as ArtworkSlotDetails);
-    } else if (!isValid && prevValidRef.current) {
+    if (isValid) {
+      onCompleteRef.current(values as ArtworkSlotDetails);
+    } else if (prevValidRef.current) {
       // Became invalid
-      onIncomplete();
+      onIncompleteRef.current();
     }
     prevValidRef.current = isValid;
-  }, [isValid, values, onComplete, onIncomplete]);
+  }, [isValid, values]);
 
   return (
     <div
