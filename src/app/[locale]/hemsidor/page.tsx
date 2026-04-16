@@ -2,13 +2,13 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import Link from 'next/link';
 
 export default function HemsidorPage() {
   const t = useTranslations('hemsidor');
   const [formData, setFormData] = useState({ websiteUrl: '', email: '' });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +35,11 @@ export default function HemsidorPage() {
     }
   };
 
+  const scrollToForm = () => document.getElementById('cta-form')?.scrollIntoView({ behavior: 'smooth' });
+
   return (
     <div className="min-h-screen">
+
       {/* Hero */}
       <section className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-blue-400 via-purple-400 to-pink-300 shadow-2xl shadow-purple-300/30 mb-20">
         <div className="absolute -right-12 -top-12 z-10 h-64 w-64 rounded-full bg-white/30 blur-3xl pointer-events-none" />
@@ -54,7 +57,7 @@ export default function HemsidorPage() {
             </p>
             <div className="mt-12 flex flex-wrap gap-4 animate-fade-up-delay-2">
               <button
-                onClick={() => document.getElementById('cta-form')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={scrollToForm}
                 className="inline-flex items-center justify-center rounded-full bg-slate-900 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all duration-300 hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-900/40"
               >
                 {t('hero_cta')}
@@ -70,6 +73,30 @@ export default function HemsidorPage() {
         </div>
       </section>
 
+      {/* Det här är för dig om */}
+      <section className="mb-24 rounded-3xl border border-slate-200/70 bg-slate-50/60 p-10 md:p-14">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{t('target_label')}</p>
+          <h2 className="font-display mt-3 text-3xl md:text-4xl text-slate-900">{t('target_title')}</h2>
+        </div>
+        <ul className="mt-8 space-y-4">
+          {[t('target1'), t('target2'), t('target3'), t('target4'), t('target5')].map((item, i) => (
+            <li key={i} className="flex items-start gap-4">
+              <span className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-white text-xs font-bold">✓</span>
+              <span className="text-slate-700 text-base leading-relaxed">{item}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-10">
+          <button
+            onClick={scrollToForm}
+            className="inline-flex items-center justify-center rounded-full bg-slate-900 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all duration-300 hover:bg-slate-800 hover:scale-[1.02]"
+          >
+            {t('hero_cta')}
+          </button>
+        </div>
+      </section>
+
       {/* Problemet */}
       <section className="mb-24">
         <div>
@@ -82,8 +109,8 @@ export default function HemsidorPage() {
             { icon: '📊', title: t('problem2_title'), desc: t('problem2_desc') },
             { icon: '🎨', title: t('problem3_title'), desc: t('problem3_desc') },
             { icon: '🐌', title: t('problem4_title'), desc: t('problem4_desc') },
-            { icon: '👥', title: t('problem5_title'), desc: t('problem5_desc') },
-            { icon: '💰', title: t('problem6_title'), desc: t('problem6_desc') },
+            { icon: '📱', title: t('problem5_title'), desc: t('problem5_desc') },
+            { icon: '🔍', title: t('problem6_title'), desc: t('problem6_desc') },
           ].map((item, i) => (
             <div key={i} className="rounded-2xl border border-red-200/60 bg-red-50/40 p-6 flex flex-col gap-3">
               <div className="text-3xl">{item.icon}</div>
@@ -103,13 +130,13 @@ export default function HemsidorPage() {
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { icon: '⚡', title: t('solution1_title'), desc: t('solution1_desc') },
-            { icon: '💾', title: t('solution2_title'), desc: t('solution2_desc') },
-            { icon: '🎯', title: t('solution3_title'), desc: t('solution3_desc') },
-            { icon: '🚀', title: t('solution4_title'), desc: t('solution4_desc') },
-            { icon: '📈', title: t('solution5_title'), desc: t('solution5_desc') },
-            { icon: '✨', title: t('solution6_title'), desc: t('solution6_desc') },
+            { icon: '📱', title: t('solution2_title'), desc: t('solution2_desc') },
+            { icon: '🔍', title: t('solution3_title'), desc: t('solution3_desc') },
+            { icon: '🎯', title: t('solution4_title'), desc: t('solution4_desc') },
+            { icon: '✨', title: t('solution5_title'), desc: t('solution5_desc') },
+            { icon: '🚀', title: t('solution6_title'), desc: t('solution6_desc') },
             { icon: '💎', title: t('solution7_title'), desc: t('solution7_desc') },
-            { icon: '⏰', title: t('solution8_title'), desc: t('solution8_desc') },
+            { icon: '🤝', title: t('solution8_title'), desc: t('solution8_desc') },
           ].map((item, i) => (
             <div key={i} className="rounded-2xl border border-blue-200/60 bg-white/80 p-5 flex flex-col gap-3 backdrop-blur-sm">
               <div className="text-2xl">{item.icon}</div>
@@ -128,16 +155,14 @@ export default function HemsidorPage() {
         </div>
         <div className="mt-12">
           <div className="relative">
-            {/* Vertical line */}
             <div className="hidden md:block absolute left-12 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 via-purple-400 to-pink-300" />
-
             <div className="space-y-10 md:space-y-12">
               {[
-                { step: '1', title: t('process1_title'), desc: t('process1_desc'), icon: '📋' },
-                { step: '2', title: t('process2_title'), desc: t('process2_desc'), icon: '🎨' },
-                { step: '3', title: t('process3_title'), desc: t('process3_desc'), icon: '⚙️' },
-                { step: '4', title: t('process4_title'), desc: t('process4_desc'), icon: '🚀' },
-                { step: '5', title: t('process5_title'), desc: t('process5_desc'), icon: '📞' },
+                { title: t('process1_title'), desc: t('process1_desc'), icon: '📋' },
+                { title: t('process2_title'), desc: t('process2_desc'), icon: '🎨' },
+                { title: t('process3_title'), desc: t('process3_desc'), icon: '⚙️' },
+                { title: t('process4_title'), desc: t('process4_desc'), icon: '🚀' },
+                { title: t('process5_title'), desc: t('process5_desc'), icon: '📞' },
               ].map((item, i) => (
                 <div key={i} className="flex gap-6 md:gap-8">
                   <div className="flex flex-col items-center flex-shrink-0">
@@ -156,16 +181,42 @@ export default function HemsidorPage() {
         </div>
       </section>
 
+      {/* Recensioner */}
+      <section className="mb-24">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{t('testimonials_label')}</p>
+          <h2 className="font-display mt-3 text-3xl md:text-4xl text-slate-900">{t('testimonials_title')}</h2>
+        </div>
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {[
+            { text: t('testimonial1_text'), author: t('testimonial1_author') },
+            { text: t('testimonial2_text'), author: t('testimonial2_author') },
+            { text: t('testimonial3_text'), author: t('testimonial3_author') },
+          ].map((item, i) => (
+            <div key={i} className="rounded-2xl border border-slate-200/70 bg-white/80 p-7 flex flex-col gap-5 shadow-sm">
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, j) => (
+                  <span key={j} className="text-amber-400 text-lg">★</span>
+                ))}
+              </div>
+              <p className="text-slate-700 leading-relaxed text-sm flex-1">"{item.text}"</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">— {item.author}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Portfolio */}
       <section className="mb-24">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{t('portfolio_label')}</p>
           <h2 className="font-display mt-3 text-3xl md:text-4xl text-slate-900">{t('portfolio_title')}</h2>
         </div>
-        <div className="mt-12 grid gap-8 md:grid-cols-2">
+        <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {[
             { name: t('portfolio1_name'), desc: t('portfolio1_desc'), tech: 'Next.js, Tailwind, Supabase', url: 'https://bokning-taupe.vercel.app/' },
             { name: t('portfolio2_name'), desc: t('portfolio2_desc'), tech: 'Next.js, Prisma, Stripe', url: 'https://www.konstbyte.se/' },
+            { name: t('portfolio3_name'), desc: t('portfolio3_desc'), tech: 'Next.js, Tailwind', url: 'https://karlacleaningcrew.se/' },
           ].map((item, i) => (
             <a
               key={i}
@@ -180,7 +231,7 @@ export default function HemsidorPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="font-display text-xl text-slate-900 font-semibold">{item.name}</h3>
-                  <p className="mt-3 text-slate-600 leading-relaxed">{item.desc}</p>
+                  <p className="mt-3 text-slate-600 leading-relaxed text-sm">{item.desc}</p>
                 </div>
                 <span className="text-xl flex-shrink-0 group-hover:translate-x-1 transition-transform">→</span>
               </div>
@@ -208,12 +259,7 @@ export default function HemsidorPage() {
               tier: t('pricing1_tier'),
               price: t('pricing1_price'),
               desc: t('pricing1_desc'),
-              features: [
-                t('pricing1_feature1'),
-                t('pricing1_feature2'),
-                t('pricing1_feature3'),
-                t('pricing1_feature4'),
-              ],
+              features: [t('pricing1_feature1'), t('pricing1_feature2'), t('pricing1_feature3'), t('pricing1_feature4')],
               cta: t('pricing_cta'),
               highlighted: false,
             },
@@ -221,13 +267,7 @@ export default function HemsidorPage() {
               tier: t('pricing2_tier'),
               price: t('pricing2_price'),
               desc: t('pricing2_desc'),
-              features: [
-                t('pricing2_feature1'),
-                t('pricing2_feature2'),
-                t('pricing2_feature3'),
-                t('pricing2_feature4'),
-                t('pricing2_feature5'),
-              ],
+              features: [t('pricing2_feature1'), t('pricing2_feature2'), t('pricing2_feature3'), t('pricing2_feature4'), t('pricing2_feature5')],
               cta: t('pricing_cta'),
               highlighted: true,
             },
@@ -235,13 +275,7 @@ export default function HemsidorPage() {
               tier: t('pricing3_tier'),
               price: t('pricing3_price'),
               desc: t('pricing3_desc'),
-              features: [
-                t('pricing3_feature1'),
-                t('pricing3_feature2'),
-                t('pricing3_feature3'),
-                t('pricing3_feature4'),
-                t('pricing3_feature5'),
-              ],
+              features: [t('pricing3_feature1'), t('pricing3_feature2'), t('pricing3_feature3'), t('pricing3_feature4'), t('pricing3_feature5')],
               cta: t('pricing_cta'),
               highlighted: false,
             },
@@ -273,7 +307,7 @@ export default function HemsidorPage() {
                 ))}
               </ul>
               <button
-                onClick={() => document.getElementById('cta-form')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={scrollToForm}
                 className={`mt-8 w-full py-3 rounded-full font-semibold transition-all ${
                   item.highlighted
                     ? 'bg-purple-600 text-white hover:bg-purple-700'
@@ -284,6 +318,56 @@ export default function HemsidorPage() {
               </button>
             </div>
           ))}
+        </div>
+        <p className="mt-8 text-center text-sm text-slate-500">{t('pricing_note')}</p>
+      </section>
+
+      {/* FAQ */}
+      <section className="mb-24">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{t('faq_label')}</p>
+          <h2 className="font-display mt-3 text-3xl md:text-4xl text-slate-900">{t('faq_title')}</h2>
+        </div>
+        <div className="mt-12 space-y-3">
+          {[
+            { q: t('faq1_q'), a: t('faq1_a') },
+            { q: t('faq2_q'), a: t('faq2_a') },
+            { q: t('faq3_q'), a: t('faq3_a') },
+            { q: t('faq4_q'), a: t('faq4_a') },
+            { q: t('faq5_q'), a: t('faq5_a') },
+            { q: t('faq6_q'), a: t('faq6_a') },
+          ].map((item, i) => (
+            <div key={i} className="rounded-2xl border border-slate-200/70 bg-white/80 overflow-hidden">
+              <button
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                className="w-full flex items-center justify-between gap-4 px-7 py-5 text-left font-semibold text-slate-900 hover:bg-slate-50/80 transition-colors"
+              >
+                <span>{item.q}</span>
+                <span className={`flex-shrink-0 text-slate-400 transition-transform duration-200 ${openFaq === i ? 'rotate-45' : ''}`}>+</span>
+              </button>
+              {openFaq === i && (
+                <div className="px-7 pb-6 text-slate-600 leading-relaxed text-sm">
+                  {item.a}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Lokal SEO */}
+      <section className="mb-24 rounded-3xl border border-slate-200/70 bg-gradient-to-br from-green-50/50 to-teal-50/50 p-10 md:p-14">
+        <div className="max-w-3xl">
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{t('local_label')}</p>
+          <h2 className="font-display mt-3 text-3xl md:text-4xl text-slate-900">{t('local_title')}</h2>
+          <div className="mt-8 space-y-4 text-slate-700 leading-relaxed">
+            <p>{t('local_desc1')}</p>
+            <p>{t('local_desc2')}</p>
+          </div>
+          <div className="mt-8 rounded-2xl border border-slate-200/70 bg-white/70 px-6 py-4">
+            <p className="text-sm font-medium text-slate-500 mb-2">Områden jag jobbar med</p>
+            <p className="text-slate-700 font-medium">{t('local_cities')}</p>
+          </div>
         </div>
       </section>
 
@@ -297,7 +381,7 @@ export default function HemsidorPage() {
             <p>{t('about_para2')}</p>
             <p>{t('about_para3')}</p>
           </div>
-          <div className="mt-8 flex flex-wrap gap-4">
+          <div className="mt-8 flex flex-wrap gap-6">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🎓</span>
               <div>
@@ -310,6 +394,13 @@ export default function HemsidorPage() {
               <div>
                 <div className="font-semibold text-slate-900">{t('about_experience_title')}</div>
                 <div className="text-sm text-slate-600">{t('about_experience_desc')}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📍</span>
+              <div>
+                <div className="font-semibold text-slate-900">{t('about_location_title')}</div>
+                <div className="text-sm text-slate-600">{t('about_location_desc')}</div>
               </div>
             </div>
           </div>
@@ -330,11 +421,10 @@ export default function HemsidorPage() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">{t('form_url_label')}</label>
                 <input
-                  type="url"
+                  type="text"
                   placeholder={t('form_url_placeholder')}
                   value={formData.websiteUrl}
                   onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
-                  required
                   className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white/90 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-slate-900/40 focus:border-transparent"
                 />
               </div>
@@ -376,6 +466,7 @@ export default function HemsidorPage() {
           </div>
         </div>
       </section>
+
     </div>
   );
 }

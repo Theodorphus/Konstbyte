@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SafeImage from '@/components/SafeImage';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { formatSek } from '@/lib/currency';
 import StatusCard from '@/components/StatusCard';
 import { PageHeader } from '@/components/PageHeader';

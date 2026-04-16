@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
-
-function isAdmin(email: string | null | undefined): boolean {
-  const adminEmails = (process.env.ADMIN_EMAIL ?? '')
-    .split(',')
-    .map((e) => e.trim())
-    .filter(Boolean);
-  return email ? adminEmails.includes(email) : false;
-}
+import { isAdmin } from '../../../../../lib/admin';
 
 export async function DELETE(
   request: NextRequest,
@@ -21,12 +14,7 @@ export async function DELETE(
     }
 
     if (!isAdmin(user.email)) {
-      const adminEmails = (process.env.ADMIN_EMAIL ?? '').split(',').map(e => e.trim()).filter(Boolean);
-      return NextResponse.json({
-        error: 'Unauthorized - not an admin',
-        userEmail: user.email,
-        adminEmails,
-      }, { status: 403 });
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const { id } = await params;

@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 
 function timeAgo(dateStr: string, t: (key: string, values?: Record<string, number>) => string) {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -101,7 +102,7 @@ export default function ConversationPage() {
           <>
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 overflow-hidden">
               {other.image ? (
-                <img src={other.image} alt={otherInitial} className="w-full h-full object-cover" />
+                <Image src={other.image} alt={otherInitial} width={36} height={36} className="w-full h-full object-cover" />
               ) : otherInitial}
             </div>
             <div>

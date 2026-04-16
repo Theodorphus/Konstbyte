@@ -73,8 +73,11 @@ export async function GET() {
       current: challenge ? {
         id: challenge.id,
         title: challenge.title,
+        titleEn: challenge.titleEn ?? null,
         description: challenge.description,
+        descriptionEn: challenge.descriptionEn ?? null,
         themePrompt: challenge.themePrompt,
+        themePromptEn: challenge.themePromptEn ?? null,
         imageUrl: challenge.imageUrl ?? null,
         weekNumber: challenge.weekNumber,
         year: challenge.year,

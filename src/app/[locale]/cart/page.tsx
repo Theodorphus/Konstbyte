@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma';
 import CheckoutButton from '@/components/CheckoutButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SafeImage from '@/components/SafeImage';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { formatSek } from '@/lib/currency';
 import StatusCard from '@/components/StatusCard';

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { StepIndicator } from '@/components/upload/StepIndicator';
 import { Step1Images } from '@/components/upload/Step1Images';

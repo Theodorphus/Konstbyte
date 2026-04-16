@@ -1,5 +1,5 @@
 "use client";
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
@@ -8,6 +8,7 @@ import SafeImage from '@/components/SafeImage';
 import { PageHeader } from '@/components/PageHeader';
 import { CollectionStrip } from '@/components/collections/CollectionStrip';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 
 // --- TYPING ---
 type Artwork = {
@@ -426,7 +427,7 @@ export default function ArtworksPage() {
       {/* Artist Search Results */}
       {searchResults.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900">Konstnärer</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t('artists_heading')}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {searchResults.map((artist) => (
               <Link
@@ -437,9 +438,11 @@ export default function ArtworksPage() {
                 <div className="rounded-2xl border border-slate-200/70 bg-white/90 p-5 text-center hover:shadow-md transition-all hover:-translate-y-1">
                   <div className="w-16 h-16 rounded-full mx-auto mb-3 bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center text-2xl font-semibold text-slate-700 flex-shrink-0">
                     {artist.image ? (
-                      <img
+                      <Image
                         src={artist.image}
                         alt={artist.name || 'Artist'}
+                        width={64}
+                        height={64}
                         className="w-full h-full rounded-full object-cover"
                       />
                     ) : (
@@ -447,10 +450,10 @@ export default function ArtworksPage() {
                     )}
                   </div>
                   <h3 className="font-semibold text-slate-900 truncate">
-                    {artist.name || 'Okänd konstnär'}
+                    {artist.name || t('unknown_artist')}
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    {artist._count.artworks} {artist._count.artworks === 1 ? 'verk' : 'verk'}
+                    {t('artworks_count_label', { count: artist._count.artworks })}
                   </p>
                 </div>
               </Link>
@@ -464,7 +467,7 @@ export default function ArtworksPage() {
         <div className="py-6 border-t border-slate-200/70">
           <CollectionStrip
             collections={collections}
-            title="Utforska samlingar"
+            title={t('explore_collections')}
           />
         </div>
       )}

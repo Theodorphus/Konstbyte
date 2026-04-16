@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import SafeImage from '@/components/SafeImage';
 import UploadImageButton from '@/components/UploadImageButton';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import Image from 'next/image';
 
 type Artist = { id: string; name: string | null; image: string | null };
 
@@ -23,8 +24,11 @@ type Submission = {
 type Challenge = {
   id: string;
   title: string;
+  titleEn: string | null;
   description: string;
+  descriptionEn: string | null;
   themePrompt: string;
+  themePromptEn: string | null;
   imageUrl: string | null;
   weekNumber: number;
   year: number;
@@ -97,6 +101,7 @@ export default function UtmaningPage() {
   const { data: session } = useSession();
   const isLoggedIn = !!session;
   const t = useTranslations('challenge');
+  const locale = useLocale();
 
   const [data, setData] = useState<{
     current: Challenge | null;
@@ -193,7 +198,7 @@ export default function UtmaningPage() {
     );
   }
 
-  const { current, hallOfFame, leaderboard } = data ?? { current: null, hallOfFame: [], leaderboard: [] };
+  const { current = null, hallOfFame = [], leaderboard = [] } = data ?? {};
 
   return (
     <div className="max-w-4xl mx-auto space-y-10 pb-16">
@@ -233,10 +238,10 @@ export default function UtmaningPage() {
               {!current.isActive && ` ${t('active_ended')}`}
             </p>
             <h1 className="font-display text-3xl md:text-4xl text-white leading-tight mb-4">
-              {current.title}
+              {(locale === 'en' && current.titleEn) ? current.titleEn : current.title}
             </h1>
             <p className="text-white/65 leading-relaxed max-w-2xl text-sm md:text-base mb-8">
-              {current.description}
+              {(locale === 'en' && current.descriptionEn) ? current.descriptionEn : current.description}
             </p>
 
             {current.isActive ? (
@@ -470,7 +475,7 @@ export default function UtmaningPage() {
                   {i + 1}
                 </span>
                 {entry.user.image && (
-                  <img src={entry.user.image} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                  <Image src={entry.user.image} alt="" width={32} height={32} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                 )}
                 <span className="flex-1 text-sm font-medium text-slate-800 truncate">{entry.user.name || t('anonymous')}</span>
                 <span className="font-display text-sm font-semibold text-amber-700">{entry.points} {t('points')}</span>

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import SafeImage from '@/components/SafeImage';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

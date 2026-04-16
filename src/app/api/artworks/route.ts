@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       { createdAt: 'desc' };
 
     const [list, total] = await Promise.all([
-      prisma.artwork.findMany({ where, orderBy, skip, take, include: { owner: true } }),
+      prisma.artwork.findMany({ where, orderBy, skip, take, include: { owner: { select: { id: true, name: true, image: true } } } }),
       prisma.artwork.count({ where }),
     ]);
 

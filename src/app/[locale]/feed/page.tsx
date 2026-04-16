@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import SafeImage from '@/components/SafeImage';
 import { Button } from '@/components/ui/button';
 import { formatSek } from '@/lib/currency';

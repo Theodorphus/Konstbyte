@@ -37,7 +37,14 @@ export async function POST(request: Request) {
     if (!imgRes.ok) {
       return NextResponse.json({ error: "Kunde inte hämta bilden för analys." }, { status: 400 });
     }
+    const contentLength = imgRes.headers.get('content-length');
+    if (contentLength && parseInt(contentLength, 10) > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: "Bilden är för stor för analys (max 10 MB)." }, { status: 400 });
+    }
     const arrayBuffer = await imgRes.arrayBuffer();
+    if (arrayBuffer.byteLength > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: "Bilden är för stor för analys (max 10 MB)." }, { status: 400 });
+    }
     // Resize to max 1024px and convert to JPEG to keep payload small for Groq
     const resized = await sharp(Buffer.from(arrayBuffer))
       .resize(1024, 1024, { fit: "inside", withoutEnlargement: true })

@@ -1,5 +1,5 @@
 import React from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -118,6 +118,11 @@ async function FooterContent({ locale, currentYear }: { locale: string; currentY
         <div className="space-y-4">
           <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">{t('information')}</div>
           <ul className="space-y-2.5 text-slate-600">
+            <li>
+              <Link href="/hemsidor" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+                {t('websites')} →
+              </Link>
+            </li>
             <li><Link href="/om-oss" className="hover:text-slate-900 transition-colors">{t('about')}</Link></li>
             <li><Link href="/hur-det-fungerar" className="hover:text-slate-900 transition-colors">{t('how_it_works')}</Link></li>
             <li><Link href="/avgifter" className="hover:text-slate-900 transition-colors">{t('fees')}</Link></li>

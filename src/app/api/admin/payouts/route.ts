@@ -3,14 +3,7 @@ import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
 import { sendEmail, buyerConfirmationEmail, sellerNotificationEmail } from '../../../../lib/email';
 import { calculatePayout, defaultCommissionRate } from '../../../../lib/payout';
-
-function isAdmin(email: string | null | undefined): boolean {
-  const adminEmails = (process.env.ADMIN_EMAIL ?? '')
-    .split(',')
-    .map((e) => e.trim())
-    .filter(Boolean);
-  return email ? adminEmails.includes(email) : false;
-}
+import { isAdmin } from '../../../../lib/admin';
 
 // GET /api/admin/payouts
 // ?filter=completed  → returns completed Payout records (history)

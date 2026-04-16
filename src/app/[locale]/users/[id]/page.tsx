@@ -6,7 +6,7 @@ import SafeImage from '@/components/SafeImage';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { formatSek } from '@/lib/currency';
 import StatusCard from '@/components/StatusCard';
 import { CollectionStrip } from '@/components/collections/CollectionStrip';

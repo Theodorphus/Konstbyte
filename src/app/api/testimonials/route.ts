@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '../../../lib/auth';
 import prisma from '../../../lib/prisma';
+import { isAdmin } from '../../../lib/admin';
 
 export async function GET() {
   try {
@@ -33,8 +34,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    const allowed = (process.env.ADMIN_EMAILS || process.env.NEXT_PUBLIC_ADMIN_EMAIL || '').split(',').map((s) => s.trim()).filter(Boolean);
-    if (!user || !user.email || !allowed.includes(user.email)) {
+    if (!user || !isAdmin(user.email)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 

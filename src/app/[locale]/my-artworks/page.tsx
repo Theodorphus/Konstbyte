@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { deleteArtworkAction } from './actions';

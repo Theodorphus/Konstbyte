@@ -32,83 +32,82 @@ export async function POST(request: Request) {
 
     if (eventType === 'checkout.session.completed' && session) {
       const orderId = session.metadata?.orderId;
-      try {
-        if (orderId) {
-          const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-          const amountRaw = session.amount_total ?? session.amount_subtotal ?? 0;
-          const amountSek = amountRaw / 100;
-          const stripePaymentId = session.payment_intent || session.id;
+      if (orderId) {
+        const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+        const amountRaw = session.amount_total ?? session.amount_subtotal ?? 0;
+        const amountSek = amountRaw / 100;
+        const stripePaymentId = session.payment_intent || session.id;
 
-          // Fetch order with relations
-          const order = await prisma.order.findUnique({
-            where: { id: orderId },
-            include: {
-              artwork: true,
-              buyer: { select: { name: true, email: true } },
-              seller: { select: { name: true, email: true } },
-            },
-          });
+        // Fetch order with relations
+        const order = await prisma.order.findUnique({
+          where: { id: orderId },
+          include: {
+            artwork: true,
+            buyer: { select: { name: true, email: true } },
+            seller: { select: { name: true, email: true } },
+          },
+        });
 
-          if (!order) throw new Error(`Order ${orderId} not found`);
-
-          // Update order, mark artwork as sold, create item + events + payment atomically
-          await prisma.$transaction([
-            prisma.order.update({ where: { id: orderId }, data: { status: 'completed' } }),
-            prisma.artwork.update({
-              where: { id: order.artworkId },
-              data: { isSold: true, soldAt: new Date() },
-            }),
-            prisma.orderItem.create({
-              data: {
-                orderId,
-                title: order.artwork.title,
-                price: order.artwork.price,
-                imageUrl: order.artwork.imageUrl,
-              },
-            }),
-            prisma.orderEvent.create({
-              data: { orderId, type: 'payment_completed', message: 'Betalning mottagen via Stripe.' },
-            }),
-            prisma.orderEvent.create({
-              data: { orderId, type: 'processing', message: 'Konstnären packar och förbereder försändelsen.' },
-            }),
-            ...(stripePaymentId
-              ? [prisma.payment.create({
-                  data: { orderId, stripeId: String(stripePaymentId), amount: amountRaw },
-                })]
-              : []),
-          ]);
-
-          // Send confirmation emails (fire-and-forget, don't block webhook response)
-          const buyerEmail = order.buyer.email;
-          const sellerEmail = order.seller?.email;
-
-          if (buyerEmail) {
-            const mail = buyerConfirmationEmail({
-              orderId,
-              artworkTitle: order.artwork.title,
-              imageUrl: order.artwork.imageUrl,
-              artistName: order.seller?.name || 'Konstnären',
-              amountSek,
-              shippingCost: order.shippingCost,
-              appUrl,
-            });
-            sendEmail({ to: buyerEmail, ...mail }).catch(console.error);
-          }
-
-          if (sellerEmail) {
-            const mail = sellerNotificationEmail({
-              orderId,
-              artworkTitle: order.artwork.title,
-              buyerName: order.buyer.name || 'Köparen',
-              amountSek,
-              appUrl,
-            });
-            sendEmail({ to: sellerEmail, ...mail }).catch(console.error);
-          }
+        if (!order) {
+          console.error(`Webhook: Order ${orderId} not found`);
+          return NextResponse.json({ error: 'Order not found' }, { status: 500 });
         }
-      } catch (e) {
-        console.error('Failed to process webhook:', e);
+
+        // Update order, mark artwork as sold, create item + events + payment atomically
+        await prisma.$transaction([
+          prisma.order.update({ where: { id: orderId }, data: { status: 'completed' } }),
+          prisma.artwork.update({
+            where: { id: order.artworkId },
+            data: { isSold: true, soldAt: new Date() },
+          }),
+          prisma.orderItem.create({
+            data: {
+              orderId,
+              title: order.artwork.title,
+              price: order.artwork.price,
+              imageUrl: order.artwork.imageUrl,
+            },
+          }),
+          prisma.orderEvent.create({
+            data: { orderId, type: 'payment_completed', message: 'Betalning mottagen via Stripe.' },
+          }),
+          prisma.orderEvent.create({
+            data: { orderId, type: 'processing', message: 'Konstnären packar och förbereder försändelsen.' },
+          }),
+          ...(stripePaymentId
+            ? [prisma.payment.create({
+                data: { orderId, stripeId: String(stripePaymentId), amount: amountRaw },
+              })]
+            : []),
+        ]);
+
+        // Send confirmation emails (fire-and-forget, don't block webhook response)
+        const buyerEmail = order.buyer.email;
+        const sellerEmail = order.seller?.email;
+
+        if (buyerEmail) {
+          const mail = buyerConfirmationEmail({
+            orderId,
+            artworkTitle: order.artwork.title,
+            imageUrl: order.artwork.imageUrl,
+            artistName: order.seller?.name || 'Konstnären',
+            amountSek,
+            shippingCost: order.shippingCost,
+            appUrl,
+          });
+          sendEmail({ to: buyerEmail, ...mail }).catch(console.error);
+        }
+
+        if (sellerEmail) {
+          const mail = sellerNotificationEmail({
+            orderId,
+            artworkTitle: order.artwork.title,
+            buyerName: order.buyer.name || 'Köparen',
+            amountSek,
+            appUrl,
+          });
+          sendEmail({ to: sellerEmail, ...mail }).catch(console.error);
+        }
       }
     }
 

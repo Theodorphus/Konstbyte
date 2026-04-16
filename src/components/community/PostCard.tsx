@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import ReactionBar from './ReactionBar';
 import CommentSection from './CommentSection';
 import ImageLightbox from './ImageLightbox';

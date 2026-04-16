@@ -99,6 +99,10 @@ model Artwork {
   favorites       Favorite[]
   images          ArtworkImage[]
   collectionItems CollectionItem[]
+
+  @@index([ownerId])
+  @@index([isPublished, isSold, createdAt(sort: Desc)])
+  @@index([category, isPublished, isSold])
 }
 
 model Order {
@@ -190,6 +194,9 @@ model Post {
   author    User           @relation(fields: [authorId], references: [id])
   comments  Comment[]
   reactions PostReaction[]
+
+  @@index([authorId])
+  @@index([createdAt(sort: Desc)])
 }
 
 model PostReaction {
@@ -223,6 +230,9 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, read])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model Follow {
@@ -245,6 +255,9 @@ model Message {
   createdAt   DateTime @default(now())
   sender      User     @relation("MessageSender", fields: [senderId], references: [id])
   recipient   User     @relation("MessageRecipient", fields: [recipientId], references: [id])
+
+  @@index([recipientId, read])
+  @@index([senderId, recipientId])
 }
 
 model ArtValuationLog {
@@ -252,6 +265,8 @@ model ArtValuationLog {
   userId    String
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model Testimonial {
@@ -262,11 +277,14 @@ model Testimonial {
 }
 
 model Challenge {
-  id          String                @id @default(cuid())
-  title       String
-  description String
-  themePrompt String
-  imageUrl    String?
+  id            String                @id @default(cuid())
+  title         String
+  titleEn       String?
+  description   String
+  descriptionEn String?
+  themePrompt   String
+  themePromptEn String?
+  imageUrl      String?
   weekNumber  Int
   year        Int
   startsAt    DateTime

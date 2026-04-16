@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 
 function timeAgo(dateStr: string, t: (key: string, values?: Record<string, number>) => string) {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -72,7 +73,7 @@ export default function MessagesPage() {
               >
                 <div className="w-11 h-11 rounded-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center text-white font-semibold text-base flex-shrink-0">
                   {other.image ? (
-                    <img src={other.image} alt={initial} className="w-full h-full object-cover rounded-full" />
+                    <Image src={other.image} alt={initial} width={44} height={44} className="w-full h-full object-cover rounded-full" />
                   ) : initial}
                 </div>
                 <div className="flex-1 min-w-0">

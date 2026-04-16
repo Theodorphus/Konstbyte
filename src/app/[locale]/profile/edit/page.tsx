@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { UploadButton } from '@uploadthing/react';
 import type { UploadRouter } from '@/lib/uploadthing';
 import Image from 'next/image';

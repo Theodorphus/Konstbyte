@@ -2,7 +2,7 @@ import { getCurrentUser } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import SafeImage from '@/components/SafeImage';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { formatSek } from '@/lib/currency';
 import { getTranslations } from 'next-intl/server';
 
