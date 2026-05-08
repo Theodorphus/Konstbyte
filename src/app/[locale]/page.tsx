@@ -79,7 +79,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               {t('hero_description')}
             </p>
             <div className="mt-12 flex flex-wrap gap-4 animate-fade-up-delay-2">
-              <Link href="/artworks/new" aria-label={t('become_artist_aria')} className="inline-flex items-center justify-center rounded-full bg-slate-900 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all duration-300 hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-900/40">
+              <Link href="/join" aria-label={t('become_artist_aria')} className="inline-flex items-center justify-center rounded-full bg-slate-900 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all duration-300 hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-900/40">
                 {t('become_artist')}
               </Link>
               <Link href="/artworks" aria-label={t('explore_art_aria')} className="inline-flex items-center justify-center rounded-full border border-slate-900/25 bg-white/50 px-8 py-3.5 text-sm font-semibold text-slate-900 backdrop-blur-sm transition-all duration-300 hover:bg-white/75 focus:outline-none focus:ring-2 focus:ring-slate-900/20">
@@ -244,7 +244,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <p className="mt-3 text-sm md:text-base text-slate-700/90 max-w-md leading-relaxed">{t('cta_description')}</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-              <Link href="/artworks/new" className="inline-flex items-center justify-center rounded-full bg-slate-900 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-colors">
+              <Link href="/join" className="inline-flex items-center justify-center rounded-full bg-slate-900 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-colors">
                 {t('cta_start')}
               </Link>
               <Link href="/hur-det-fungerar" className="inline-flex items-center justify-center rounded-full border border-slate-900/25 bg-white/50 px-7 py-3.5 text-sm font-semibold text-slate-900 hover:bg-white/75 backdrop-blur-sm transition-colors">

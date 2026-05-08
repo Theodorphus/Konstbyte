@@ -30,6 +30,15 @@ export async function POST(
       return NextResponse.json({ error: 'Du har redan skickat in ett bidrag' }, { status: 400 });
     }
 
+    let parsedPrice: number | null = null;
+    if (price !== undefined && price !== null && price !== '') {
+      const p = Number(price);
+      if (isNaN(p) || p < 0) {
+        return NextResponse.json({ error: 'Ogiltigt pris' }, { status: 400 });
+      }
+      parsedPrice = p;
+    }
+
     const submission = await prisma.challengeSubmission.create({
       data: {
         challengeId,
@@ -37,7 +46,7 @@ export async function POST(
         title,
         description: description || null,
         imageUrl,
-        price: price ? Number(price) : null,
+        price: parsedPrice,
       },
       include: { artist: { select: { id: true, name: true, image: true } } },
     });

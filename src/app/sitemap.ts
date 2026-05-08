@@ -3,31 +3,22 @@ import prisma from '@/lib/prisma';
 
 const baseUrl = process.env.NEXTAUTH_URL || 'https://www.konstbyte.se';
 
-const staticRoutes = [
-  '',
-  '/artworks',
-  '/community',
-  '/utmaning',
-  '/users',
-  '/hur-det-fungerar',
-  '/avgifter',
-  '/om-oss',
-  '/kontakt',
-  '/join',
-  '/ai',
-  '/ai/value-art',
-  '/ai/inspiration',
-  '/hemsidor',
-  '/policies/faq',
-  '/policies/privacy',
-  '/policies/terms',
-];
+const highPriorityRoutes = ['', '/artworks', '/join', '/hemsidor'];
+const mediumPriorityRoutes = ['/community', '/utmaning', '/users', '/ai', '/ai/value-art', '/ai/inspiration', '/om-oss', '/kontakt', '/hur-det-fungerar', '/avgifter'];
+const lowPriorityRoutes = ['/policies/faq', '/policies/privacy', '/policies/terms'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticEntries: MetadataRoute.Sitemap = staticRoutes.flatMap((path) => [
-    { url: `${baseUrl}${path}`, lastModified: new Date(), changeFrequency: 'weekly', priority: path === '' ? 1 : 0.7 },
-    { url: `${baseUrl}/en${path}`, lastModified: new Date(), changeFrequency: 'weekly', priority: path === '' ? 1 : 0.7 },
-  ]);
+  const makeEntries = (paths: string[], priority: number): MetadataRoute.Sitemap =>
+    paths.flatMap((path) => [
+      { url: `${baseUrl}${path}`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority },
+      { url: `${baseUrl}/en${path}`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority },
+    ]);
+
+  const staticEntries: MetadataRoute.Sitemap = [
+    ...makeEntries(highPriorityRoutes, 1.0),
+    ...makeEntries(mediumPriorityRoutes, 0.7),
+    ...makeEntries(lowPriorityRoutes, 0.4),
+  ];
 
   let artworkEntries: MetadataRoute.Sitemap = [];
   let userEntries: MetadataRoute.Sitemap = [];

@@ -41,7 +41,7 @@ export async function POST(request: Request) {
         {
           price_data: {
             currency: 'sek',
-            product_data: { name: artwork.title, images: [artwork.imageUrl] },
+            product_data: { name: artwork.title, images: artwork.imageUrl ? [artwork.imageUrl] : [] },
             unit_amount: unitAmount,
           },
           quantity: 1,

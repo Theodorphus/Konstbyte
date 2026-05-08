@@ -13,15 +13,11 @@ export async function GET(request: NextRequest) {
     // Search for users (artists)
     const users = await prisma.user.findMany({
       where: {
-        OR: [
-          { name: { contains: query, mode: 'insensitive' } },
-          { email: { contains: query, mode: 'insensitive' } },
-        ],
+        name: { contains: query, mode: 'insensitive' },
       },
       select: {
         id: true,
         name: true,
-        email: true,
         image: true,
         _count: {
           select: { artworks: true },

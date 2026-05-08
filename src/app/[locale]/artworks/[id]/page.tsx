@@ -84,7 +84,7 @@ export default async function ArtworkDetail({
               priceCurrency: 'SEK',
               price: artwork.price?.toString(),
             },
-          }),
+          }).replace(/<\/script>/gi, '<\\/script>'),
         }}
       />
 

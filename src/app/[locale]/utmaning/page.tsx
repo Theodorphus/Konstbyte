@@ -475,7 +475,7 @@ export default function UtmaningPage() {
                   {i + 1}
                 </span>
                 {entry.user.image && (
-                  <Image src={entry.user.image} alt="" width={32} height={32} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                  <Image src={entry.user.image} alt={entry.user.name || t('anonymous')} width={32} height={32} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                 )}
                 <span className="flex-1 text-sm font-medium text-slate-800 truncate">{entry.user.name || t('anonymous')}</span>
                 <span className="font-display text-sm font-semibold text-amber-700">{entry.points} {t('points')}</span>

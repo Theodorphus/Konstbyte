@@ -77,6 +77,7 @@ export function MultiImageDropzone({
     e.preventDefault();
     e.stopPropagation();
     setIsDragActive(false);
+    if (isUploading || images.length >= maxImages) return;
     handleFiles(Array.from(e.dataTransfer.files));
   };
 

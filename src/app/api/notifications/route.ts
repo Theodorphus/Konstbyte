@@ -36,44 +36,6 @@ export async function GET() {
   }
 }
 
-// POST - Create a new notification
-export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { userId, type, message, link } = body;
-
-    if (!userId || !type || !message) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    const notification = await prisma.notification.create({
-      data: {
-        userId,
-        type,
-        message,
-        link,
-      },
-    });
-
-    return NextResponse.json(notification);
-  } catch (error) {
-    console.error('Error creating notification:', error);
-    return NextResponse.json(
-      { error: 'Failed to create notification' },
-      { status: 500 }
-    );
-  }
-}
-
 // PATCH - Mark all notifications as read
 export async function PATCH() {
   try {

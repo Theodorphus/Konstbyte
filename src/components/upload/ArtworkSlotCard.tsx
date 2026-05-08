@@ -62,13 +62,22 @@ export function ArtworkSlotCard({
   });
 
   const values = watch();
+  const prevValuesRef = useRef<string>('');
 
-  // Notify parent whenever form is valid (with current values), or when it becomes invalid
+  // Notify parent whenever form is valid (with current values), or when it becomes invalid.
+  // Serialize values to avoid firing on every render from a new object reference.
   useEffect(() => {
+    const serialized = JSON.stringify(values);
+    const valuesChanged = serialized !== prevValuesRef.current;
+    const validityChanged = isValid !== prevValidRef.current;
+
+    if (!valuesChanged && !validityChanged) return;
+
+    prevValuesRef.current = serialized;
+
     if (isValid) {
       onCompleteRef.current(values as ArtworkSlotDetails);
     } else if (prevValidRef.current) {
-      // Became invalid
       onIncompleteRef.current();
     }
     prevValidRef.current = isValid;

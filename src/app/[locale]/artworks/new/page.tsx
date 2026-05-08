@@ -76,13 +76,14 @@ export default function NewArtworkPage() {
   };
 
   const handleStep1ImagesChange = (images: UploadedImage[]) => {
-    // Convert UploadedImage[] to ArtworkSlot[]
-    const slots: ArtworkSlot[] = images.map((img, idx) => ({
-      url: img.url,
-      sortOrder: idx,
-      details: null,
-    }));
-    setArtworkSlots(slots);
+    setArtworkSlots((prev) => {
+      const prevByUrl = new Map(prev.map((s) => [s.url, s.details]));
+      return images.map((img, idx) => ({
+        url: img.url,
+        sortOrder: idx,
+        details: prevByUrl.get(img.url) ?? null,
+      }));
+    });
   };
 
   const handleStep2Next = (

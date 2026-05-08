@@ -35,11 +35,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "name": "Konstbyte",
             "url": process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000',
             "logo": `${process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000'}/favicon.svg`,
-            "sameAs": [
-              "https://facebook.com/konstbyte",
-              "https://instagram.com/konstbyte",
-              "https://twitter.com/konstbyte"
-            ],
             "contactPoint": [{
               "@type": "ContactPoint",
               "contactType": "customer support",

@@ -8,6 +8,8 @@ import ClientLayout from '../ClientLayout';
 
 const currentYear = new Date().getFullYear();
 
+const BASE_URL = 'https://www.konstbyte.se';
+
 export async function generateMetadata({
   params,
 }: {
@@ -15,17 +17,26 @@ export async function generateMetadata({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'meta' });
+  const canonicalUrl = locale === 'en' ? `${BASE_URL}/en` : BASE_URL;
   return {
     title: {
       default: t('site_title'),
       template: `%s | Konstbyte`,
     },
     description: t('site_description'),
-    metadataBase: new URL(process.env.NEXT_PUBLIC_METADATA_BASE || 'https://konstbyte.se'),
+    metadataBase: new URL(BASE_URL),
+    alternates: {
+      canonical: canonicalUrl,
+      languages: {
+        'sv': BASE_URL,
+        'en': `${BASE_URL}/en`,
+        'x-default': BASE_URL,
+      },
+    },
     openGraph: {
       title: t('site_title'),
       description: t('site_description'),
-      url: process.env.NEXT_PUBLIC_METADATA_BASE || 'https://konstbyte.se',
+      url: canonicalUrl,
       siteName: 'Konstbyte',
       images: [{ url: '/og-image.png', width: 1200, height: 630, alt: t('site_title') }],
       locale: locale === 'en' ? 'en_US' : 'sv_SE',
@@ -80,14 +91,14 @@ async function FooterContent({ locale, currentYear }: { locale: string; currentY
         {/* Brand */}
         <div className="space-y-4">
           <div className="font-display text-xl font-semibold tracking-wide flex items-center gap-2 text-slate-900">
-            🎨 Konstbyte
+            <span aria-hidden="true">🎨</span> Konstbyte
           </div>
           <p className="text-slate-600 leading-relaxed max-w-xs">
             {t('brand_tagline')}
           </p>
           <div className="space-y-1 text-slate-500 text-xs">
-            <p>📧 konstbyte@gmail.com</p>
-            <p>📍 {t('location')}</p>
+            <p><span aria-hidden="true">📧</span> <a href="mailto:konstbyte@gmail.com" className="hover:text-slate-700 transition-colors">konstbyte@gmail.com</a></p>
+            <p><span aria-hidden="true">📍</span> {t('location')}</p>
           </div>
         </div>
 

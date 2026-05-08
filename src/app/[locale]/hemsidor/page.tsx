@@ -340,13 +340,15 @@ export default function HemsidorPage() {
             <div key={i} className="rounded-2xl border border-slate-200/70 bg-white/80 overflow-hidden">
               <button
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                aria-expanded={openFaq === i}
+                aria-controls={`faq-answer-${i}`}
                 className="w-full flex items-center justify-between gap-4 px-7 py-5 text-left font-semibold text-slate-900 hover:bg-slate-50/80 transition-colors"
               >
                 <span>{item.q}</span>
-                <span className={`flex-shrink-0 text-slate-400 transition-transform duration-200 ${openFaq === i ? 'rotate-45' : ''}`}>+</span>
+                <span aria-hidden="true" className={`flex-shrink-0 text-slate-400 transition-transform duration-200 ${openFaq === i ? 'rotate-45' : ''}`}>+</span>
               </button>
               {openFaq === i && (
-                <div className="px-7 pb-6 text-slate-600 leading-relaxed text-sm">
+                <div id={`faq-answer-${i}`} role="region" className="px-7 pb-6 text-slate-600 leading-relaxed text-sm">
                   {item.a}
                 </div>
               )}
@@ -419,8 +421,9 @@ export default function HemsidorPage() {
 
             <form onSubmit={handleSubmit} className="mt-10 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">{t('form_url_label')}</label>
+                <label htmlFor="lead-website-url" className="block text-sm font-medium text-slate-700 mb-2">{t('form_url_label')}</label>
                 <input
+                  id="lead-website-url"
                   type="text"
                   placeholder={t('form_url_placeholder')}
                   value={formData.websiteUrl}
@@ -429,8 +432,9 @@ export default function HemsidorPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">{t('form_email_label')}</label>
+                <label htmlFor="lead-email" className="block text-sm font-medium text-slate-700 mb-2">{t('form_email_label')}</label>
                 <input
+                  id="lead-email"
                   type="email"
                   placeholder={t('form_email_placeholder')}
                   value={formData.email}

@@ -93,10 +93,16 @@ export async function PATCH(request: NextRequest) {
     if (!order) return NextResponse.json({ error: 'Order hittades inte' }, { status: 404 });
     if (order.status === 'paid') return NextResponse.json({ error: 'Redan bekräftad' }, { status: 409 });
 
-    const updated = await prisma.order.update({
-      where: { id: orderId },
-      data: { status: 'paid' },
-    });
+    const [updated] = await prisma.$transaction([
+      prisma.order.update({
+        where: { id: orderId },
+        data: { status: 'paid' },
+      }),
+      prisma.artwork.update({
+        where: { id: order.artworkId },
+        data: { isSold: true, soldAt: new Date() },
+      }),
+    ]);
 
     const amountSek = Math.round(order.amount);
 

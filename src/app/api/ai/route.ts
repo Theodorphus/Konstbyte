@@ -1,5 +1,10 @@
+import { getCurrentUser } from '@/lib/auth';
+
 export async function POST(req: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
     const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {

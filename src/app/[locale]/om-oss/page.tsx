@@ -9,8 +9,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'about' });
+  const isSv = locale !== 'en';
   return {
     title: t('title'),
+    description: isSv
+      ? 'Konstbyte är en marknadsplats för svenska konstnärer — ett community där du kan visa upp, sälja och inspireras.'
+      : 'Konstbyte is a marketplace for Swedish artists — a community to showcase, sell and be inspired.',
+    openGraph: { images: ['/og-image.png'] },
   };
 }
 
