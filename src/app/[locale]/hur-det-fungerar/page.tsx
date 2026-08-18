@@ -1,3 +1,4 @@
+import { alternatesFor } from '@/lib/seo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
@@ -14,6 +15,7 @@ export async function generateMetadata({
     description: isSv
       ? 'Lär dig hur Konstbyte fungerar — skapa konto, ladda upp konst och börja sälja på tre enkla steg.'
       : 'Learn how Konstbyte works — create an account, upload art and start selling in three easy steps.',
+    alternates: alternatesFor(locale, '/hur-det-fungerar'),
     openGraph: { images: ['/og-image.png'] },
   };
 }

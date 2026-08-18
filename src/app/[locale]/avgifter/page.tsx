@@ -1,3 +1,4 @@
+import { alternatesFor } from '@/lib/seo';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import type { Metadata } from 'next';
@@ -14,6 +15,7 @@ export async function generateMetadata({
     description: isSv
       ? 'Konstbyte tar 3% provision på försäljningar. Se fullständig prisöversikt med Stripe-avgifter och exempelberäkning.'
       : 'Konstbyte charges 3% on sales. See full pricing overview including Stripe fees and an example calculation.',
+    alternates: alternatesFor(locale, '/avgifter'),
     openGraph: { images: ['/og-image.png'] },
   };
 }

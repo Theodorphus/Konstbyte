@@ -1,3 +1,4 @@
+import { SITE_URL } from '@/lib/urls';
 import './globals.css';
 import React from 'react';
 import { Fraunces, Space_Grotesk } from 'next/font/google';
@@ -16,6 +17,10 @@ const bodyFont = Space_Grotesk({
   variable: '--font-sans',
 });
 
+export const metadata = {
+  metadataBase: new URL(SITE_URL),
+};
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   return (
@@ -33,8 +38,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "@context": "https://schema.org",
             "@type": "Organization",
             "name": "Konstbyte",
-            "url": process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000',
-            "logo": `${process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000'}/favicon.svg`,
+            "url": SITE_URL,
+            "logo": `${SITE_URL}/favicon.svg`,
             "contactPoint": [{
               "@type": "ContactPoint",
               "contactType": "customer support",

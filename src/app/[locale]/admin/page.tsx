@@ -1,4 +1,8 @@
+import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
+import { isAdmin } from '@/lib/admin';
+import { APP_URL } from '@/lib/urls';
 import { formatSek } from '@/lib/currency';
 import ChallengeAdmin from './ChallengeAdmin';
 import ArtworksAdmin from './ArtworksAdmin';
@@ -7,8 +11,13 @@ import { getTranslations } from 'next-intl/server';
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
+  const currentUser = await getCurrentUser();
+  if (!currentUser || !isAdmin(currentUser.email)) {
+    redirect('/');
+  }
+
   const t = await getTranslations('admin');
-  const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const appUrl = APP_URL;
 
   const [users, artworks, challenges, resendHealth] = await Promise.all([
     prisma.user.findMany({ orderBy: { createdAt: 'desc' } }),

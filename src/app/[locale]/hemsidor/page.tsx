@@ -199,7 +199,7 @@ export default function HemsidorPage() {
                   <span key={j} className="text-amber-400 text-lg">★</span>
                 ))}
               </div>
-              <p className="text-slate-700 leading-relaxed text-sm flex-1">"{item.text}"</p>
+              <p className="text-slate-700 leading-relaxed text-sm flex-1">&ldquo;{item.text}&rdquo;</p>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">— {item.author}</p>
             </div>
           ))}

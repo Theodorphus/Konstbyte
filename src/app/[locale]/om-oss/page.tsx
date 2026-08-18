@@ -1,3 +1,4 @@
+import { alternatesFor } from '@/lib/seo';
 import { Link } from '@/i18n/navigation';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
@@ -15,6 +16,7 @@ export async function generateMetadata({
     description: isSv
       ? 'Konstbyte är en marknadsplats för svenska konstnärer — ett community där du kan visa upp, sälja och inspireras.'
       : 'Konstbyte is a marketplace for Swedish artists — a community to showcase, sell and be inspired.',
+    alternates: alternatesFor(locale, '/om-oss'),
     openGraph: { images: ['/og-image.png'] },
   };
 }

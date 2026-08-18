@@ -1,3 +1,4 @@
+import { alternatesFor } from '@/lib/seo';
 import { getTranslations } from 'next-intl/server';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -7,6 +8,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: t('hero_title'),
     description: t('hero_description'),
+    alternates: alternatesFor(locale, '/hemsidor'),
     openGraph: {
       title: t('hero_title'),
       description: t('hero_description'),

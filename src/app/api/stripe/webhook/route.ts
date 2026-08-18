@@ -1,3 +1,4 @@
+import { APP_URL } from '@/lib/urls';
 import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 import stripe from '../../../../lib/stripe';
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     if (eventType === 'checkout.session.completed' && session) {
       const orderId = session.metadata?.orderId;
       if (orderId) {
-        const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+        const appUrl = APP_URL;
         const amountRaw = session.amount_total ?? session.amount_subtotal ?? 0;
         const amountSek = amountRaw / 100;
         const stripePaymentId = session.payment_intent || session.id;

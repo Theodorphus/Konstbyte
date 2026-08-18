@@ -1,3 +1,4 @@
+import { SITE_URL } from '@/lib/urls';
 import React from 'react';
 import { Link } from '@/i18n/navigation';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
@@ -8,7 +9,7 @@ import ClientLayout from '../ClientLayout';
 
 const currentYear = new Date().getFullYear();
 
-const BASE_URL = 'https://www.konstbyte.se';
+const BASE_URL = SITE_URL;
 
 export async function generateMetadata({
   params,
@@ -17,7 +18,6 @@ export async function generateMetadata({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'meta' });
-  const canonicalUrl = locale === 'en' ? `${BASE_URL}/en` : BASE_URL;
   return {
     title: {
       default: t('site_title'),
@@ -25,18 +25,9 @@ export async function generateMetadata({
     },
     description: t('site_description'),
     metadataBase: new URL(BASE_URL),
-    alternates: {
-      canonical: canonicalUrl,
-      languages: {
-        'sv': BASE_URL,
-        'en': `${BASE_URL}/en`,
-        'x-default': BASE_URL,
-      },
-    },
     openGraph: {
       title: t('site_title'),
       description: t('site_description'),
-      url: canonicalUrl,
       siteName: 'Konstbyte',
       images: [{ url: '/og-image.png', width: 1200, height: 630, alt: t('site_title') }],
       locale: locale === 'en' ? 'en_US' : 'sv_SE',

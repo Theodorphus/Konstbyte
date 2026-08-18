@@ -1,3 +1,4 @@
+import { APP_URL } from '@/lib/urls';
 import { NextResponse } from 'next/server';
 import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
       },
     });
 
-    const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const appUrl = APP_URL;
 
     // Create Stripe Checkout Session (simple, no Connect)
     const lineItems: Parameters<typeof stripe.checkout.sessions.create>[0]['line_items'] = [

@@ -1,3 +1,4 @@
+import { alternatesFor } from '@/lib/seo';
 import { Link } from '@/i18n/navigation';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
@@ -12,6 +13,7 @@ export async function generateMetadata({
   return {
     title: t('meta_title'),
     description: t('meta_description'),
+    alternates: alternatesFor(locale, '/join'),
     openGraph: {
       title: t('meta_og_title'),
       description: t('meta_og_description'),
@@ -110,7 +112,7 @@ export default async function JoinPage({
         <div className="grid gap-5 md:grid-cols-3">
           {testimonials.map((item) => (
             <div key={item.name} className={`rounded-2xl bg-gradient-to-br ${item.color} p-7 border border-white/60 shadow-sm`}>
-              <p className="text-slate-700 leading-relaxed text-sm mb-5">"{item.quote}"</p>
+              <p className="text-slate-700 leading-relaxed text-sm mb-5">&ldquo;{item.quote}&rdquo;</p>
               <div>
                 <p className="font-semibold text-sm text-slate-900">{item.name}</p>
                 <p className="text-xs text-slate-500">{item.role}</p>

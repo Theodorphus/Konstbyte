@@ -1,7 +1,8 @@
+import { SITE_URL } from '@/lib/urls';
 import type { MetadataRoute } from 'next';
 import prisma from '@/lib/prisma';
 
-const baseUrl = process.env.NEXTAUTH_URL || 'https://www.konstbyte.se';
+const baseUrl = SITE_URL;
 
 const highPriorityRoutes = ['', '/artworks', '/join', '/hemsidor'];
 const mediumPriorityRoutes = ['/community', '/utmaning', '/users', '/ai', '/ai/value-art', '/ai/inspiration', '/om-oss', '/kontakt', '/hur-det-fungerar', '/avgifter'];

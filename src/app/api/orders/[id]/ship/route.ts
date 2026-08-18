@@ -1,3 +1,4 @@
+import { APP_URL } from '@/lib/urls';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
@@ -58,7 +59,7 @@ export async function POST(
   });
 
   // Send buyer email
-  const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const appUrl = APP_URL;
   if (order.buyer.email) {
     const { subject, html } = shippedEmail({
       orderId: id,

@@ -27,6 +27,7 @@ export default function Error({
         >
           Försök igen
         </button>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- full reload is intentional: the router itself may be in a bad state */}
         <a
           href="/"
           className="px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
