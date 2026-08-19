@@ -1,14 +1,16 @@
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 
+export interface CollectionSummary {
+  id: string;
+  title: string;
+  coverImage: string | null;
+  _count: { items: number };
+  items?: { artwork: { imageUrl: string; id: string } }[];
+}
+
 interface CollectionCardProps {
-  collection: {
-    id: string;
-    title: string;
-    coverImage: string | null;
-    _count: { items: number };
-    items?: { artwork: { imageUrl: string; id: string } }[];
-  };
+  collection: CollectionSummary;
 }
 
 export function CollectionCard({ collection }: CollectionCardProps) {

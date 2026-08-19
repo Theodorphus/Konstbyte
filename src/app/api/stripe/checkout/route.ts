@@ -1,3 +1,4 @@
+import { APP_URL } from '@/lib/urls';
 import { NextResponse } from 'next/server';
 import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
@@ -50,8 +51,8 @@ export async function POST(request: Request) {
       mode: 'payment',
       customer_email: user.email || undefined,
       metadata: { orderId: order.id, artworkId: artwork.id },
-      success_url: successUrl || `${process.env.NEXTAUTH_URL}/success`,
-      cancel_url: cancelUrl || `${process.env.NEXTAUTH_URL}/cancel`,
+      success_url: successUrl || `${APP_URL}/success`,
+      cancel_url: cancelUrl || `${APP_URL}/cancel`,
     });
 
     await prisma.order.update({

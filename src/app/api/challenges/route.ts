@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
+import { isAdmin } from '../../../lib/admin';
 
 export async function GET() {
   try {
@@ -119,6 +120,11 @@ export async function GET() {
 // Admin: create a new challenge
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user || !isAdmin(user.email)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { title, description, themePrompt, imageUrl, weekNumber, year, startsAt, endsAt } = await request.json();
     if (!title || !weekNumber || !year || !startsAt || !endsAt) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });

@@ -1,3 +1,5 @@
+import { SITE_URL } from '@/lib/urls';
+import { alternatesFor } from '@/lib/seo';
 import { Link } from '@/i18n/navigation';
 import { getTranslations } from 'next-intl/server';
 import prisma from '@/lib/prisma';
@@ -25,7 +27,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       ? 'Discover, buy and sell art from independent artists. Create an account and start today.'
       : 'Upptäck, köp och sälj konst från oberoende konstnärer. Skapa konto och börja handla idag.',
     openGraph: { images: ['/og-image.png'] },
-    metadataBase: new URL(process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000'),
+    metadataBase: new URL(SITE_URL),
+    alternates: alternatesFor(locale),
   };
 }
 

@@ -1,3 +1,5 @@
+import { alternatesFor, canonicalUrl } from '@/lib/seo';
+import { SITE_URL } from '@/lib/urls';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
@@ -10,16 +12,18 @@ import ArtworkCheckoutButton from '@/components/ArtworkCheckoutButton';
 import ShippingOptionsCard from '@/components/shipping/ShippingOptionsCard';
 import { getTranslations } from 'next-intl/server';
 
-export async function generateMetadata({ params }: { params: Promise<{ id?: string }> }) {
-  const { id } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ id?: string; locale: string }> }) {
+  const { id, locale } = await params;
   if (!id) return {};
   const artwork = await prisma.artwork.findUnique({ where: { id }, include: { owner: true } });
   if (!artwork) return {};
-  const base = process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000';
+  const base = SITE_URL;
   return {
     title: `${artwork.title} — Konstbyte`,
     description: artwork.description || 'Konstverk på Konstbyte',
+    alternates: alternatesFor(locale, `/artworks/${artwork.id}`),
     openGraph: {
+      url: canonicalUrl(locale, `/artworks/${artwork.id}`),
       images: [
         {
           url: `${base}/api/og/${artwork.id}`,
@@ -77,7 +81,7 @@ export default async function ArtworkDetail({
               '@type': 'Person',
               name: artwork.owner?.name || 'Anonym',
             },
-            url: `${process.env.NEXT_PUBLIC_METADATA_BASE || 'http://localhost:3000'}/artworks/${artwork.id}`,
+            url: `${SITE_URL}/artworks/${artwork.id}`,
             datePublished: artwork.createdAt?.toISOString(),
             offers: {
               '@type': 'Offer',

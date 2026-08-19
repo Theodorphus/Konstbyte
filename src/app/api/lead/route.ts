@@ -18,14 +18,12 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase environment variables');
+function getSupabase() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return null;
+  return createClient(supabaseUrl, supabaseKey);
 }
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Email transporter (using Gmail or your email service)
 // Configure in .env: EMAIL_USER, EMAIL_PASSWORD
@@ -119,6 +117,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid URL format' },
         { status: 400 }
+      );
+    }
+
+    const supabase = getSupabase();
+    if (!supabase) {
+      console.error('Missing Supabase environment variables');
+      return NextResponse.json(
+        { error: 'Lead capture is not configured' },
+        { status: 503 }
       );
     }
 

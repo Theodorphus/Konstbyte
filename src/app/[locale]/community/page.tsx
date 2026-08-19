@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import PostComposer from '@/components/community/PostComposer';
 import PostCard, { type PostData } from '@/components/community/PostCard';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 
 export default function CommunityPage() {
   const { data: session } = useSession();
@@ -61,12 +62,12 @@ export default function CommunityPage() {
           <p className="text-sm font-medium text-amber-900">
             {t('sign_in_to_post')}
           </p>
-          <a
-            href="/api/auth/signin"
+          <Link
+            href="/auth/signin"
             className="inline-flex items-center rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-slate-900 hover:bg-amber-300 transition-colors"
           >
             {t('sign_in_btn')}
-          </a>
+          </Link>
         </div>
       )}
 

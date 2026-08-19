@@ -1,10 +1,11 @@
+import { APP_URL } from '@/lib/urls';
 import { NextRequest, NextResponse } from 'next/server';
 import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
 
 export async function GET(request: NextRequest) {
-  const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const appUrl = APP_URL;
   const { searchParams } = new URL(request.url);
   const isRefresh = searchParams.get('refresh') === '1';
 

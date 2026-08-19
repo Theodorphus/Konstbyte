@@ -1,3 +1,4 @@
+import { alternatesFor } from '@/lib/seo';
 import type { Metadata } from 'next';
 
 export async function generateMetadata({
@@ -12,6 +13,7 @@ export async function generateMetadata({
     description: isSv
       ? 'Svar på vanliga frågor om Konstbyte — konton, betalningar, frakt, avgifter och mer.'
       : 'Answers to common questions about Konstbyte — accounts, payments, shipping, fees and more.',
+    alternates: alternatesFor(locale, '/policies/faq'),
     openGraph: { images: ['/og-image.png'] },
   };
 }

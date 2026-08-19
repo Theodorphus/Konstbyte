@@ -1,3 +1,4 @@
+import { alternatesFor } from '@/lib/seo';
 import type { Metadata } from 'next';
 
 export async function generateMetadata({
@@ -12,6 +13,7 @@ export async function generateMetadata({
     description: isSv
       ? 'Utforska och följ svenska konstnärer på Konstbyte. Bläddra bland profiler och upptäck nya talanger.'
       : 'Explore and follow Swedish artists on Konstbyte. Browse profiles and discover new talents.',
+    alternates: alternatesFor(locale, '/users'),
     openGraph: { images: ['/og-image.png'] },
   };
 }

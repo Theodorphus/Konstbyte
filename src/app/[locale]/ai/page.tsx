@@ -1,3 +1,4 @@
+import { alternatesFor } from '@/lib/seo';
 import { Link } from '@/i18n/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
@@ -14,6 +15,7 @@ export async function generateMetadata({
     description: isSv
       ? 'Använd AI för att värdera din konst eller hämta inspiration. Smarta verktyg byggda för svenska konstnärer.'
       : 'Use AI to value your artwork or get inspiration. Smart tools built for artists.',
+    alternates: alternatesFor(locale, '/ai'),
     openGraph: { images: ['/og-image.png'] },
   };
 }

@@ -1,3 +1,4 @@
+import { APP_URL } from '@/lib/urls';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
@@ -78,7 +79,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'orderId saknas' }, { status: 400 });
   }
 
-  const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const appUrl = APP_URL;
 
   // ── Confirm Swish payment (buyer paid) ───────────────────────────────────
   if (action === 'confirm_swish') {

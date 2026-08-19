@@ -7,6 +7,7 @@ import { formatSek } from '@/lib/currency';
 import SafeImage from '@/components/SafeImage';
 import { PageHeader } from '@/components/PageHeader';
 import { CollectionStrip } from '@/components/collections/CollectionStrip';
+import type { CollectionSummary } from '@/components/collections/CollectionCard';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 
@@ -133,7 +134,7 @@ export default function ArtworksPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [collections, setCollections] = useState<any[]>([]);
+  const [collections, setCollections] = useState<CollectionSummary[]>([]);
 
   const categoryLabels: Record<string, string> = {
     malningar: t('paintings'),

@@ -10,6 +10,7 @@ import { Link } from '@/i18n/navigation';
 import { formatSek } from '@/lib/currency';
 import StatusCard from '@/components/StatusCard';
 import { CollectionStrip } from '@/components/collections/CollectionStrip';
+import type { CollectionSummary } from '@/components/collections/CollectionCard';
 import { useTranslations } from 'next-intl';
 
 interface User {
@@ -41,7 +42,7 @@ export default function UserProfilePage() {
 
   const [user, setUser] = useState<User | null>(null);
   const [artworks, setArtworks] = useState<Artwork[]>([]);
-  const [collections, setCollections] = useState<any[]>([]);
+  const [collections, setCollections] = useState<CollectionSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);

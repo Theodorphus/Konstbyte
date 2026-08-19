@@ -1,3 +1,4 @@
+import { APP_URL } from '@/lib/urls';
 import { NextResponse } from 'next/server';
 import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
@@ -7,7 +8,7 @@ export async function POST() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
-  const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const appUrl = APP_URL;
 
   // Create Stripe account if not already done
   let accountId = user.stripeAccountId;

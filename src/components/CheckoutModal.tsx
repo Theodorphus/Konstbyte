@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
+import { Link } from '@/i18n/navigation';
 import ShippingAddressForm, { type ShippingAddress } from './checkout/ShippingAddressForm';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -525,12 +526,12 @@ export default function CheckoutModal({
               </div>
               <p className="text-base font-semibold text-slate-900">Betalning mottagen!</p>
               <p className="text-sm text-stone-500">Konstnären kontaktas och ditt konstverk är på väg.</p>
-              <a
+              <Link
                 href="/profile/orders"
                 className="inline-block mt-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
               >
                 Se mina beställningar
-              </a>
+              </Link>
             </div>
           )}
 

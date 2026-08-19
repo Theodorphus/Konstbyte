@@ -1,13 +1,7 @@
-import { CollectionCard } from './CollectionCard';
+import { CollectionCard, type CollectionSummary } from './CollectionCard';
 
 interface CollectionStripProps {
-  collections: {
-    id: string;
-    title: string;
-    coverImage: string | null;
-    _count: { items: number };
-    items?: { artwork: { imageUrl: string; id: string } }[];
-  }[];
+  collections: CollectionSummary[];
   title?: string;
 }
 
