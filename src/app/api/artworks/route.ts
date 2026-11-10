@@ -1,5 +1,6 @@
 import { parseArtworkPrice, parseShippingCost, MIN_ARTWORK_PRICE, MAX_ARTWORK_PRICE } from '@/lib/payout';
 import { NextRequest, NextResponse } from 'next/server';
+import { isAllowedImageUrl } from '@/lib/image-url';
 import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
 import { Prisma } from '@prisma/client';
@@ -32,14 +33,14 @@ export async function POST(request: Request) {
     if (parsedShippingCost === undefined) {
       return NextResponse.json({ error: 'Ogiltig fraktkostnad' }, { status: 400 });
     }
-    if (!String(imageUrl).startsWith('https://')) {
+    if (!isAllowedImageUrl(imageUrl)) {
       return NextResponse.json({ error: 'Ogiltig bildlänk' }, { status: 400 });
     }
 
     const artwork = await prisma.artwork.create({
       data: {
-        title: String(title).trim(),
-        description: description ? String(description).trim() : null,
+        title: String(title).trim().slice(0, 200),
+        description: description ? String(description).trim().slice(0, 5000) : null,
         price: parsedPrice,
         imageUrl: String(imageUrl),
         ownerId: user.id, // Always from session — never trust client-supplied ownerId

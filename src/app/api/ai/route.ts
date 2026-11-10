@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
     const { prompt } = await req.json();
 
-    if (!prompt || typeof prompt !== "string") {
+    if (!prompt || typeof prompt !== "string" || prompt.length > 4000) {
       return Response.json(
         { error: "Ogiltig request. Fältet 'prompt' måste vara en textsträng." },
         { status: 400 }
@@ -37,6 +37,7 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           messages: [{ role: "user", content: prompt }],
+          max_tokens: 1000,
         }),
       }
     );
@@ -62,14 +63,9 @@ export async function POST(req: Request) {
       output: completion?.choices?.[0]?.message?.content ?? "",
     });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Okänt fel vid AI-anrop";
-
+    console.error("[ai]", error);
     return Response.json(
-      {
-        error: "AI-anrop misslyckades.",
-        details: message,
-      },
+      { error: "AI-anrop misslyckades." },
       { status: 502 }
     );
   }

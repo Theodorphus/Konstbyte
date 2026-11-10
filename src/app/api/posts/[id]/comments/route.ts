@@ -48,7 +48,10 @@ export async function POST(
     const { id } = await params;
     const { content } = await request.json();
 
-    if (!content || content.trim().length === 0) {
+    if (typeof content === 'string' && content.length > 2000) {
+      return NextResponse.json({ error: 'Kommentaren är för lång (max 2000 tecken)' }, { status: 400 });
+    }
+    if (typeof content !== 'string' || content.trim().length === 0) {
       return NextResponse.json(
         { error: 'Content is required' },
         { status: 400 }

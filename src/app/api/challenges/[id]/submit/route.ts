@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
+import { isAllowedImageUrl } from '../../../../../lib/image-url';
 
 export async function POST(
   request: NextRequest,
@@ -15,6 +16,9 @@ export async function POST(
 
     if (!title || !imageUrl) {
       return NextResponse.json({ error: 'title och imageUrl krävs' }, { status: 400 });
+    }
+    if (!isAllowedImageUrl(imageUrl)) {
+      return NextResponse.json({ error: 'Ogiltig bildlänk' }, { status: 400 });
     }
 
     const now = new Date();
@@ -33,7 +37,7 @@ export async function POST(
     let parsedPrice: number | null = null;
     if (price !== undefined && price !== null && price !== '') {
       const p = Number(price);
-      if (isNaN(p) || p < 0) {
+      if (!Number.isFinite(p) || p < 0 || p > 999_999) {
         return NextResponse.json({ error: 'Ogiltigt pris' }, { status: 400 });
       }
       parsedPrice = p;
@@ -43,8 +47,8 @@ export async function POST(
       data: {
         challengeId,
         artistId: user.id,
-        title,
-        description: description || null,
+        title: String(title).trim().slice(0, 200),
+        description: description ? String(description).slice(0, 2000) : null,
         imageUrl,
         price: parsedPrice,
       },
@@ -60,6 +64,7 @@ export async function POST(
 
     return NextResponse.json({ ...submission, likeCount: null, hasLiked: false }, { status: 201 });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[challenges/submit]', err);
+    return NextResponse.json({ error: 'Något gick fel' }, { status: 500 });
   }
 }

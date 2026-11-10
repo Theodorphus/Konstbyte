@@ -13,7 +13,9 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const userPrompt = body?.prompt ?? 'Generera kreativa idéer för målning';
+    const userPrompt = typeof body?.prompt === 'string' && body.prompt.trim()
+      ? body.prompt.slice(0, 1000)
+      : 'Generera kreativa idéer för målning';
 
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -37,6 +39,7 @@ export async function POST(request: Request) {
     const inspiration = completion.choices?.[0]?.message?.content ?? '';
     return NextResponse.json({ inspiration });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[ai/inspiration]', err);
+    return NextResponse.json({ error: 'AI-anrop misslyckades.' }, { status: 500 });
   }
 }
