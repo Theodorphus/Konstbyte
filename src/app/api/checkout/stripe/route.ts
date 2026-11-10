@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       include: { owner: { select: { id: true, name: true } } },
     });
 
-    if (!artwork) {
+    if (!artwork || !artwork.isPublished) {
       return NextResponse.json({ error: 'Konstverket hittades inte' }, { status: 404 });
     }
     if (artwork.isSold) {

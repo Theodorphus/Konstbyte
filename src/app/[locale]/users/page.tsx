@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 interface User {
   id: string;
   name: string | null;
-  email: string;
+  email?: string | null;
   image: string | null;
   _count: {
     artworks: number;
@@ -238,9 +238,7 @@ export default function UsersSearchPage() {
                     >
                       {user.name || t('anonymous')}
                     </Link>
-                    <p className="text-sm text-slate-600 truncate mb-3">
-                      {user.email}
-                    </p>
+                    <div className="mb-3" />
 
                     <div className="flex gap-4 text-sm text-slate-600 mb-3">
                       <span>{t('artworks_count', { count: user._count.artworks })}</span>

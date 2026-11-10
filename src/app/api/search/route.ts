@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
           { owner: { name: { contains: query, mode: 'insensitive' } } },
         ],
       },
-      include: { owner: true },
+      include: { owner: { select: { id: true, name: true, image: true } } },
       take: 6,
     });
 

@@ -8,7 +8,7 @@ interface Author {
   id: string;
   name: string | null;
   image: string | null;
-  email: string;
+  email?: string | null;
 }
 
 interface Comment {
@@ -21,6 +21,7 @@ interface Comment {
 interface Props {
   postId: string;
   currentUserEmail: string | null | undefined;
+  currentUserId?: string | null;
 }
 
 function timeAgo(dateString: string) {
@@ -34,7 +35,7 @@ function timeAgo(dateString: string) {
 }
 
 function AvatarCircle({ user }: { user: Author }) {
-  const initials = user.name?.[0]?.toUpperCase() ?? user.email[0].toUpperCase();
+  const initials = user.name?.[0]?.toUpperCase() ?? '?';
   if (user.image) {
     return (
       <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
@@ -49,7 +50,7 @@ function AvatarCircle({ user }: { user: Author }) {
   );
 }
 
-export default function CommentSection({ postId, currentUserEmail }: Props) {
+export default function CommentSection({ postId, currentUserEmail, currentUserId }: Props) {
   const [comments, setComments] = useState<Comment[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState('');
@@ -148,7 +149,7 @@ export default function CommentSection({ postId, currentUserEmail }: Props) {
                   >
                     {comment.author.name ?? 'Anonym'}
                   </Link>
-                  {currentUserEmail === comment.author.email && (
+                  {Boolean(currentUserId) && currentUserId === comment.author.id && (
                     <button
                       onClick={() => handleDeleteComment(comment.id)}
                       className="text-xs text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
 import { sendEmail, shippedEmail } from '../../../../../lib/email';
+import { sanitizeTracking } from '../../../../../lib/shipping';
 
 export async function POST(
   req: NextRequest,
@@ -23,20 +24,18 @@ export async function POST(
   if (!order || order.sellerId !== user.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
+  // Only paid orders can be shipped.
+  if (!['completed', 'paid'].includes(order.status)) {
+    return NextResponse.json({ error: 'Order is not paid' }, { status: 409 });
+  }
   if (order.shippingStatus === 'shipped' || order.shippingStatus === 'delivered') {
     return NextResponse.json({ error: 'Already shipped' }, { status: 409 });
   }
 
   // Accept optional tracking info from JSON body
-  let trackingNumber: string | null = null;
-  let trackingUrl: string | null = null;
-  try {
-    const body = await req.json();
-    trackingNumber = body.trackingNumber ?? null;
-    trackingUrl = body.trackingUrl ?? null;
-  } catch {
-    // Body is optional
-  }
+  // Tracking info is optional
+  const { trackingNumber, trackingUrl, error } = sanitizeTracking(await req.json().catch(() => ({})));
+  if (error) return NextResponse.json({ error }, { status: 400 });
 
   await prisma.$transaction([
     prisma.order.update({

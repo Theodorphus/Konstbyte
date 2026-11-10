@@ -7,11 +7,11 @@ import { getCurrentUser } from '../../../../lib/auth';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { artworkId, successUrl, cancelUrl } = body;
+    const { artworkId } = body;
     if (!artworkId) return NextResponse.json({ error: 'artworkId required' }, { status: 400 });
 
     const artwork = await prisma.artwork.findUnique({ where: { id: artworkId } });
-    if (!artwork) return NextResponse.json({ error: 'Artwork not found' }, { status: 404 });
+    if (!artwork || !artwork.isPublished) return NextResponse.json({ error: 'Artwork not found' }, { status: 404 });
 
     // Get current user from server session
     const user = await getCurrentUser();
@@ -20,6 +20,9 @@ export async function POST(request: Request) {
     // Create a pending order in the database so we can reconcile after webhook
     if (artwork.isSold) {
       return NextResponse.json({ error: 'Artwork already sold' }, { status: 409 });
+    }
+    if (artwork.ownerId === user.id) {
+      return NextResponse.json({ error: 'Du kan inte köpa ditt eget konstverk' }, { status: 400 });
     }
 
     const feePercent = Number(process.env.PLATFORM_FEE_PERCENT ?? 3) / 100;
@@ -51,8 +54,8 @@ export async function POST(request: Request) {
       mode: 'payment',
       customer_email: user.email || undefined,
       metadata: { orderId: order.id, artworkId: artwork.id },
-      success_url: successUrl || `${APP_URL}/success`,
-      cancel_url: cancelUrl || `${APP_URL}/cancel`,
+      success_url: `${APP_URL}/success?orderId=${order.id}`,
+      cancel_url: `${APP_URL}/cancel?orderId=${order.id}`,
     });
 
     await prisma.order.update({

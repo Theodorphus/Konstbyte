@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
+import { sanitizeTracking } from '../../../../../lib/shipping';
 
 // PATCH /api/orders/[id]/tracking
 // Allows the seller to update tracking info after marking an order as shipped.
@@ -20,13 +21,14 @@ export async function PATCH(
     return NextResponse.json({ error: 'Mark as shipped first' }, { status: 400 });
   }
 
-  const { trackingNumber, trackingUrl } = await req.json();
+  const { trackingNumber, trackingUrl, error } = sanitizeTracking(await req.json().catch(() => ({})));
+  if (error) return NextResponse.json({ error }, { status: 400 });
 
   const updated = await prisma.order.update({
     where: { id },
     data: {
-      trackingNumber: trackingNumber ?? null,
-      trackingUrl: trackingUrl ?? null,
+      trackingNumber,
+      trackingUrl,
     },
   });
 

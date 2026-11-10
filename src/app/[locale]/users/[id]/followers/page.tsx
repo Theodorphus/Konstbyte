@@ -13,7 +13,7 @@ interface Follower {
   follower: {
     id: string;
     name: string | null;
-    email: string;
+    email?: string | null;
     image: string | null;
   };
 }
@@ -83,14 +83,11 @@ export default function FollowersPage() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-lg">
-                    {follower.follower.name?.[0]?.toUpperCase() || follower.follower.email[0].toUpperCase()}
+                    {follower.follower.name?.[0]?.toUpperCase() || '?'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold truncate">
                       {follower.follower.name || 'Anonym användare'}
-                    </div>
-                    <div className="text-xs text-slate-500 truncate">
-                      {follower.follower.email}
                     </div>
                   </div>
                 </div>

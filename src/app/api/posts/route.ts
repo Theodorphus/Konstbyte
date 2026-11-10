@@ -8,7 +8,7 @@ export async function GET() {
 
     const posts = await prisma.post.findMany({
       include: {
-        author: { select: { id: true, name: true, image: true, email: true } },
+        author: { select: { id: true, name: true, image: true } },
         reactions: { select: { type: true, userId: true } },
         _count: { select: { comments: true } },
       },
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         authorId: user.id,
       },
       include: {
-        author: { select: { id: true, name: true, image: true, email: true } },
+        author: { select: { id: true, name: true, image: true } },
         _count: { select: { comments: true } },
       },
     });

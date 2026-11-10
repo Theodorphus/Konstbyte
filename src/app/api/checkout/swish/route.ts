@@ -26,7 +26,14 @@ const SWISH_MERCHANT = process.env.SWISH_MERCHANT_NUMBER ?? '1231181189'; // Tes
 
 // POST /api/checkout/swish
 // Creates a Swish payment request and returns QR code data.
+//
+// DISABLED unless SWISH_MOCK_ENABLED=true: the mock creates real orders and
+// notifies sellers, but its QR code points at a Swish test number, so a buyer
+// could never actually pay. Swish is offered through Stripe Checkout instead.
 export async function POST(request: Request) {
+  if (process.env.SWISH_MOCK_ENABLED !== 'true') {
+    return NextResponse.json({ error: 'Swish-betalning sker via kortkassan (Stripe).' }, { status: 410 });
+  }
   try {
     const { artworkId, shippingAddress } = await request.json();
     if (!artworkId) {

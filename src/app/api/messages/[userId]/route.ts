@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
     },
     orderBy: { createdAt: 'asc' },
     include: {
-      sender: { select: { id: true, name: true, email: true, image: true } },
+      sender: { select: { id: true, name: true, image: true } },
     },
   });
 
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
 
   const message = await prisma.message.create({
     data: { senderId: user.id, recipientId: userId, content: content.trim() },
-    include: { sender: { select: { id: true, name: true, email: true, image: true } } },
+    include: { sender: { select: { id: true, name: true, image: true } } },
   });
 
   // Send notification to recipient
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
     data: {
       userId: userId,
       type: 'message',
-      message: `${user.name || user.email} skickade dig ett meddelande`,
+      message: `${user.name || 'Någon'} skickade dig ett meddelande`,
       link: `/messages/${user.id}`,
     },
   });

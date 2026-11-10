@@ -13,7 +13,7 @@ interface Following {
   following: {
     id: string;
     name: string | null;
-    email: string;
+    email?: string | null;
     image: string | null;
   };
 }
@@ -86,14 +86,11 @@ export default function FollowingPage() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-lg">
-                    {follow.following.name?.[0]?.toUpperCase() || follow.following.email[0].toUpperCase()}
+                    {follow.following.name?.[0]?.toUpperCase() || '?'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold truncate">
                       {follow.following.name || 'Anonym användare'}
-                    </div>
-                    <div className="text-xs text-slate-500 truncate">
-                      {follow.following.email}
                     </div>
                   </div>
                 </div>

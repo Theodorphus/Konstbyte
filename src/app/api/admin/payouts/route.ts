@@ -162,10 +162,23 @@ export async function PATCH(request: NextRequest) {
         sellerPayoutAt: new Date(),
       },
     }),
-    prisma.payout.create({
-      data: {
+    // Upsert: a pending Payout row already exists if the buyer confirmed receipt.
+    prisma.payout.upsert({
+      where: { orderId },
+      create: {
         sellerId: order.sellerId,
         orderId,
+        amount: order.amount,
+        commissionRate: rate,
+        commissionAmount,
+        commissionVat,
+        sellerPayoutAmount,
+        method,
+        status: 'completed',
+        adminNote: note ?? null,
+        completedAt: new Date(),
+      },
+      update: {
         amount: order.amount,
         commissionRate: rate,
         commissionAmount,

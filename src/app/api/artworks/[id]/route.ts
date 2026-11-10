@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
+import { parseArtworkPrice, MIN_ARTWORK_PRICE, MAX_ARTWORK_PRICE } from '../../../../lib/payout';
 
 export async function GET(
   request: NextRequest,
@@ -15,7 +16,6 @@ export async function GET(
           select: {
             id: true,
             name: true,
-            email: true,
           },
         },
       },
@@ -56,12 +56,49 @@ export async function PUT(
       );
     }
 
+    let price: number | undefined;
+    if (body.price !== undefined && body.price !== null && body.price !== '') {
+      const parsed = parseArtworkPrice(body.price);
+      if (parsed === null) {
+        return NextResponse.json(
+          { error: `Priset måste vara mellan ${MIN_ARTWORK_PRICE} och ${MAX_ARTWORK_PRICE.toLocaleString('sv-SE')} kr` },
+          { status: 400 },
+        );
+      }
+      price = parsed;
+    }
+    if (body.imageUrl !== undefined && !String(body.imageUrl).startsWith('https://')) {
+      return NextResponse.json({ error: 'Ogiltig bildlänk' }, { status: 400 });
+    }
+    if (body.title !== undefined && !String(body.title).trim()) {
+      return NextResponse.json({ error: 'Titel krävs' }, { status: 400 });
+    }
+
+    // A sold artwork, or one a buyer is paying for right now, must keep the price
+    // and image the buyer saw.
+    const changesSale =
+      (price !== undefined && price !== existingArtwork.price) ||
+      (body.imageUrl !== undefined && body.imageUrl !== existingArtwork.imageUrl);
+    if (changesSale) {
+      const locked =
+        existingArtwork.isSold ||
+        (await prisma.order.count({
+          where: { artworkId: id, status: { in: ['pending', 'payment_processing', 'awaiting_swish'] }, createdAt: { gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
+        })) > 0;
+      if (locked) {
+        return NextResponse.json(
+          { error: 'Pris och bild kan inte ändras på ett sålt verk eller medan ett köp pågår.' },
+          { status: 409 },
+        );
+      }
+    }
+
     const artwork = await prisma.artwork.update({
       where: { id },
       data: {
-        title: body.title,
+        title: body.title !== undefined ? String(body.title).trim() : undefined,
         description: body.description,
-        price: body.price ? Number(body.price) : undefined,
+        price,
         imageUrl: body.imageUrl,
         category: body.category,
         isPublished: body.isPublished
@@ -71,7 +108,6 @@ export async function PUT(
           select: {
             id: true,
             name: true,
-            email: true,
           },
         },
       },

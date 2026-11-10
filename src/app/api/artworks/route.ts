@@ -1,3 +1,4 @@
+import { parseArtworkPrice, parseShippingCost, MIN_ARTWORK_PRICE, MAX_ARTWORK_PRICE } from '@/lib/payout';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
@@ -20,9 +21,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Saknade obligatoriska fält' }, { status: 400 });
     }
 
-    const parsedPrice = Number(price);
-    if (isNaN(parsedPrice) || parsedPrice < 0) {
-      return NextResponse.json({ error: 'Ogiltigt pris' }, { status: 400 });
+    const parsedPrice = parseArtworkPrice(price);
+    if (parsedPrice === null) {
+      return NextResponse.json(
+        { error: `Priset måste vara mellan ${MIN_ARTWORK_PRICE} och ${MAX_ARTWORK_PRICE.toLocaleString('sv-SE')} kr` },
+        { status: 400 },
+      );
+    }
+    const parsedShippingCost = parseShippingCost(shippingCost);
+    if (parsedShippingCost === undefined) {
+      return NextResponse.json({ error: 'Ogiltig fraktkostnad' }, { status: 400 });
+    }
+    if (!String(imageUrl).startsWith('https://')) {
+      return NextResponse.json({ error: 'Ogiltig bildlänk' }, { status: 400 });
     }
 
     const artwork = await prisma.artwork.create({
@@ -34,7 +45,7 @@ export async function POST(request: Request) {
         ownerId: user.id, // Always from session — never trust client-supplied ownerId
         category: category || 'malningar',
         shippingType: shippingType || 'overenskommes',
-        shippingCost: shippingCost != null ? Number(shippingCost) : null,
+        shippingCost: parsedShippingCost,
         shippingArea: shippingArea ? String(shippingArea).trim() : null,
         shippingCarrier: shippingCarrier ? String(shippingCarrier).trim() : null,
       },
