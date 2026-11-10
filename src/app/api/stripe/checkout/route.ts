@@ -39,8 +39,8 @@ export async function POST(request: Request) {
       }
     });
 
+    // Payment methods (card, Swish, Klarna, …) come from the Stripe Dashboard settings.
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
@@ -54,6 +54,10 @@ export async function POST(request: Request) {
       mode: 'payment',
       customer_email: user.email || undefined,
       metadata: { orderId: order.id, artworkId: artwork.id },
+      payment_intent_data: {
+        transfer_group: order.id,
+        metadata: { orderId: order.id, artworkId: artwork.id },
+      },
       success_url: `${APP_URL}/success?orderId=${order.id}`,
       cancel_url: `${APP_URL}/cancel?orderId=${order.id}`,
     });

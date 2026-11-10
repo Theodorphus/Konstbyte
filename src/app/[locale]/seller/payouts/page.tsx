@@ -4,15 +4,28 @@ import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { formatSek } from '@/lib/currency';
 import { getTranslations } from 'next-intl/server';
+import ConnectStripeButton from '@/components/ConnectStripeButton';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SellerPayoutsPage() {
-  const [user, t] = await Promise.all([
+export default async function SellerPayoutsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ connect?: string }>;
+}) {
+  const [user, t, { connect }] = await Promise.all([
     getCurrentUser(),
     getTranslations('seller'),
+    searchParams,
   ]);
   if (!user) redirect('/auth/signin');
+
+  const stripeReady = Boolean(user.stripeAccountId && user.stripeOnboardingDone);
+  const connectMessage =
+    connect === 'success' ? { tone: 'green', text: t('connect_msg_success') }
+    : connect === 'incomplete' ? { tone: 'amber', text: t('connect_msg_incomplete') }
+    : connect === 'error' ? { tone: 'red', text: t('connect_msg_error') }
+    : null;
 
   const payouts = await prisma.payout.findMany({
     where: { sellerId: user.id },
@@ -52,7 +65,7 @@ export default async function SellerPayoutsPage() {
   function MethodBadge({ method }: { method: string }) {
     return (
       <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-stone-100 text-stone-600">
-        {method === 'bank' ? t('bank_transfer') : 'Swish'}
+        {method === 'bank' ? t('bank_transfer') : method === 'stripe' ? 'Stripe' : 'Swish'}
       </span>
     );
   }
@@ -68,6 +81,41 @@ export default async function SellerPayoutsPage() {
         <Link href="/profile" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
           {t('back_profile')}
         </Link>
+      </div>
+
+      {connectMessage && (
+        <div
+          className={
+            connectMessage.tone === 'green'
+              ? 'rounded-xl border px-4 py-3 text-sm bg-green-50 border-green-200 text-green-800'
+              : connectMessage.tone === 'amber'
+                ? 'rounded-xl border px-4 py-3 text-sm bg-amber-50 border-amber-200 text-amber-800'
+                : 'rounded-xl border px-4 py-3 text-sm bg-red-50 border-red-200 text-red-800'
+          }
+        >
+          {connectMessage.text}
+        </div>
+      )}
+
+      {/* Stripe Connect status */}
+      <div className="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-semibold text-slate-900">{t('connect_title')}</p>
+            <p className="text-sm text-slate-500 mt-1">
+              {stripeReady ? t('connect_ready_desc') : t('connect_missing_desc')}
+            </p>
+          </div>
+          {stripeReady && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-green-100 text-green-700 border-green-200 whitespace-nowrap">
+              {t('connect_ready_badge')}
+            </span>
+          )}
+        </div>
+        <ConnectStripeButton
+          label={stripeReady ? t('connect_manage_button') : user.stripeAccountId ? t('connect_continue_button') : t('connect_button')}
+        />
+        <p className="text-xs text-stone-400">{t('connect_release_note')}</p>
       </div>
 
       {/* Summary */}

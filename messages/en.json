@@ -77,7 +77,7 @@
     "step2_title": "List your works in minutes",
     "step2_text": "Upload a photo, set a price and choose shipping — all in under five minutes.",
     "step3_title": "Sell safely & get paid",
-    "step3_text": "Stripe handles the payment. You track the order and the money goes directly to you.",
+    "step3_text": "Stripe handles the payment. You track the order and you are paid once the buyer has received the artwork.",
     "trust_label": "Safe & transparent",
     "trust_title": "A platform built for clarity.",
     "see_all_fees": "See all fees →",
@@ -469,7 +469,7 @@
     "delivery_address_label": "Delivery address",
     "mark_received": "Mark as received",
     "payout_title": "Payout",
-    "payout_desc": "Konstbyte handles payouts via Swish or bank transfer within 3–5 business days after the buyer confirms receipt. The platform commission is 3%.",
+    "payout_desc": "With a connected Stripe account you are paid automatically when the buyer confirms receipt (or 14 days after you ship). Without Stripe, Konstbyte pays out via Swish or bank transfer within 3–5 business days. The platform commission is 3%.",
     "payout_done": "Payout completed",
     "contact_support": "For questions about your order, contact",
     "disclaimer": "Konstbyte is a technical platform and is not responsible for shipping, damages or transactions."
@@ -686,7 +686,7 @@
     "benefits_label": "Why Konstbyte?",
     "benefits_heading": "Everything you need in one place.",
     "benefits": [
-      { "icon": "🎨", "title": "Sell your art easily", "desc": "Upload a work in under five minutes. Stripe handles the payment — you get the money directly." },
+      { "icon": "🎨", "title": "Sell your art easily", "desc": "Upload a work in under five minutes. Stripe handles the payment securely — you are paid as soon as the buyer has received the artwork." },
       { "icon": "🏆", "title": "Join weekly challenges", "desc": "Compete to be the weekly winner, earn points and build your reputation as an artist." },
       { "icon": "👥", "title": "Find your community", "desc": "Discuss, get inspired and follow other artists. Grow together with like-minded creators." },
       { "icon": "💰", "title": "Only 3% commission", "desc": "No monthly fee, no hidden costs. We only take 3% on sales — that's it." },
@@ -759,6 +759,17 @@
     "view_all_artworks": "View all artworks"
   },
   "seller": {
+    "connect_title": "Payouts via Stripe",
+    "connect_missing_desc": "Connect a Stripe account to be paid automatically once the buyer has received the artwork. It takes a few minutes and you need ID and your bank account number.",
+    "connect_ready_desc": "Your Stripe account is connected. Money is sent to your account automatically.",
+    "connect_ready_badge": "Connected",
+    "connect_button": "Connect Stripe account",
+    "connect_continue_button": "Finish connecting",
+    "connect_manage_button": "Open Stripe",
+    "connect_release_note": "Konstbyte holds the payment until the buyer confirms receipt, or automatically 14 days after you mark the artwork as shipped.",
+    "connect_msg_success": "Done! Your Stripe account is connected and ready for payouts.",
+    "connect_msg_incomplete": "Not finished yet. Stripe needs more details – click \"Finish connecting\".",
+    "connect_msg_error": "Something went wrong connecting to Stripe. Please try again.",
     "orders_title": "My seller orders",
     "payouts_title": "Payouts",
     "no_orders": "No orders yet",
@@ -887,6 +898,8 @@
     "location": "Location: Gothenburg, Sweden"
   },
   "success": {
+    "payment_processing": "Payment processing",
+    "payment_processing_desc": "This usually takes a minute. You will get an email as soon as the payment is confirmed.",
     "title": "Payment successful!",
     "description": "Thank you for your purchase. Your payment has been processed.",
     "view_order": "View order",

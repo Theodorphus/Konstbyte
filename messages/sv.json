@@ -77,7 +77,7 @@
     "step2_title": "Lägg upp dina verk på minuter",
     "step2_text": "Ladda upp bild, sätt pris och välj fraktsätt — allt på under fem minuter.",
     "step3_title": "Sälj tryggt & få betalt",
-    "step3_text": "Stripe hanterar betalningen. Du spårar ordern och pengarna landar direkt hos dig.",
+    "step3_text": "Stripe hanterar betalningen. Du spårar ordern och pengarna betalas ut till dig när köparen har tagit emot verket.",
     "trust_label": "Tryggt & transparent",
     "trust_title": "En plattform byggd för tydlighet.",
     "see_all_fees": "Se alla avgifter →",
@@ -508,7 +508,7 @@
     "delivery_address_label": "Leveransadress",
     "mark_received": "Markera som mottaget",
     "payout_title": "Utbetalning",
-    "payout_desc": "Konstbyte hanterar utbetalning via Swish eller banköverföring inom 3–5 arbetsdagar efter att köparen bekräftat mottagandet. Plattformens provision är 3%.",
+    "payout_desc": "Med ett kopplat Stripe-konto betalas du ut automatiskt när köparen bekräftat mottagandet (eller 14 dagar efter att du skickat verket). Utan Stripe betalar Konstbyte ut via Swish eller banköverföring inom 3–5 arbetsdagar. Plattformens provision är 3%.",
     "payout_done": "Utbetalning genomförd",
     "contact_support": "Vid frågor om din order, kontakta",
     "disclaimer": "Konstbyte är en teknisk plattform och ansvarar inte för frakt, skador eller transaktioner."
@@ -725,7 +725,7 @@
     "benefits_label": "Varför Konstbyte?",
     "benefits_heading": "Allt du behöver på ett ställe.",
     "benefits": [
-      { "icon": "🎨", "title": "Sälj din konst enkelt", "desc": "Ladda upp verk på under fem minuter. Stripe hanterar betalningen — du får pengarna direkt." },
+      { "icon": "🎨", "title": "Sälj din konst enkelt", "desc": "Ladda upp verk på under fem minuter. Stripe hanterar betalningen tryggt — pengarna betalas ut till dig när köparen har tagit emot verket." },
       { "icon": "🏆", "title": "Delta i veckoutmaningar", "desc": "Tävla om att bli veckans vinnare, samla poäng och bygg ditt rykte som konstnär." },
       { "icon": "👥", "title": "Hitta ditt community", "desc": "Diskutera, inspireras och följ andra konstnärer. Väx tillsammans med likasinnade." },
       { "icon": "💰", "title": "Bara 3% i avgift", "desc": "Ingen månadsavgift, inga dolda kostnader. Vi tar bara 3% vid försäljning — det är allt." },
@@ -886,6 +886,8 @@
     "location": "Plats: Göteborg, Sverige"
   },
   "success": {
+    "payment_processing": "Betalningen behandlas",
+    "payment_processing_desc": "Det brukar ta någon minut. Du får ett mejl så fort betalningen är bekräftad.",
     "title": "Betalning genomförd!",
     "description": "Tack för ditt köp. Din betalning har behandlats.",
     "view_order": "Visa order",
@@ -956,6 +958,17 @@
     "published": "Publicerad"
   },
   "seller": {
+    "connect_title": "Utbetalningar via Stripe",
+    "connect_missing_desc": "Koppla ett Stripe-konto så betalas du ut automatiskt när köparen har tagit emot verket. Det tar några minuter och du behöver BankID och ditt kontonummer.",
+    "connect_ready_desc": "Ditt Stripe-konto är kopplat. Pengarna skickas automatiskt till ditt konto.",
+    "connect_ready_badge": "Kopplat",
+    "connect_button": "Koppla Stripe-konto",
+    "connect_continue_button": "Slutför kopplingen",
+    "connect_manage_button": "Öppna Stripe",
+    "connect_release_note": "Konstbyte håller betalningen tills köparen bekräftar mottagandet, eller automatiskt 14 dagar efter att du markerat verket som skickat.",
+    "connect_msg_success": "Klart! Ditt Stripe-konto är kopplat och redo för utbetalningar.",
+    "connect_msg_incomplete": "Kopplingen är inte klar än. Stripe behöver fler uppgifter – klicka på \"Slutför kopplingen\".",
+    "connect_msg_error": "Något gick fel vid kopplingen till Stripe. Försök igen.",
     "orders_title": "Mina säljarordrar",
     "payouts_title": "Utbetalningar",
     "no_orders": "Inga ordrar ännu",
