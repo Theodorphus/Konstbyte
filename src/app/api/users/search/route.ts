@@ -15,7 +15,6 @@ export async function GET(request: NextRequest) {
     const whereClause = {
       OR: [
         { name: { contains: query, mode: 'insensitive' as const } },
-        { email: { contains: query, mode: 'insensitive' as const } },
         { instagram: { contains: query, mode: 'insensitive' as const } },
       ],
     };
@@ -24,7 +23,14 @@ export async function GET(request: NextRequest) {
     
     const users = await prisma.user.findMany({
       where: whereClause,
-      include: {
+      // Only public profile fields — never email, Stripe ids or auth data.
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        bio: true,
+        instagram: true,
+        createdAt: true,
         _count: {
           select: {
             artworks: true,
@@ -34,6 +40,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
+      orderBy: { createdAt: 'desc' },
       take: 50,
     });
 

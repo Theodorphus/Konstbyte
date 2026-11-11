@@ -11,8 +11,8 @@ function timeAgo(date: Date, t: Awaited<ReturnType<typeof getTranslations>>) {
   return t('time_days_ago', { count: Math.floor(diff / 86400) });
 }
 
-function AvatarCircle({ name, image, email }: { name: string | null; image: string | null; email: string | null }) {
-  const initials = name?.[0]?.toUpperCase() ?? email?.[0]?.toUpperCase() ?? '?';
+function AvatarCircle({ name, image }: { name: string | null; image: string | null }) {
+  const initials = name?.[0]?.toUpperCase() ?? '?';
   if (image) {
     return (
       <div className="relative w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
@@ -35,7 +35,7 @@ export default async function HomepageCommunityPreview() {
     content: string;
     imageUrl: string | null;
     createdAt: Date;
-    author: { id: string; name: string | null; image: string | null; email: string | null };
+    author: { id: string; name: string | null; image: string | null };
     _count: { comments: number; reactions: number };
   }[] = [];
 
@@ -48,7 +48,7 @@ export default async function HomepageCommunityPreview() {
         content: true,
         imageUrl: true,
         createdAt: true,
-        author: { select: { id: true, name: true, image: true, email: true } },
+        author: { select: { id: true, name: true, image: true } },
         _count: { select: { comments: true, reactions: true } },
       },
     });
@@ -85,7 +85,6 @@ export default async function HomepageCommunityPreview() {
               <AvatarCircle
                 name={post.author.name}
                 image={post.author.image}
-                email={post.author.email}
               />
               <div>
                 <p className="text-sm font-semibold text-slate-900">

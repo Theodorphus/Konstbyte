@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/auth';
+import { isAdmin } from '@/lib/admin';
 
+// Diagnostic for admins: is the Resend API key accepted in this runtime?
 export async function GET() {
+  const user = await getCurrentUser();
+  if (!user || !isAdmin(user.email)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const emailFrom = process.env.EMAIL_FROM;
 

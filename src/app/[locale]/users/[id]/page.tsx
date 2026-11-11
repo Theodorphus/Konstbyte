@@ -16,7 +16,7 @@ import { useTranslations } from 'next-intl';
 interface User {
   id: string;
   name: string | null;
-  email: string;
+  email?: string | null;
   image: string | null;
   bio: string | null;
   instagram: string | null;
@@ -179,11 +179,10 @@ export default function UserProfilePage() {
         <CardContent className="p-6">
           <div className="flex items-start gap-6">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-3xl">
-              {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+              {user.name?.[0]?.toUpperCase() || '?'}
             </div>
             <div className="flex-1">
               <h1 className="text-2xl font-bold">{user.name || t('anonymous_user')}</h1>
-              <p className="text-slate-600">{user.email}</p>
               {user.bio && <p className="text-slate-600 mt-2">{user.bio}</p>}
               {user.instagram && (
                 <p className="text-slate-600 mt-1">

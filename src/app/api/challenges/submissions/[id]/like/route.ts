@@ -40,6 +40,7 @@ export async function POST(
       return NextResponse.json({ liked: true });
     }
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[challenges/submissions/[id]/like]', err);
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }

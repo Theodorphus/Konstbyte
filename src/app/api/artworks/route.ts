@@ -1,4 +1,6 @@
+import { parseArtworkPrice, parseShippingCost, MIN_ARTWORK_PRICE, MAX_ARTWORK_PRICE } from '@/lib/payout';
 import { NextRequest, NextResponse } from 'next/server';
+import { isAllowedImageUrl } from '@/lib/image-url';
 import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
 import { Prisma } from '@prisma/client';
@@ -20,21 +22,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Saknade obligatoriska fält' }, { status: 400 });
     }
 
-    const parsedPrice = Number(price);
-    if (isNaN(parsedPrice) || parsedPrice < 0) {
-      return NextResponse.json({ error: 'Ogiltigt pris' }, { status: 400 });
+    const parsedPrice = parseArtworkPrice(price);
+    if (parsedPrice === null) {
+      return NextResponse.json(
+        { error: `Priset måste vara mellan ${MIN_ARTWORK_PRICE} och ${MAX_ARTWORK_PRICE.toLocaleString('sv-SE')} kr` },
+        { status: 400 },
+      );
+    }
+    const parsedShippingCost = parseShippingCost(shippingCost);
+    if (parsedShippingCost === undefined) {
+      return NextResponse.json({ error: 'Ogiltig fraktkostnad' }, { status: 400 });
+    }
+    if (!isAllowedImageUrl(imageUrl)) {
+      return NextResponse.json({ error: 'Ogiltig bildlänk' }, { status: 400 });
     }
 
     const artwork = await prisma.artwork.create({
       data: {
-        title: String(title).trim(),
-        description: description ? String(description).trim() : null,
+        title: String(title).trim().slice(0, 200),
+        description: description ? String(description).trim().slice(0, 5000) : null,
         price: parsedPrice,
         imageUrl: String(imageUrl),
         ownerId: user.id, // Always from session — never trust client-supplied ownerId
         category: category || 'malningar',
         shippingType: shippingType || 'overenskommes',
-        shippingCost: shippingCost != null ? Number(shippingCost) : null,
+        shippingCost: parsedShippingCost,
         shippingArea: shippingArea ? String(shippingArea).trim() : null,
         shippingCarrier: shippingCarrier ? String(shippingCarrier).trim() : null,
       },

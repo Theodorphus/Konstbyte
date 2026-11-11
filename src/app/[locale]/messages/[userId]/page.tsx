@@ -87,7 +87,7 @@ export default function ConversationPage() {
     }
   };
 
-  const otherInitial = other ? (other.name || other.email)[0].toUpperCase() : '?';
+  const otherInitial = other ? (other.name || '?')[0].toUpperCase() : '?';
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col" style={{ height: 'calc(100vh - 8rem)' }}>
@@ -107,7 +107,7 @@ export default function ConversationPage() {
             </div>
             <div>
               <Link href={`/users/${other.id}`} className="font-semibold text-slate-900 hover:underline text-sm">
-                {other.name || other.email}
+                {other.name || 'Användare'}
               </Link>
               <p className="text-xs text-slate-400">{t('artist_on_konstbyte')}</p>
             </div>

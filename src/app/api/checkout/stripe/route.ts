@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       include: { owner: { select: { id: true, name: true } } },
     });
 
-    if (!artwork) {
+    if (!artwork || !artwork.isPublished) {
       return NextResponse.json({ error: 'Konstverket hittades inte' }, { status: 404 });
     }
     if (artwork.isSold) {
@@ -117,6 +117,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: session.url, orderId: order.id });
   } catch (err) {
     console.error('[checkout/stripe]', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }

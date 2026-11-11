@@ -35,9 +35,16 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function sendNotificationEmail(websiteUrl: string, email: string) {
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+}
+
+async function sendNotificationEmail(rawWebsiteUrl: string, rawEmail: string) {
+  // Both values come straight from a public form — escape before putting them in HTML.
+  const websiteUrl = escapeHtml(rawWebsiteUrl);
+  const email = escapeHtml(rawEmail);
   try {
-    const subject = `🎯 Ny lead från hemsidor-sidan | ${email}`;
+    const subject = `🎯 Ny lead från hemsidor-sidan | ${rawEmail.replace(/[\r\n]/g, '')}`;
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #1e293b; margin-top: 0;">Ny lead från hemsidor-tjänster</h2>

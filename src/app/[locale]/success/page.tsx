@@ -2,10 +2,12 @@ import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
 import { Suspense } from 'react';
 import prisma from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
 import { getTranslations } from 'next-intl/server';
 
 async function SuccessContent({ orderId }: { orderId: string }) {
-  const [order, t] = await Promise.all([
+  const [user, order, t] = await Promise.all([
+    getCurrentUser(),
     prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -16,7 +18,8 @@ async function SuccessContent({ orderId }: { orderId: string }) {
     getTranslations('success'),
   ]);
 
-  if (!order) return <GenericSuccess />;
+  // Only the buyer may see the order (it contains their name and address).
+  if (!order || !user || order.buyerId !== user.id) return <GenericSuccess />;
 
   const amount = order.amount.toLocaleString('sv-SE', {
     style: 'currency',

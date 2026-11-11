@@ -14,8 +14,8 @@ export async function GET() {
         where: { OR: [{ senderId: user.id }, { recipientId: user.id }] },
         orderBy: { createdAt: 'desc' },
         include: {
-          sender:    { select: { id: true, name: true, email: true, image: true } },
-          recipient: { select: { id: true, name: true, email: true, image: true } },
+          sender:    { select: { id: true, name: true, image: true } },
+          recipient: { select: { id: true, name: true, image: true } },
         },
       }),
       prisma.message.groupBy({

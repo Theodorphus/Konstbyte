@@ -28,8 +28,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'Artwork not found' }, { status: 404 });
     }
 
-    // Allow deletion even if artwork has orders (admin moderation)
-    // First delete related records due to foreign key constraints
+    // Orders reference the artwork (and are needed for bookkeeping), so an artwork
+    // that has been ordered is unpublished instead of deleted.
+    if (artwork.orders.length > 0) {
+      await prisma.artwork.update({ where: { id }, data: { isPublished: false } });
+      return NextResponse.json({ success: true, unpublished: true });
+    }
+
     await prisma.$transaction([
       // Delete favorites that reference this artwork
       prisma.favorite.deleteMany({ where: { artworkId: id } }),
@@ -38,6 +43,7 @@ export async function DELETE(
     ]);
     return NextResponse.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[admin/artworks DELETE]', err);
+    return NextResponse.json({ error: 'Kunde inte ta bort konstverket' }, { status: 500 });
   }
 }

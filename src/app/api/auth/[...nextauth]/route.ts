@@ -62,6 +62,15 @@ export const authOptions: NextAuthOptions = {
     strategy: 'database'
   },
   callbacks: {
+    // allowDangerousEmailAccountLinking lets someone who first signed in with an
+    // email link later use Google with the same address. That is only safe if
+    // Google has verified the address, so require it.
+    signIn({ account, profile }) {
+      if (account?.provider === 'google') {
+        return (profile as { email_verified?: boolean } | undefined)?.email_verified === true;
+      }
+      return true;
+    },
     session({ session, user }) {
       if (session.user) session.user.id = user.id;
       return session;

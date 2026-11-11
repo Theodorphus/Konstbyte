@@ -35,6 +35,7 @@ export default function CommunityPage() {
   }
 
   const currentUserEmail = session?.user?.email;
+  const currentUserId = session?.user?.id;
   const currentUserName = session?.user?.name;
   const currentUserImage = session?.user?.image;
 
@@ -113,6 +114,7 @@ export default function CommunityPage() {
               key={post.id}
               post={post}
               currentUserEmail={currentUserEmail}
+              currentUserId={currentUserId}
               onDelete={handleDeletePost}
             />
           ))}

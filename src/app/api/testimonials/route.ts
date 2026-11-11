@@ -16,14 +16,14 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user || !isAdmin(user.email)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await request.json();
     const { text, author } = body;
     if (!text) return NextResponse.json({ error: 'Missing text' }, { status: 400 });
 
-    const finalAuthor = author || user.name || user.email || 'Anonymous';
-    const created = await prisma.testimonial.create({ data: { text, author: finalAuthor } });
+    const finalAuthor = String(author || user.name || 'Anonym').slice(0, 100);
+    const created = await prisma.testimonial.create({ data: { text: String(text).slice(0, 2000), author: finalAuthor } });
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     console.error('Error writing testimonial:', error);

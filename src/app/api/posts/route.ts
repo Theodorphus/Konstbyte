@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
+import { isAllowedImageUrl } from '@/lib/image-url';
+import { tooManyRequests, since, HOUR } from '@/lib/rate-limit';
 import { getCurrentUser } from '../../../lib/auth';
 
 export async function GET() {
@@ -8,7 +10,7 @@ export async function GET() {
 
     const posts = await prisma.post.findMany({
       include: {
-        author: { select: { id: true, name: true, image: true, email: true } },
+        author: { select: { id: true, name: true, image: true } },
         reactions: { select: { type: true, userId: true } },
         _count: { select: { comments: true } },
       },
@@ -51,18 +53,27 @@ export async function POST(request: NextRequest) {
     }
 
     const { content, imageUrl } = await request.json();
-    if (!content || content.trim().length === 0) {
+    if (typeof content !== 'string' || content.trim().length === 0) {
       return NextResponse.json({ error: 'Content is required' }, { status: 400 });
+    }
+    if (content.length > 5000) {
+      return NextResponse.json({ error: 'Inlägget är för långt (max 5000 tecken)' }, { status: 400 });
+    }
+    if (imageUrl && !isAllowedImageUrl(imageUrl)) {
+      return NextResponse.json({ error: 'Ogiltig bildlänk' }, { status: 400 });
+    }
+    if ((await prisma.post.count({ where: { authorId: user.id, createdAt: { gt: since(HOUR) } } })) >= 20) {
+      return tooManyRequests();
     }
 
     const post = await prisma.post.create({
       data: {
         content: content.trim(),
-        imageUrl: imageUrl ?? null,
+        imageUrl: imageUrl || null,
         authorId: user.id,
       },
       include: {
-        author: { select: { id: true, name: true, image: true, email: true } },
+        author: { select: { id: true, name: true, image: true } },
         _count: { select: { comments: true } },
       },
     });

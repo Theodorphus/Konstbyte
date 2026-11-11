@@ -64,7 +64,7 @@ export default function MessagesPage() {
       ) : (
         <div className="divide-y divide-slate-100 rounded-2xl border border-slate-100 bg-white overflow-hidden shadow-sm">
           {conversations.map(({ other, lastMessage, unread }) => {
-            const initial = (other.name || other.email)[0].toUpperCase();
+            const initial = (other.name || '?')[0].toUpperCase();
             return (
               <Link
                 key={other.id}
@@ -79,7 +79,7 @@ export default function MessagesPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className={`font-semibold text-sm truncate ${unread > 0 ? 'text-slate-900' : 'text-slate-700'}`}>
-                      {other.name || other.email}
+                      {other.name || 'Användare'}
                     </span>
                     <span className="text-xs text-slate-400 flex-shrink-0">
                       {timeAgo(lastMessage.createdAt, t)}

@@ -11,7 +11,7 @@ interface Author {
   id: string;
   name: string | null;
   image: string | null;
-  email: string;
+  email?: string | null;
 }
 
 interface ReactionCounts {
@@ -34,6 +34,7 @@ export interface PostData {
 interface Props {
   post: PostData;
   currentUserEmail: string | null | undefined;
+  currentUserId?: string | null;
   onDelete: (postId: string) => void;
 }
 
@@ -52,7 +53,7 @@ function timeAgo(dateString: string) {
 function AvatarCircle({ user, size = 'md' }: { user: Author; size?: 'sm' | 'md' }) {
   const dim = size === 'md' ? 'w-10 h-10' : 'w-8 h-8';
   const textSize = size === 'md' ? 'text-sm' : 'text-xs';
-  const initials = user.name?.[0]?.toUpperCase() ?? user.email[0].toUpperCase();
+  const initials = user.name?.[0]?.toUpperCase() ?? '?';
 
   if (user.image) {
     return (
@@ -70,7 +71,7 @@ function AvatarCircle({ user, size = 'md' }: { user: Author; size?: 'sm' | 'md' 
   );
 }
 
-export default function PostCard({ post, currentUserEmail, onDelete }: Props) {
+export default function PostCard({ post, currentUserEmail, currentUserId, onDelete }: Props) {
   const [reactions, setReactions] = useState<ReactionCounts>(post.reactions);
   const [userReaction, setUserReaction] = useState<string | null>(post.userReaction);
   const [commentCount, setCommentCount] = useState(post.commentCount);
@@ -78,7 +79,7 @@ export default function PostCard({ post, currentUserEmail, onDelete }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  const isOwner = currentUserEmail === post.author.email;
+  const isOwner = Boolean(currentUserId) && currentUserId === post.author.id;
 
   async function handleReact(type: 'like' | 'heart' | 'wow') {
     // Optimistic update
@@ -212,6 +213,7 @@ export default function PostCard({ post, currentUserEmail, onDelete }: Props) {
           <CommentSection
             postId={post.id}
             currentUserEmail={currentUserEmail}
+            currentUserId={currentUserId}
           />
         </div>
       )}

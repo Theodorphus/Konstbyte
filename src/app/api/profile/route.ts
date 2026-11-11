@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
+import { isAllowedImageUrl } from '../../../lib/image-url';
 
 export async function GET() {
   try {
@@ -25,16 +26,30 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const { name, image, bio, instagram } = await request.json();
+    if (image && image !== user.image && !isAllowedImageUrl(image)) {
+      return NextResponse.json({ error: 'Ogiltig bildlänk' }, { status: 400 });
+    }
+    const handle = instagram ? String(instagram).trim().replace(/^@/, '') : '';
+    if (handle && !/^[A-Za-z0-9._]{1,30}$/.test(handle)) {
+      return NextResponse.json({ error: 'Ogiltigt Instagram-namn' }, { status: 400 });
+    }
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
-        ...(name !== undefined ? { name: name || user.name } : {}),
+        ...(name !== undefined ? { name: String(name || '').trim().slice(0, 80) || user.name } : {}),
         ...(image !== undefined ? { image: image || null } : {}),
-        ...(bio !== undefined ? { bio: bio || null } : {}),
-        ...(instagram !== undefined ? { instagram: instagram || null } : {}),
+        ...(bio !== undefined ? { bio: bio ? String(bio).slice(0, 1000) : null } : {}),
+        ...(instagram !== undefined ? { instagram: handle || null } : {}),
       },
     });
-    return NextResponse.json(updatedUser);
+    return NextResponse.json({
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      image: updatedUser.image,
+      bio: updatedUser.bio,
+      instagram: updatedUser.instagram,
+    });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
   }

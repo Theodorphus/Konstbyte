@@ -18,6 +18,10 @@ export async function POST(
   if (!order || order.buyerId !== user.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
+  // Only a paid order can be received — otherwise an unpaid order would create a payout.
+  if (!['completed', 'paid'].includes(order.status)) {
+    return NextResponse.json({ error: 'Order is not paid' }, { status: 409 });
+  }
 
   const alreadyDelivered = await prisma.orderEvent.findFirst({
     where: { orderId: id, type: 'delivered' },
