@@ -24,7 +24,8 @@ export async function GET(
     if (!artwork) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(artwork);
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[artworks/[id]]', err);
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }
 
@@ -115,7 +116,8 @@ export async function PUT(
     });
     return NextResponse.json(artwork);
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[artworks/[id]]', err);
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }
 
@@ -160,7 +162,8 @@ export async function DELETE(
     await prisma.artwork.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[artworks/[id]]', err);
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
+import { tooManyRequests, notifyOnce, since, MINUTE, DAY } from '@/lib/rate-limit';
 
 // GET /api/messages/[userId] — get conversation between current user and userId
 export async function GET(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
@@ -41,8 +42,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  if (userId === user.id) return NextResponse.json({ error: 'Du kan inte skicka meddelanden till dig själv' }, { status: 400 });
+
   const { content } = await req.json();
-  if (!content?.trim()) return NextResponse.json({ error: 'Tomt meddelande' }, { status: 400 });
+  if (typeof content !== 'string' || !content.trim()) return NextResponse.json({ error: 'Tomt meddelande' }, { status: 400 });
+  if (content.length > 5000) return NextResponse.json({ error: 'Meddelandet är för långt (max 5000 tecken)' }, { status: 400 });
+
+  const [lastMinute, lastDay] = await Promise.all([
+    prisma.message.count({ where: { senderId: user.id, createdAt: { gt: since(MINUTE) } } }),
+    prisma.message.count({ where: { senderId: user.id, createdAt: { gt: since(DAY) } } }),
+  ]);
+  if (lastMinute >= 15 || lastDay >= 500) return tooManyRequests();
 
   // Verify recipient exists
   const recipient = await prisma.user.findUnique({ where: { id: userId } });
@@ -53,14 +63,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
     include: { sender: { select: { id: true, name: true, image: true } } },
   });
 
-  // Send notification to recipient
-  await prisma.notification.create({
-    data: {
-      userId: userId,
-      type: 'message',
-      message: `${user.name || 'Någon'} skickade dig ett meddelande`,
-      link: `/messages/${user.id}`,
-    },
+  // Notify the recipient — one unread notification per conversation is enough
+  // (they are removed when the conversation is opened).
+  await notifyOnce({
+    userId,
+    type: 'message',
+    message: `${user.name || 'Någon'} skickade dig ett meddelande`,
+    link: `/messages/${user.id}`,
   });
 
   return NextResponse.json(message, { status: 201 });

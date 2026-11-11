@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
+import { hitLimit, tooManyRequests, HOUR } from '@/lib/rate-limit';
 
 // POST /api/ai/inspiration
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (hitLimit(`ai-inspiration:${user.id}`, 30, HOUR)) return tooManyRequests();
 
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
@@ -33,7 +35,8 @@ export async function POST(request: Request) {
 
     const completion = await res.json();
     if (!res.ok) {
-      return NextResponse.json({ error: completion?.error?.message ?? 'AI-anrop misslyckades.' }, { status: res.status });
+      console.error('[ai/inspiration] Groq error', res.status, completion?.error?.message);
+      return NextResponse.json({ error: 'AI-anrop misslyckades.' }, { status: 502 });
     }
 
     const inspiration = completion.choices?.[0]?.message?.content ?? '';

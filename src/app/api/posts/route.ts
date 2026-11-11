@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 import { isAllowedImageUrl } from '@/lib/image-url';
+import { tooManyRequests, since, HOUR } from '@/lib/rate-limit';
 import { getCurrentUser } from '../../../lib/auth';
 
 export async function GET() {
@@ -60,6 +61,9 @@ export async function POST(request: NextRequest) {
     }
     if (imageUrl && !isAllowedImageUrl(imageUrl)) {
       return NextResponse.json({ error: 'Ogiltig bildlänk' }, { status: 400 });
+    }
+    if ((await prisma.post.count({ where: { authorId: user.id, createdAt: { gt: since(HOUR) } } })) >= 20) {
+      return tooManyRequests();
     }
 
     const post = await prisma.post.create({

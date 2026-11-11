@@ -84,7 +84,8 @@ export async function POST(request: Request) {
 
     const completion = await res.json();
     if (!res.ok) {
-      return NextResponse.json({ error: completion?.error?.message ?? "AI-anrop misslyckades." }, { status: res.status });
+      console.error("[ai/value-art] Groq error", res.status, completion?.error?.message);
+      return NextResponse.json({ error: "AI-anrop misslyckades." }, { status: 502 });
     }
 
     await prisma.artValuationLog.create({ data: { userId: user.id } });

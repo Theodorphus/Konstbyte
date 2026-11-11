@@ -66,6 +66,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (err) {
     console.error('[checkout] error:', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }

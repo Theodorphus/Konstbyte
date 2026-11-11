@@ -117,6 +117,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: session.url, orderId: order.id });
   } catch (err) {
     console.error('[checkout/stripe]', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }

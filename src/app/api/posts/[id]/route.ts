@@ -23,7 +23,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await prisma.post.delete({ where: { id } });
+    // Comment → Post has no ON DELETE CASCADE; without this a post with comments can't be deleted.
+    await prisma.$transaction([
+      prisma.comment.deleteMany({ where: { postId: id } }),
+      prisma.post.delete({ where: { id } }),
+    ]);
 
     return NextResponse.json({ success: true });
   } catch (error) {

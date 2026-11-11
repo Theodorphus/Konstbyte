@@ -1,9 +1,11 @@
 import { getCurrentUser } from '@/lib/auth';
+import { hitLimit, tooManyRequests, HOUR } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (hitLimit(`ai:${user.id}`, 30, HOUR)) return tooManyRequests('Du har använt AI-assistenten mycket den senaste timmen. Försök igen senare.');
 
     const apiKey = process.env.GROQ_API_KEY;
 
@@ -45,18 +47,8 @@ export async function POST(req: Request) {
     const completion = await groqResponse.json();
 
     if (!groqResponse.ok) {
-      const apiError =
-        typeof completion?.error?.message === "string"
-          ? completion.error.message
-          : "Groq API returnerade ett fel.";
-
-      return Response.json(
-        {
-          error: "AI-anrop misslyckades.",
-          details: apiError,
-        },
-        { status: groqResponse.status }
-      );
+      console.error("[ai] Groq error", groqResponse.status, completion?.error?.message);
+      return Response.json({ error: "AI-anrop misslyckades." }, { status: 502 });
     }
 
     return Response.json({

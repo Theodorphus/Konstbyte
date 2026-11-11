@@ -113,7 +113,8 @@ export async function GET() {
       })),
     });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[challenges]', err);
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }
 
@@ -143,6 +144,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(challenge, { status: 201 });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[challenges]', err);
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }
