@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isAllowedImageUrl } from '@/lib/image-url';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
 import { parseArtworkPrice, MIN_ARTWORK_PRICE, MAX_ARTWORK_PRICE } from '../../../../lib/payout';
@@ -23,7 +24,8 @@ export async function GET(
     if (!artwork) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(artwork);
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[artworks/[id]]', err);
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }
 
@@ -67,7 +69,7 @@ export async function PUT(
       }
       price = parsed;
     }
-    if (body.imageUrl !== undefined && !String(body.imageUrl).startsWith('https://')) {
+    if (body.imageUrl !== undefined && !isAllowedImageUrl(body.imageUrl)) {
       return NextResponse.json({ error: 'Ogiltig bildlänk' }, { status: 400 });
     }
     if (body.title !== undefined && !String(body.title).trim()) {
@@ -96,8 +98,8 @@ export async function PUT(
     const artwork = await prisma.artwork.update({
       where: { id },
       data: {
-        title: body.title !== undefined ? String(body.title).trim() : undefined,
-        description: body.description,
+        title: body.title !== undefined ? String(body.title).trim().slice(0, 200) : undefined,
+        description: body.description == null ? body.description : String(body.description).slice(0, 5000),
         price,
         imageUrl: body.imageUrl,
         category: body.category,
@@ -114,7 +116,8 @@ export async function PUT(
     });
     return NextResponse.json(artwork);
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[artworks/[id]]', err);
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }
 
@@ -159,7 +162,8 @@ export async function DELETE(
     await prisma.artwork.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[artworks/[id]]', err);
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }
 

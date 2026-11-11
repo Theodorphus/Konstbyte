@@ -1,9 +1,11 @@
 import { getCurrentUser } from '@/lib/auth';
+import { hitLimit, tooManyRequests, HOUR } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (hitLimit(`ai:${user.id}`, 30, HOUR)) return tooManyRequests('Du har använt AI-assistenten mycket den senaste timmen. Försök igen senare.');
 
     const apiKey = process.env.GROQ_API_KEY;
 
@@ -19,7 +21,7 @@ export async function POST(req: Request) {
 
     const { prompt } = await req.json();
 
-    if (!prompt || typeof prompt !== "string") {
+    if (!prompt || typeof prompt !== "string" || prompt.length > 4000) {
       return Response.json(
         { error: "Ogiltig request. Fältet 'prompt' måste vara en textsträng." },
         { status: 400 }
@@ -37,6 +39,7 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           messages: [{ role: "user", content: prompt }],
+          max_tokens: 1000,
         }),
       }
     );
@@ -44,32 +47,17 @@ export async function POST(req: Request) {
     const completion = await groqResponse.json();
 
     if (!groqResponse.ok) {
-      const apiError =
-        typeof completion?.error?.message === "string"
-          ? completion.error.message
-          : "Groq API returnerade ett fel.";
-
-      return Response.json(
-        {
-          error: "AI-anrop misslyckades.",
-          details: apiError,
-        },
-        { status: groqResponse.status }
-      );
+      console.error("[ai] Groq error", groqResponse.status, completion?.error?.message);
+      return Response.json({ error: "AI-anrop misslyckades." }, { status: 502 });
     }
 
     return Response.json({
       output: completion?.choices?.[0]?.message?.content ?? "",
     });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Okänt fel vid AI-anrop";
-
+    console.error("[ai]", error);
     return Response.json(
-      {
-        error: "AI-anrop misslyckades.",
-        details: message,
-      },
+      { error: "AI-anrop misslyckades." },
       { status: 502 }
     );
   }

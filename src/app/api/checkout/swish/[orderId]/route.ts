@@ -49,6 +49,6 @@ export async function GET(
     return NextResponse.json({ orderId, paymentStatus });
   } catch (err) {
     console.error('[swish/status]', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }

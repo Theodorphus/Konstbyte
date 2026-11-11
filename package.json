@@ -9,7 +9,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
     "lint": "eslint .",
-    "lighthouse": "node tools/run-lighthouse.js http://localhost:3000 lighthouse-report.json"
+    "lighthouse": "node tools/run-lighthouse.js http://localhost:3000 lighthouse-report.json",
+    "test": "vitest run"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -67,7 +68,8 @@
     "prettier": "^2.8.0",
     "prisma": "^7.9.1",
     "puppeteer": "^25.8.0",
-    "typescript": "^5.2.0"
+    "typescript": "^5.2.0",
+    "vitest": "^3.2.7"
   },
   "optionalDependencies": {
     "@next/swc": "npm:null@*",

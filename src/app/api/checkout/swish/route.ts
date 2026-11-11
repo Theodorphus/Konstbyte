@@ -143,6 +143,6 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     console.error('[checkout/swish]', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }

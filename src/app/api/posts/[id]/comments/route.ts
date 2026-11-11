@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
+import { tooManyRequests, notifyOnce, since, MINUTE, HOUR } from '@/lib/rate-limit';
 
 // GET /api/posts/[id]/comments - Get all comments for a post
 export async function GET(
@@ -48,11 +49,17 @@ export async function POST(
     const { id } = await params;
     const { content } = await request.json();
 
-    if (!content || content.trim().length === 0) {
+    if (typeof content === 'string' && content.length > 2000) {
+      return NextResponse.json({ error: 'Kommentaren är för lång (max 2000 tecken)' }, { status: 400 });
+    }
+    if (typeof content !== 'string' || content.trim().length === 0) {
       return NextResponse.json(
         { error: 'Content is required' },
         { status: 400 }
       );
+    }
+    if ((await prisma.comment.count({ where: { authorId: user.id, createdAt: { gt: since(MINUTE) } } })) >= 10) {
+      return tooManyRequests();
     }
 
     // Verify post exists
@@ -84,14 +91,12 @@ export async function POST(
 
     // Create notification for the post author (unless they commented on their own post)
     if (post.authorId !== user.id) {
-      await prisma.notification.create({
-        data: {
-          userId: post.authorId,
-          type: 'comment',
-          message: `${user.name || 'Någon'} kommenterade på ditt inlägg`,
-          link: `/community`,
-        },
-      });
+      await notifyOnce({
+        userId: post.authorId,
+        type: 'comment',
+        message: `${user.name || 'Någon'} kommenterade på ditt inlägg`,
+        link: `/community`,
+      }, HOUR);
     }
 
     return NextResponse.json(comment, { status: 201 });

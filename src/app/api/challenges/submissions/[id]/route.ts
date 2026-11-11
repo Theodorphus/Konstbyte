@@ -41,6 +41,7 @@ export async function DELETE(
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[challenges/submissions/[id]]', err);
+    return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });
   }
 }

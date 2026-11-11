@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
+import { hitLimit, tooManyRequests, notifyOnce, MINUTE } from '@/lib/rate-limit';
 
 const VALID_TYPES = ['like', 'heart', 'wow'] as const;
 type ReactionType = (typeof VALID_TYPES)[number];
@@ -21,6 +22,8 @@ export async function POST(
     if (!VALID_TYPES.includes(type as ReactionType)) {
       return NextResponse.json({ error: 'Invalid reaction type' }, { status: 400 });
     }
+
+    if (hitLimit(`react:${user.id}`, 60, MINUTE)) return tooManyRequests();
 
     const post = await prisma.post.findUnique({ where: { id: postId } });
     if (!post) {
@@ -50,13 +53,11 @@ export async function POST(
       // Notify post author (not for self-reactions)
       if (post.authorId !== user.id) {
         const emoji = type === 'like' ? '👍' : type === 'heart' ? '❤️' : '😮';
-        await prisma.notification.create({
-          data: {
-            userId: post.authorId,
-            type: 'like',
-            message: `${user.name || 'Någon'} reagerade ${emoji} på ditt inlägg`,
-            link: '/community',
-          },
+        await notifyOnce({
+          userId: post.authorId,
+          type: 'like',
+          message: `${user.name || 'Någon'} reagerade ${emoji} på ditt inlägg`,
+          link: '/community',
         });
       }
     }

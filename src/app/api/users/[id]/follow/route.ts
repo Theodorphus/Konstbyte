@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
+import { hitLimit, tooManyRequests, notifyOnce, MINUTE } from '@/lib/rate-limit';
 
 // POST /api/users/[id]/follow - Follow a user
 export async function POST(
@@ -14,6 +15,8 @@ export async function POST(
     }
 
     const { id } = await params;
+
+    if (hitLimit(`follow:${user.id}`, 30, MINUTE)) return tooManyRequests();
 
     // Can't follow yourself
     if (id === user.id) {
@@ -58,13 +61,11 @@ export async function POST(
     });
 
     // Create notification for the followed user
-    await prisma.notification.create({
-      data: {
-        userId: id,
-        type: 'follow',
-        message: `${user.name || 'Någon'} började följa dig`,
-        link: `/users/${user.id}`,
-      },
+    await notifyOnce({
+      userId: id,
+      type: 'follow',
+      message: `${user.name || 'Någon'} började följa dig`,
+      link: `/users/${user.id}`,
     });
 
     return NextResponse.json({ success: true, follow }, { status: 201 });

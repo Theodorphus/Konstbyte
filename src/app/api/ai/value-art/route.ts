@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma";
 import { getCurrentUser } from "../../../../lib/auth";
 import sharp from "sharp";
+import { isAllowedImageUrl } from "../../../../lib/image-url";
 
 // POST /api/ai/value-art
 export async function POST(request: Request) {
@@ -30,10 +31,10 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { imageUrl, artist, artType, style, sizeMaterial, provenance, other } = body;
-    if (!imageUrl) return NextResponse.json({ error: "imageUrl required" }, { status: 400 });
+    if (!isAllowedImageUrl(imageUrl)) return NextResponse.json({ error: "Ladda upp bilden via formuläret." }, { status: 400 });
 
     // Fetch image and convert to base64 for Groq vision
-    const imgRes = await fetch(imageUrl);
+    const imgRes = await fetch(imageUrl, { redirect: "error" });
     if (!imgRes.ok) {
       return NextResponse.json({ error: "Kunde inte hämta bilden för analys." }, { status: 400 });
     }
@@ -83,7 +84,8 @@ export async function POST(request: Request) {
 
     const completion = await res.json();
     if (!res.ok) {
-      return NextResponse.json({ error: completion?.error?.message ?? "AI-anrop misslyckades." }, { status: res.status });
+      console.error("[ai/value-art] Groq error", res.status, completion?.error?.message);
+      return NextResponse.json({ error: "AI-anrop misslyckades." }, { status: 502 });
     }
 
     await prisma.artValuationLog.create({ data: { userId: user.id } });
@@ -91,6 +93,7 @@ export async function POST(request: Request) {
     const valuation = completion.choices?.[0]?.message?.content ?? "";
     return NextResponse.json({ valuation });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error("[ai/value-art]", err);
+    return NextResponse.json({ error: "Värderingen misslyckades." }, { status: 500 });
   }
 }
