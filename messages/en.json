@@ -759,6 +759,20 @@
     "view_all_artworks": "View all artworks"
   },
   "seller": {
+    "shipping_guide": {
+      "title": "How to ship your artwork",
+      "show": "Show",
+      "hide": "Hide",
+      "pack_title": "Pack the artwork",
+      "pack_body": "Protect the corners with corner guards or cardboard, wrap the artwork in bubble wrap and put it in a sturdy box so it can’t slide around. If it has glass, tape a cross over the glass so the shards stay in place if it breaks.",
+      "label_title": "Buy a shipping label",
+      "label_body": "Measure and weigh the parcel and buy shipping from a carrier, usually right in their app. Choose a service with tracking so the buyer can follow the parcel. You’ll find the buyer’s address on the order below, with a button to copy it.",
+      "drop_title": "Drop off the parcel",
+      "drop_body": "Drop the parcel at a service point or parcel locker. Keep the receipt until the buyer has the artwork.",
+      "tracking_title": "Add the tracking number here",
+      "tracking_body": "Mark the order as shipped and enter the tracking number. The buyer gets an email, and you get paid once the buyer has received the artwork (or automatically 14 days after you shipped).",
+      "insurance_note": "Tip: regular parcels are only insured up to a certain amount. For an expensive artwork, add extra insurance or use a valuable-parcel service."
+    },
     "connect_title": "Payouts via Stripe",
     "connect_missing_desc": "Connect a Stripe account to be paid automatically once the buyer has received the artwork. It takes a few minutes and you need ID and your bank account number.",
     "connect_ready_desc": "Your Stripe account is connected. Money is sent to your account automatically.",
