@@ -28,6 +28,8 @@ async function SuccessContent({ orderId }: { orderId: string }) {
   });
 
   const isSwish = order.paymentMethod === 'swish';
+  // Delayed methods (Swish/Klarna via Stripe) can land here before the webhook confirms.
+  const isProcessing = order.status === 'pending' || order.status === 'payment_processing';
 
   return (
     <div className="max-w-lg mx-auto py-16 px-4 space-y-6">
@@ -38,11 +40,14 @@ async function SuccessContent({ orderId }: { orderId: string }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900">{t('payment_done')}</h1>
+        <h1 className="text-2xl font-bold text-slate-900">
+          {isProcessing ? t('payment_processing') : t('payment_done')}
+        </h1>
         <p className="text-slate-500 text-sm">
           Order #{order.id.slice(-8).toUpperCase()}
-          {isSwish ? ` · ${t('paid_swish')}` : ` · ${t('paid_card')}`}
+          {isProcessing ? '' : isSwish ? ` · ${t('paid_swish')}` : ` · ${t('paid_card')}`}
         </p>
+        {isProcessing && <p className="text-slate-500 text-sm">{t('payment_processing_desc')}</p>}
       </div>
 
       {/* Artwork summary */}

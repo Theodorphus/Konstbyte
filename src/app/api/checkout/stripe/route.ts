@@ -5,9 +5,13 @@ import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
 
 // POST /api/checkout/stripe
-// Creates a Stripe Checkout Session. Konstbyte receives the full payment.
-// No Stripe Connect required — sellers do NOT need a Stripe account.
-// Seller payout is handled manually by Konstbyte admins.
+// Creates a Stripe Checkout Session. Konstbyte receives the full payment and holds
+// it until the buyer confirms receipt; then the artist's share is transferred to
+// their connected Stripe account (see lib/release-payout.ts), or paid out manually
+// by an admin if the artist has not connected Stripe.
+//
+// Payment methods (card, Swish, Klarna, …) are controlled in the Stripe Dashboard
+// under Settings → Payment methods — not in code.
 export async function POST(request: Request) {
   try {
     const { artworkId, shippingAddress } = await request.json();
@@ -68,7 +72,6 @@ export async function POST(request: Request) {
 
     const appUrl = APP_URL;
 
-    // Create Stripe Checkout Session (simple, no Connect)
     const lineItems: Parameters<typeof stripe.checkout.sessions.create>[0]['line_items'] = [
       {
         price_data: {
@@ -97,12 +100,16 @@ export async function POST(request: Request) {
     }
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
       customer_email: user.email ?? undefined,
       // Pass orderId in metadata so webhook can find the order
       metadata: { orderId: order.id, artworkId: artwork.id },
+      // transfer_group ties the later transfer to the artist to this payment
+      payment_intent_data: {
+        transfer_group: order.id,
+        metadata: { orderId: order.id, artworkId: artwork.id },
+      },
       // Pass orderId in success URL for the confirmation page
       success_url: `${appUrl}/success?orderId=${order.id}`,
       cancel_url: `${appUrl}/cancel?orderId=${order.id}`,
