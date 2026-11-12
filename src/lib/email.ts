@@ -74,38 +74,58 @@ export function buyerConfirmationEmail(opts: {
   };
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function sellerNotificationEmail(opts: {
   orderId: string;
   artworkTitle: string;
+  imageUrl?: string;
   buyerName: string;
   amountSek: number;
+  sellerPayoutSek: number;
   appUrl: string;
 }) {
-  const { orderId, artworkTitle, buyerName, amountSek, appUrl } = opts;
+  const { orderId, appUrl } = opts;
+  const title = escapeHtml(opts.artworkTitle);
+  const buyerName = escapeHtml(opts.buyerName);
+  const payout = Math.round(opts.sellerPayoutSek).toLocaleString('sv-SE');
   return {
-    subject: `Du har sålt "${artworkTitle}"! 🎨`,
+    // Subject is plain text, so the raw title is fine here.
+    subject: `Sålt! "${opts.artworkTitle}" har en köpare 🎉`,
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
-        <h2 style="margin-bottom:4px">Grattis till försäljningen!</h2>
+        <h2 style="margin-bottom:4px">Grattis, ditt konstverk är sålt! 🎉</h2>
         <p style="color:#64748b;margin-top:0">Order #${orderId.slice(0, 8)}</p>
 
+        ${opts.imageUrl ? `<img src="${escapeHtml(opts.imageUrl)}" alt="${title}"
+          style="width:100%;max-height:300px;object-fit:cover;border-radius:8px;margin:16px 0" />` : ''}
+
         <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
-          <tr><td style="padding:6px 0;color:#64748b">Konstverk</td><td style="padding:6px 0;font-weight:600">${artworkTitle}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b">Konstverk</td><td style="padding:6px 0;font-weight:600">${title}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Köpare</td><td style="padding:6px 0">${buyerName}</td></tr>
-          <tr><td style="padding:6px 0;color:#64748b">Belopp</td><td style="padding:6px 0;font-weight:700">${amountSek.toLocaleString('sv-SE')} kr</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b">Köparen betalade</td><td style="padding:6px 0">${opts.amountSek.toLocaleString('sv-SE')} kr</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b">Du får</td><td style="padding:6px 0;font-weight:700">${payout} kr</td></tr>
         </table>
 
-        <p style="font-size:14px;color:#475569">
-          Packa verket omsorgsfullt och skicka det till köparen så snart som möjligt.
+        <p style="font-size:14px;color:#475569;margin-top:12px;padding:12px;background:#fef3c7;border-radius:6px">
+          📦 <strong>Nästa steg:</strong> packa verket omsorgsfullt och skicka det inom 1–2 arbetsdagar.
+          Markera ordern som skickad och lägg in spårningsnumret, så får köparen besked.
         </p>
         <p style="font-size:14px;color:#475569;margin-top:12px;padding:12px;background:#f1f5f9;border-radius:6px">
-          💰 <strong>Utbetalning:</strong> Konstbyte hanterar utbetalningen till dig via Swish eller banköverföring
-          inom 3–5 arbetsdagar efter att köparen bekräftat mottagandet. Plattformens provision är 3%.
+          💰 <strong>Utbetalning:</strong> pengarna skickas till ditt Stripe-konto när köparen har bekräftat
+          att verket har kommit fram, eller automatiskt 14 dagar efter att du skickat det.
         </p>
 
-        <a href="${appUrl}/orders/${orderId}"
+        <a href="${appUrl}/seller/orders"
           style="display:inline-block;margin-top:16px;padding:10px 20px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;font-size:14px">
-          Visa order
+          Gå till dina försäljningar
         </a>
       </div>
     `,

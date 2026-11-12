@@ -124,8 +124,10 @@ export async function PATCH(request: NextRequest) {
       const { subject, html } = sellerNotificationEmail({
         orderId,
         artworkTitle: order.artwork.title,
+        imageUrl: order.artwork.imageUrl ?? undefined,
         buyerName: order.buyer.name ?? 'En köpare',
         amountSek,
+        sellerPayoutSek: calculatePayout(order.amount, defaultCommissionRate()).sellerPayoutAmount,
         appUrl,
       });
       await sendEmail({ to: order.seller.email, subject, html });

@@ -35,6 +35,7 @@ const order = {
   status: 'pending',
   artworkId: 'art_1',
   buyerId: 'buyer_1',
+  sellerId: 'seller_1',
   amount: 1099,
   shippingCost: 99,
   artwork: { title: 'Solnedgång', imageUrl: 'https://utfs.io/f/a.jpg' },
@@ -108,6 +109,23 @@ describe('POST /api/stripe/webhook', () => {
       data: { status: 'payment_processing' },
     });
     expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('notifies the seller in the app and by email when the artwork sells', async () => {
+    const { sendEmail, sellerNotificationEmail } = await import('@/lib/email');
+
+    await deliver('checkout.session.completed', session());
+
+    expect(prisma.notification.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ userId: 'seller_1', type: 'artwork_sold', link: '/seller/orders' }),
+      }),
+    );
+    // 1 099 kr minus 3 % commission
+    expect(sellerNotificationEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ sellerPayoutSek: expect.closeTo(1066.03, 2) }),
+    );
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'seller@example.com' }));
   });
 
   it('fulfils a delayed payment when async_payment_succeeded arrives', async () => {

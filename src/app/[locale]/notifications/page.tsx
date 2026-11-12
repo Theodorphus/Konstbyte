@@ -96,6 +96,13 @@ export default function NotificationsPage() {
       case 'like': return '❤️';
       case 'comment': return '💬';
       case 'purchase': return '🎨';
+      case 'artwork_sold': return '🎉';
+      case 'new_order': return '🛒';
+      case 'shipped': return '📦';
+      case 'order_delivered':
+      case 'order_auto_delivered':
+      case 'payout_sent': return '💰';
+      case 'order_refunded': return '↩️';
       default: return '🔔';
     }
   };
@@ -156,7 +163,9 @@ export default function NotificationsPage() {
               className={`p-4 rounded-lg border transition-colors ${
                 notification.read
                   ? 'bg-white border-slate-200'
-                  : 'bg-blue-50 border-blue-200'
+                  : notification.type === 'artwork_sold'
+                    ? 'bg-green-50 border-green-300 border-2'
+                    : 'bg-blue-50 border-blue-200'
               }`}
             >
               <div className="flex items-start gap-3">

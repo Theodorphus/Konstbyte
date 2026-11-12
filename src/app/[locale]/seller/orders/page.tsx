@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { formatSek } from '@/lib/currency';
 import SellerShippingPanel from '@/components/shipping/SellerShippingPanel';
 import TrackingInfo from '@/components/shipping/TrackingInfo';
+import ShippingGuide from '@/components/shipping/ShippingGuide';
 import CopyAddressButton from '@/components/checkout/CopyAddressButton';
 import { getTranslations } from 'next-intl/server';
 
@@ -99,6 +100,11 @@ export default async function SellerOrdersPage() {
             );
           })()}
         </div>
+      )}
+
+      {/* Shipping help — open while something is waiting to be sent */}
+      {orders.length > 0 && (
+        <ShippingGuide open={orders.some(o => o.shippingStatus === 'not_shipped')} />
       )}
 
       {/* Empty state */}
