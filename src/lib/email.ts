@@ -43,7 +43,7 @@ export function buyerConfirmationEmail(opts: {
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
         <h2 style="margin-bottom:4px">Tack för ditt köp! 🎉</h2>
-        <p style="color:#64748b;margin-top:0">Order #${orderId.slice(0, 8)}</p>
+        <p style="color:#64748b;margin-top:0">Order #${orderId.slice(-8).toUpperCase()}</p>
 
         <img src="${imageUrl}" alt="${artworkTitle}"
           style="width:100%;max-height:300px;object-fit:cover;border-radius:8px;margin:16px 0" />
@@ -102,7 +102,7 @@ export function sellerNotificationEmail(opts: {
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
         <h2 style="margin-bottom:4px">Grattis, ditt konstverk är sålt! 🎉</h2>
-        <p style="color:#64748b;margin-top:0">Order #${orderId.slice(0, 8)}</p>
+        <p style="color:#64748b;margin-top:0">Order #${orderId.slice(-8).toUpperCase()}</p>
 
         ${opts.imageUrl ? `<img src="${escapeHtml(opts.imageUrl)}" alt="${title}"
           style="width:100%;max-height:300px;object-fit:cover;border-radius:8px;margin:16px 0" />` : ''}
@@ -146,7 +146,7 @@ export function shippedEmail(opts: {
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
         <h2 style="margin-bottom:4px">Ditt konstverk är skickat! 📦</h2>
-        <p style="color:#64748b;margin-top:0">Order #${orderId.slice(0, 8)}</p>
+        <p style="color:#64748b;margin-top:0">Order #${orderId.slice(-8).toUpperCase()}</p>
 
         <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
           <tr><td style="padding:6px 0;color:#64748b">Konstverk</td><td style="padding:6px 0;font-weight:600">${artworkTitle}</td></tr>
