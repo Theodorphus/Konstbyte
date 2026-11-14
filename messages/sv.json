@@ -958,6 +958,20 @@
     "published": "Publicerad"
   },
   "seller": {
+    "shipping_guide": {
+      "title": "Så skickar du ditt konstverk",
+      "show": "Visa",
+      "hide": "Dölj",
+      "pack_title": "Packa verket",
+      "pack_body": "Skydda hörnen med hörnskydd eller kartong, linda in verket i bubbelplast och lägg det i en stadig kartong så att det inte glider runt. Har tavlan glas: tejpa ett kryss över glaset så att skärvorna hålls kvar om det spricker.",
+      "label_title": "Köp en fraktsedel",
+      "label_body": "Mät och väg paketet och köp frakt hos ett fraktbolag, oftast direkt i deras app. Skicka med spårning så att köparen kan följa paketet. Köparens adress hittar du på ordern nedan, och du kan kopiera den med en knapp.",
+      "drop_title": "Lämna in paketet",
+      "drop_body": "Lämna paketet hos ett ombud eller i en paketbox. Spara kvittot tills köparen har fått verket.",
+      "tracking_title": "Lägg in spårningsnumret här",
+      "tracking_body": "Markera ordern som skickad och fyll i spårningsnumret. Då får köparen ett mejl, och du får betalt när köparen har tagit emot verket (eller automatiskt 14 dagar efter att du skickat).",
+      "insurance_note": "Tips: vanliga paket är bara försäkrade upp till ett visst belopp. Säljer du ett dyrt verk, välj tilläggsförsäkring eller värdeförsändelse."
+    },
     "connect_title": "Utbetalningar via Stripe",
     "connect_missing_desc": "Koppla ett Stripe-konto så betalas du ut automatiskt när köparen har tagit emot verket. Det tar några minuter och du behöver BankID och ditt kontonummer.",
     "connect_ready_desc": "Ditt Stripe-konto är kopplat. Pengarna skickas automatiskt till ditt konto.",

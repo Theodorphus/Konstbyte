@@ -4,6 +4,7 @@ import type Stripe from 'stripe';
 import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
 import { sendEmail, buyerConfirmationEmail, sellerNotificationEmail } from '../../../../lib/email';
+import { calculatePayout, defaultCommissionRate } from '../../../../lib/payout';
 
 // Order statuses from which a payment may still be fulfilled.
 const OPEN_STATUSES = ['pending', 'payment_processing'];
@@ -183,8 +184,29 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
   }
   if (outcome !== 'fulfilled') return;
 
-  // Confirmation emails (fire-and-forget, don't block the webhook response)
   const amountSek = amountRaw / 100;
+  const { sellerPayoutAmount } = calculatePayout(order.amount, defaultCommissionRate());
+
+  // Tell the artist right away, in the app as well as by email.
+  if (order.sellerId) {
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: order.sellerId,
+          type: 'artwork_sold',
+          message: `Du har sålt "${order.artwork.title}"! Packa och skicka verket till köparen. Du får ${Math.round(sellerPayoutAmount).toLocaleString('sv-SE')} kr när köparen har tagit emot det.`,
+          link: '/seller/orders',
+        },
+      });
+    } catch (err) {
+      // The sale is already recorded; a retry would skip it anyway, so don't fail the webhook.
+      console.error('[stripe/webhook] seller notification failed:', err);
+    }
+  }
+
+  // Await the emails: on Vercel the function can be frozen as soon as the
+  // response is sent, so fire-and-forget emails may never go out.
+  const emails: Promise<unknown>[] = [];
   if (order.buyer.email) {
     const mail = buyerConfirmationEmail({
       orderId,
@@ -195,16 +217,21 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
       shippingCost: order.shippingCost,
       appUrl: APP_URL,
     });
-    sendEmail({ to: order.buyer.email, ...mail }).catch(console.error);
+    emails.push(sendEmail({ to: order.buyer.email, ...mail }));
   }
   if (order.seller?.email) {
     const mail = sellerNotificationEmail({
       orderId,
       artworkTitle: order.artwork.title,
+      imageUrl: order.artwork.imageUrl,
       buyerName: order.buyer.name || 'Köparen',
       amountSek,
+      sellerPayoutSek: sellerPayoutAmount,
       appUrl: APP_URL,
     });
-    sendEmail({ to: order.seller.email, ...mail }).catch(console.error);
+    emails.push(sendEmail({ to: order.seller.email, ...mail }));
+  }
+  for (const result of await Promise.allSettled(emails)) {
+    if (result.status === 'rejected') console.error('[stripe/webhook] email failed:', result.reason);
   }
 }
