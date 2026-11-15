@@ -6,14 +6,29 @@ import prisma from '../../../../lib/prisma';
 
 const providers: NonNullable<NextAuthOptions['providers']> = [];
 
+const SIGN_IN_LINK_MAX_AGE = 24 * 60 * 60; // seconds
+const SIGN_IN_EMAIL_WINDOW_MS = 10 * 60 * 1000;
+const SIGN_IN_EMAILS_PER_WINDOW = 3;
+
 if (process.env.EMAIL_FROM && process.env.RESEND_API_KEY) {
   const resendApiKey = process.env.RESEND_API_KEY.trim();
   providers.push(
     EmailProvider({
       server: 'smtp://placeholder:placeholder@localhost:2525',
       from: process.env.EMAIL_FROM,
-      maxAge: 24 * 60 * 60,
+      maxAge: SIGN_IN_LINK_MAX_AGE,
       async sendVerificationRequest({ identifier, url, provider }) {
+        // Anyone can request a sign-in link for any address, so cap how many go
+        // to one inbox (stops email bombing and protects the Resend quota).
+        // A token is stored per request and expires 24 h after it was made.
+        const windowStart = new Date(Date.now() + SIGN_IN_LINK_MAX_AGE * 1000 - SIGN_IN_EMAIL_WINDOW_MS);
+        const recent = await prisma.verificationToken.count({
+          where: { identifier, expires: { gt: windowStart } },
+        });
+        if (recent > SIGN_IN_EMAILS_PER_WINDOW) {
+          throw new Error(`Too many sign-in emails requested for one address`);
+        }
+
         const response = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {

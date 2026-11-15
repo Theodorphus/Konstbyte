@@ -527,6 +527,7 @@
     "disclaimer": "Konstbyte är en teknisk plattform och ansvarar inte för frakt, skador eller transaktioner."
   },
   "auth": {
+    "error_EmailSignin": "Vi kunde inte skicka inloggningslänken. Har du begärt flera länkar nyss? Vänta några minuter och försök igen.",
     "sign_in": "Logga in",
     "sign_in_title": "Välkommen tillbaka",
     "sign_in_description": "Logga in på ditt Konstbyte-konto",

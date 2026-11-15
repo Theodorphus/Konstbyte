@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 
 const ERROR_KEYS = [
   'OAuthSignin', 'OAuthCallback', 'OAuthCreateAccount', 'EmailCreateAccount',
-  'Callback', 'OAuthAccountNotLinked', 'AccessDenied', 'Configuration', 'Verification',
+  'Callback', 'OAuthAccountNotLinked', 'AccessDenied', 'Configuration', 'Verification', 'EmailSignin',
 ] as const;
 type ErrorKey = typeof ERROR_KEYS[number];
 
