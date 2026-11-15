@@ -3,98 +3,14 @@
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { isAllowedImageUrl } from '@/lib/image-url';
+import { SHIPPING_OPTIONS } from '@/lib/shipping';
+import { parseArtworkPrice, parseShippingCost, MIN_ARTWORK_PRICE, MAX_ARTWORK_PRICE } from '@/lib/payout';
 
 export interface UploadedImage {
   url: string;
   isMain: boolean;
   sortOrder: number;
-}
-
-export interface CreateArtworkInput {
-  images: UploadedImage[];
-  title: string;
-  description?: string;
-  price: number;
-  category: string;
-  technique?: string;
-  dimensions?: string;
-  shippingType: string;
-  shippingCost?: number;
-  shippingArea?: string;
-  shippingCarrier?: string;
-  collectionId?: string | null;
-}
-
-export async function createArtworkWithImages(input: CreateArtworkInput) {
-  try {
-    const user = await getCurrentUser();
-    if (!user) {
-      throw new Error('Unauthorized');
-    }
-
-    if (!input.images || input.images.length === 0) {
-      throw new Error('At least one image is required');
-    }
-
-    const mainImage = input.images.find((img) => img.isMain);
-    const mainImageUrl = mainImage?.url || input.images[0]?.url;
-
-    const artwork = await prisma.$transaction(async (tx) => {
-      // 1. Create artwork
-      const newArtwork = await tx.artwork.create({
-        data: {
-          title: input.title.trim(),
-          description: input.description?.trim() || null,
-          price: input.price,
-          category: input.category,
-          imageUrl: mainImageUrl, // backward compat: set to main image
-          ownerId: user.id,
-          technique: input.technique?.trim() || null,
-          dimensions: input.dimensions?.trim() || null,
-          shippingType: input.shippingType,
-          shippingCost: input.shippingCost || null,
-          shippingArea: input.shippingArea?.trim() || null,
-          shippingCarrier: input.shippingCarrier?.trim() || null,
-          isPublished: true,
-        },
-      });
-
-      // 2. Create artwork images
-      await tx.artworkImage.createMany({
-        data: input.images.map((img, idx) => ({
-          artworkId: newArtwork.id,
-          url: img.url,
-          isMain: img.isMain,
-          sortOrder: idx,
-        })),
-      });
-
-      // 3. Add to collection if provided
-      if (input.collectionId) {
-        await tx.collectionItem.create({
-          data: {
-            collectionId: input.collectionId,
-            artworkId: newArtwork.id,
-          },
-        });
-      }
-
-      return newArtwork;
-    });
-
-    // Revalidate related pages
-    revalidatePath('/artworks');
-    revalidatePath(`/artworks/${artwork.id}`);
-    revalidatePath(`/users/${user.id}`);
-
-    return {
-      success: true,
-      artworkId: artwork.id,
-    };
-  } catch (error) {
-    console.error('Error creating artwork:', error);
-    throw error;
-  }
 }
 
 export interface ArtworkSlotDetails {
@@ -118,76 +34,125 @@ export interface CreateMultipleArtworksInput {
   collectionId?: string | null;
 }
 
-export async function createMultipleArtworks(input: CreateMultipleArtworksInput) {
+export type CreateMultipleArtworksResult =
+  | { success: true; artworkIds: string[] }
+  | { success: false; error: string };
+
+// Keep in sync with the category list in the upload form and /artworks filter.
+const CATEGORIES = ['malningar', 'skulpturer', 'fotografi', 'digital'];
+const SHIPPING_TYPES: string[] = SHIPPING_OPTIONS.map((o) => o.value);
+const MAX_ARTWORKS_PER_UPLOAD = 20;
+
+/** Trims and caps an optional text field; empty becomes null. */
+function text(value: unknown, max: number): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim().slice(0, max);
+  return trimmed || null;
+}
+
+/**
+ * Creates one artwork per uploaded image. Server actions can be called directly
+ * with any input, so everything is validated here (same rules as the
+ * /api/artworks routes). Errors are returned rather than thrown, because Next.js
+ * hides thrown error messages from the browser in production.
+ */
+export async function createMultipleArtworks(
+  input: CreateMultipleArtworksInput,
+): Promise<CreateMultipleArtworksResult> {
+  const user = await getCurrentUser();
+  if (!user) return { success: false, error: 'Du måste vara inloggad.' };
+
+  const slots = Array.isArray(input?.slots) ? input.slots : [];
+  if (slots.length === 0) return { success: false, error: 'Lägg till minst ett konstverk.' };
+  if (slots.length > MAX_ARTWORKS_PER_UPLOAD) {
+    return { success: false, error: `Du kan ladda upp högst ${MAX_ARTWORKS_PER_UPLOAD} konstverk åt gången.` };
+  }
+
+  if (!SHIPPING_TYPES.includes(input.shippingType)) return { success: false, error: 'Välj ett fraktsätt.' };
+  const shippingCost = parseShippingCost(input.shippingCost);
+  if (shippingCost === undefined) return { success: false, error: 'Fraktkostnaden måste vara mellan 0 och 100 000 kr.' };
+
+  const artworks: {
+    url: string;
+    title: string;
+    price: number;
+    category: string;
+    description: string | null;
+    technique: string | null;
+    dimensions: string | null;
+  }[] = [];
+  for (const [i, slot] of slots.entries()) {
+    const n = i + 1;
+    if (!isAllowedImageUrl(slot?.url)) return { success: false, error: `Bild ${n} kunde inte användas. Ladda upp den igen.` };
+    const title = text(slot.details?.title, 200);
+    if (!title) return { success: false, error: `Konstverk ${n} saknar titel.` };
+    const price = parseArtworkPrice(slot.details?.price);
+    if (price === null) {
+      return {
+        success: false,
+        error: `Priset för "${title}" måste vara mellan ${MIN_ARTWORK_PRICE} och ${MAX_ARTWORK_PRICE.toLocaleString('sv-SE')} kr.`,
+      };
+    }
+    if (!CATEGORIES.includes(slot.details?.category)) return { success: false, error: `Välj en kategori för "${title}".` };
+    artworks.push({
+      url: slot.url,
+      title,
+      price,
+      category: slot.details.category,
+      description: text(slot.details.description, 5000),
+      technique: text(slot.details.technique, 200),
+      dimensions: text(slot.details.dimensions, 100),
+    });
+  }
+
+  // Only the artist's own collection.
+  if (input.collectionId) {
+    const collection = await prisma.collection.findFirst({
+      where: { id: input.collectionId, artistId: user.id },
+      select: { id: true },
+    });
+    if (!collection) return { success: false, error: 'Samlingen hittades inte.' };
+  }
+
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      throw new Error('Unauthorized');
-    }
-
-    if (!input.slots || input.slots.length === 0) {
-      throw new Error('At least one artwork is required');
-    }
-
     const artworkIds = await prisma.$transaction(async (tx) => {
       const ids: string[] = [];
-
-      for (const slot of input.slots) {
-        // 1. Create artwork
-        const newArtwork = await tx.artwork.create({
+      for (const artwork of artworks) {
+        const created = await tx.artwork.create({
           data: {
-            title: slot.details.title.trim(),
-            description: slot.details.description?.trim() || null,
-            price: typeof slot.details.price === 'string' ? parseFloat(slot.details.price) : slot.details.price,
-            category: slot.details.category,
-            imageUrl: slot.url, // set to the image URL (each artwork has one image)
+            title: artwork.title,
+            description: artwork.description,
+            price: artwork.price,
+            category: artwork.category,
+            imageUrl: artwork.url,
             ownerId: user.id,
-            technique: slot.details.technique?.trim() || null,
-            dimensions: slot.details.dimensions?.trim() || null,
+            technique: artwork.technique,
+            dimensions: artwork.dimensions,
             shippingType: input.shippingType,
-            shippingCost: input.shippingCost ? (typeof input.shippingCost === 'string' ? parseFloat(input.shippingCost) : input.shippingCost) : null,
-            shippingArea: input.shippingArea?.trim() || null,
-            shippingCarrier: input.shippingCarrier?.trim() || null,
+            shippingCost: shippingCost ?? null,
+            shippingArea: text(input.shippingArea, 200),
+            shippingCarrier: text(input.shippingCarrier, 100),
             isPublished: true,
           },
         });
-
-        // 2. Create artwork image (one per artwork)
         await tx.artworkImage.create({
-          data: {
-            artworkId: newArtwork.id,
-            url: slot.url,
-            isMain: true,
-            sortOrder: 0,
-          },
+          data: { artworkId: created.id, url: artwork.url, isMain: true, sortOrder: 0 },
         });
-
-        // 3. Add to collection if provided
         if (input.collectionId) {
           await tx.collectionItem.create({
-            data: {
-              collectionId: input.collectionId,
-              artworkId: newArtwork.id,
-            },
+            data: { collectionId: input.collectionId, artworkId: created.id },
           });
         }
-
-        ids.push(newArtwork.id);
+        ids.push(created.id);
       }
-
       return ids;
     });
 
-    // Revalidate related pages
     revalidatePath('/artworks');
     revalidatePath(`/users/${user.id}`);
-
-    return {
-      success: true,
-      artworkIds,
-    };
+    return { success: true, artworkIds };
   } catch (error) {
     console.error('Error creating multiple artworks:', error);
-    throw error;
+    return { success: false, error: 'Kunde inte skapa konstverken. Försök igen senare.' };
   }
 }

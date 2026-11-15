@@ -87,8 +87,12 @@ export default async function ArtworkDetail({
               '@type': 'Offer',
               priceCurrency: 'SEK',
               price: artwork.price?.toString(),
+              url: `${SITE_URL}/artworks/${artwork.id}`,
+              // Tells search engines sold artworks can no longer be bought.
+              availability: artwork.isSold ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
             },
-          }).replace(/<\/script>/gi, '<\\/script>'),
+            // Escaping every "<" keeps user text from closing the script tag.
+          }).replace(/</g, '\\u003c'),
         }}
       />
 
