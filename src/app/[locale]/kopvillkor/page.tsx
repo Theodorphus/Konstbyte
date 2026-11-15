@@ -20,7 +20,7 @@ export default async function KopvillkorPage() {
           Konstbyte är en digital marknadsplats som förmedlar kontakt mellan köpare och konstnärer. Konstbyte är <strong>inte</strong> säljare av konstverken. Varje konstverk säljs av den konstnär som har lagt upp det, och konstnären är den juridiska säljaren i varje transaktion.
         </p>
         <p>
-          Konstbyte tillhandahåller teknisk plattform och betalningshantering via Stripe. Pengarna hanteras av Konstbyte och betalas ut manuellt till konstnären efter att köpet bekräftats.
+          Konstbyte tillhandahåller teknisk plattform och betalningshantering via Stripe. Pengarna hanteras av Konstbyte och betalas ut till konstnären först när du har bekräftat att verket har kommit fram, eller automatiskt 14 dagar efter att det skickades.
         </p>
       </section>
 
@@ -30,14 +30,14 @@ export default async function KopvillkorPage() {
           Priserna på konstverken sätts av respektive konstnär och anges i svenska kronor (SEK) inklusive moms, om inget annat anges. Konstbyte tar en plattformsavgift om 3 % av försäljningspriset, vilket redan är inräknat i det pris du ser som köpare.
         </p>
         <p>
-          Eventuell frakt tillkommer och kommuniceras separat.
+          Eventuell frakt visas i kassan innan du betalar. Har konstnären valt att frakten ska överenskommas bestäms den efter köpet.
         </p>
       </section>
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">3. Betalning</h2>
         <p>
-          Betalning sker via Stripe Checkout och du kan betala med de kortbetalningsmetoder som erbjuds vid betalning. Betalningen dras direkt vid köptillfället.
+          Betalning sker via Stripe Checkout. Du kan betala med kort, Klarna, Apple Pay, Google Pay och de andra betalsätt som visas i kassan. Kortbetalningar dras direkt vid köptillfället.
         </p>
       </section>
 
@@ -57,7 +57,7 @@ export default async function KopvillkorPage() {
           Du har rätt att ångra ditt köp inom <strong>14 dagar</strong> från det att du tagit emot varan, i enlighet med distans- och hemförsäljningslagen (2005:59). Ångerrätten gäller under förutsättning att varan återlämnas i ursprungligt skick.
         </p>
         <p>
-          För att utöva din ångerrätt kontaktar du konstnären direkt. Returfrakten bekostas normalt av köparen, om inte annat avtalats.
+          För att utöva din ångerrätt kontaktar du Konstbyte på konstbyte@gmail.com inom 14 dagar. Returfrakten bekostas normalt av köparen, om inte annat avtalats.
         </p>
         <p>
           Observera att ångerrätten inte gäller för konstverk som är specialtillverkade eller tydligt personliga.

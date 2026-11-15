@@ -118,11 +118,12 @@ export default function NewArtworkPage() {
         collectionId,
       });
 
-      if (result.success && result.artworkIds.length > 0) {
-        router.push(`/artworks?ownerId=${ownerId}`);
-      } else {
-        throw new Error('Failed to create artworks');
+      if (!result.success) {
+        setError(result.error);
+        setIsSubmitting(false);
+        return;
       }
+      router.push(`/artworks?ownerId=${ownerId}`);
     } catch (err) {
       console.error('Error creating artworks:', err);
       setError(

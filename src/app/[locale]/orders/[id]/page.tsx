@@ -8,6 +8,7 @@ import { getShippingLabel } from '@/lib/shipping';
 import ShippingStatusTimeline from '@/components/shipping/ShippingStatusTimeline';
 import TrackingInfo from '@/components/shipping/TrackingInfo';
 import SellerShippingPanel from '@/components/shipping/SellerShippingPanel';
+import ConfirmReceivedButton from '@/components/shipping/ConfirmReceivedButton';
 import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
@@ -109,14 +110,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
 
         {canReceive && (
           <div className="border-t border-stone-100 pt-4">
-            <form action={`/api/orders/${id}/receive`} method="POST">
-              <button
-                type="submit"
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-colors"
-              >
-                <span>✅</span> {t('mark_received')}
-              </button>
-            </form>
+            <ConfirmReceivedButton orderId={id} />
           </div>
         )}
       </div>

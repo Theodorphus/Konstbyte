@@ -7,6 +7,7 @@ import { formatSek } from '@/lib/currency';
 import SellerShippingPanel from '@/components/shipping/SellerShippingPanel';
 import TrackingInfo from '@/components/shipping/TrackingInfo';
 import ShippingGuide from '@/components/shipping/ShippingGuide';
+import ConnectStripeBanner from '@/components/ConnectStripeBanner';
 import CopyAddressButton from '@/components/checkout/CopyAddressButton';
 import { getTranslations } from 'next-intl/server';
 
@@ -101,6 +102,8 @@ export default async function SellerOrdersPage() {
           })()}
         </div>
       )}
+
+      <ConnectStripeBanner user={user} />
 
       {/* Shipping help — open while something is waiting to be sent */}
       {orders.length > 0 && (

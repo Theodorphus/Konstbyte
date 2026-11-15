@@ -5,6 +5,7 @@ import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
 import { sendEmail, buyerConfirmationEmail, sellerNotificationEmail } from '../../../../lib/email';
 import { calculatePayout, defaultCommissionRate } from '../../../../lib/payout';
+import { stripeFeeForPaymentIntent } from '../../../../lib/stripe-fee';
 
 // Order statuses from which a payment may still be fulfilled.
 const OPEN_STATUSES = ['pending', 'payment_processing'];
@@ -103,7 +104,7 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
     include: {
       artwork: true,
       buyer: { select: { name: true, email: true } },
-      seller: { select: { name: true, email: true } },
+      seller: { select: { name: true, email: true, stripeAccountId: true, stripeOnboardingDone: true } },
     },
   });
   if (!order) throw new Error(`Order ${orderId} not found`);
@@ -185,7 +186,19 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
   if (outcome !== 'fulfilled') return;
 
   const amountSek = amountRaw / 100;
-  const { sellerPayoutAmount } = calculatePayout(order.amount, defaultCommissionRate());
+  // Stripe's fee comes out of the artist's share; if it can't be read right now
+  // the estimate just leaves it out (the real payout always deducts it).
+  let stripeFee = 0;
+  if (piId) {
+    try {
+      stripeFee = (await stripeFeeForPaymentIntent(piId)) ?? 0;
+    } catch (err) {
+      console.error('[stripe/webhook] could not read the Stripe fee:', err);
+    }
+  }
+  const { sellerPayoutAmount } = calculatePayout(order.amount, defaultCommissionRate(), stripeFee);
+
+  const sellerStripeReady = Boolean(order.seller?.stripeAccountId && order.seller.stripeOnboardingDone);
 
   // Tell the artist right away, in the app as well as by email.
   if (order.sellerId) {
@@ -194,7 +207,9 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
         data: {
           userId: order.sellerId,
           type: 'artwork_sold',
-          message: `Du har sålt "${order.artwork.title}"! Packa och skicka verket till köparen. Du får ${Math.round(sellerPayoutAmount).toLocaleString('sv-SE')} kr när köparen har tagit emot det.`,
+          message:
+            `Du har sålt "${order.artwork.title}"! Packa och skicka verket till köparen. Du får ${Math.round(sellerPayoutAmount).toLocaleString('sv-SE')} kr när köparen har tagit emot det.` +
+            (sellerStripeReady ? '' : ' Koppla Stripe under Utbetalningar så att pengarna kan skickas till dig.'),
           link: '/seller/orders',
         },
       });
@@ -227,6 +242,7 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
       buyerName: order.buyer.name || 'Köparen',
       amountSek,
       sellerPayoutSek: sellerPayoutAmount,
+      sellerStripeReady,
       appUrl: APP_URL,
     });
     emails.push(sendEmail({ to: order.seller.email, ...mail }));

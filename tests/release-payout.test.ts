@@ -13,12 +13,18 @@ const { prisma, stripe } = vi.hoisted(() => {
     accounts: { retrieve: vi.fn() },
     checkout: { sessions: { retrieve: vi.fn() } },
     paymentIntents: { retrieve: vi.fn() },
+    charges: { retrieve: vi.fn() },
     transfers: { create: vi.fn() },
   };
   return { prisma, stripe };
 });
 vi.mock('@/lib/prisma', () => ({ default: prisma }));
 vi.mock('@/lib/stripe', () => ({ default: stripe }));
+const { sendEmail } = vi.hoisted(() => ({ sendEmail: vi.fn(() => Promise.resolve()) }));
+vi.mock('@/lib/email', () => ({
+  sendEmail,
+  payoutWaitingEmail: vi.fn(() => ({ subject: 's', html: 'h' })),
+}));
 
 import { isConnectAccountReady, releaseSellerPayout } from '@/lib/release-payout';
 
@@ -26,7 +32,7 @@ function paidOrder(overrides: Record<string, unknown> = {}) {
   return {
     id: 'order_1',
     sellerId: 'seller_1',
-    seller: { id: 'seller_1', stripeAccountId: 'acct_1', stripeOnboardingDone: true },
+    seller: { id: 'seller_1', name: 'Konstnär', email: 'seller@example.com', stripeAccountId: 'acct_1', stripeOnboardingDone: true },
     artwork: { title: 'Solnedgång' },
     payments: [{ stripeId: 'pi_1' }],
     stripeSessionId: 'cs_1',
@@ -46,18 +52,20 @@ beforeEach(() => {
   );
   stripe.paymentIntents.retrieve.mockResolvedValue({ status: 'succeeded', latest_charge: 'ch_1' });
   stripe.transfers.create.mockResolvedValue({ id: 'tr_1' });
+  // 1,5 % + 1,80 kr on 1 000 kr
+  stripe.charges.retrieve.mockResolvedValue({ balance_transaction: { fee: 1680 } });
 });
 
 describe('releaseSellerPayout', () => {
-  it('transfers the artist share (minus 3 %) idempotently and marks the order paid', async () => {
+  it('transfers the artist share (minus 3 % and the Stripe fee) idempotently and marks the order paid', async () => {
     prisma.order.findUnique.mockResolvedValue(paidOrder());
 
     const result = await releaseSellerPayout('order_1');
 
-    expect(result).toEqual({ status: 'transferred', transferId: 'tr_1', sellerPayoutAmount: 970 });
+    expect(result).toEqual({ status: 'transferred', transferId: 'tr_1', sellerPayoutAmount: 953.2 });
     expect(stripe.transfers.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        amount: 97_000,
+        amount: 95_320,
         currency: 'sek',
         destination: 'acct_1',
         source_transaction: 'ch_1',
@@ -73,17 +81,47 @@ describe('releaseSellerPayout', () => {
     );
   });
 
-  it('leaves a manual payout when the artist has not connected Stripe', async () => {
+  it('holds the money and asks the artist to connect Stripe when they have not', async () => {
     prisma.order.findUnique.mockResolvedValue(
-      paidOrder({ seller: { id: 'seller_1', stripeAccountId: null, stripeOnboardingDone: false } }),
+      paidOrder({ seller: { id: 'seller_1', email: 'seller@example.com', stripeAccountId: null, stripeOnboardingDone: false } }),
     );
 
     const result = await releaseSellerPayout('order_1');
 
-    expect(result).toEqual({ status: 'manual', sellerPayoutAmount: 970 });
+    expect(result).toEqual({ status: 'awaiting_stripe', sellerPayoutAmount: 953.2 });
     expect(stripe.transfers.create).not.toHaveBeenCalled();
-    expect(prisma.order.update).not.toHaveBeenCalled();
-    expect(prisma.payout.upsert).toHaveBeenCalledTimes(1);
+    expect(prisma.order.update).toHaveBeenCalledWith({
+      where: { id: 'order_1' },
+      data: { sellerPayoutStatus: 'awaiting_stripe' },
+    });
+    expect(prisma.payout.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ create: expect.objectContaining({ status: 'awaiting_stripe', method: 'stripe' }) }),
+    );
+    expect(prisma.notification.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ userId: 'seller_1', type: 'payout_waiting' }) }),
+    );
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'seller@example.com' }));
+  });
+
+  it('only reminds the artist once while the money is waiting', async () => {
+    prisma.order.findUnique.mockResolvedValue(
+      paidOrder({
+        sellerPayoutStatus: 'awaiting_stripe',
+        seller: { id: 'seller_1', email: 'seller@example.com', stripeAccountId: null, stripeOnboardingDone: false },
+      }),
+    );
+
+    expect((await releaseSellerPayout('order_1')).status).toBe('awaiting_stripe');
+    expect(prisma.notification.create).not.toHaveBeenCalled();
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it('pays out waiting money once the artist has connected Stripe', async () => {
+    prisma.order.findUnique.mockResolvedValue(paidOrder({ sellerPayoutStatus: 'awaiting_stripe' }));
+
+    const result = await releaseSellerPayout('order_1');
+
+    expect(result).toEqual({ status: 'transferred', transferId: 'tr_1', sellerPayoutAmount: 953.2 });
   });
 
   it('falls back to manual (with a note) when the transfer fails', async () => {
@@ -104,6 +142,16 @@ describe('releaseSellerPayout', () => {
       paidOrder({ seller: { id: 'seller_1', stripeAccountId: 'acct_1', stripeOnboardingDone: false } }),
     );
     stripe.accounts.retrieve.mockResolvedValue({ details_submitted: false });
+
+    const result = await releaseSellerPayout('order_1');
+
+    expect(result.status).toBe('awaiting_stripe');
+    expect(stripe.transfers.create).not.toHaveBeenCalled();
+  });
+
+  it('does not transfer when the Stripe fee is unknown, so it never overpays', async () => {
+    prisma.order.findUnique.mockResolvedValue(paidOrder());
+    stripe.charges.retrieve.mockResolvedValue({ balance_transaction: null });
 
     const result = await releaseSellerPayout('order_1');
 

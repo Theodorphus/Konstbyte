@@ -35,7 +35,7 @@ const faqData: FAQSection[] = [
       },
       {
         question: 'Kan jag returnera ett köpt konstverk?',
-        answer: 'Returrätten avgörs av avtalet mellan dig och säljaren. Enligt distansavtalslagen har du som konsument generellt 14 dagars ångerrätt vid köp från en näringsidkare. Kontakta säljaren direkt för att lösa retur.',
+        answer: 'Ja. Du har 14 dagars ångerrätt från den dag du tar emot konstverket. Kontakta oss på konstbyte@gmail.com så hjälper vi dig med returen. Verket ska skickas tillbaka i ursprungligt skick, och returfrakten betalas normalt av köparen.',
       },
       {
         question: 'Vad kostar det att köpa?',

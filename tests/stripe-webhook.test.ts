@@ -17,6 +17,8 @@ const { prisma, tx, stripe } = vi.hoisted(() => {
   const stripe = {
     webhooks: { constructEvent: vi.fn() },
     refunds: { create: vi.fn() },
+    paymentIntents: { retrieve: vi.fn() },
+    charges: { retrieve: vi.fn() },
   };
   return { prisma, tx, stripe };
 });
@@ -70,6 +72,8 @@ beforeEach(() => {
   tx.order.updateMany.mockResolvedValue({ count: 1 });
   tx.artwork.updateMany.mockResolvedValue({ count: 1 });
   prisma.order.updateMany.mockResolvedValue({ count: 1 });
+  stripe.paymentIntents.retrieve.mockResolvedValue({ status: 'succeeded', latest_charge: 'ch_1' });
+  stripe.charges.retrieve.mockResolvedValue({ balance_transaction: { fee: 1829 } });
 });
 
 describe('POST /api/stripe/webhook', () => {
@@ -121,9 +125,9 @@ describe('POST /api/stripe/webhook', () => {
         data: expect.objectContaining({ userId: 'seller_1', type: 'artwork_sold', link: '/seller/orders' }),
       }),
     );
-    // 1 099 kr minus 3 % commission
+    // 1 099 kr minus 3 % commission (32,97) and the Stripe fee (18,29)
     expect(sellerNotificationEmail).toHaveBeenCalledWith(
-      expect.objectContaining({ sellerPayoutSek: expect.closeTo(1066.03, 2) }),
+      expect.objectContaining({ sellerPayoutSek: expect.closeTo(1047.74, 2) }),
     );
     expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'seller@example.com' }));
   });

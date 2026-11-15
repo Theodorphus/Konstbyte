@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export interface ShippingAddress {
   fullName: string;
@@ -18,12 +19,13 @@ interface Props {
 type Errors = Partial<Record<keyof Omit<ShippingAddress, 'phone'>, string>>;
 
 export default function ShippingAddressForm({ onSubmit, onBack, loading }: Props) {
+  const t = useTranslations('checkout');
   const [values, setValues] = useState<ShippingAddress>({
     fullName: '',
     streetAddress: '',
     postalCode: '',
     city: '',
-    country: 'Sverige',
+    country: t('country_default'),
     phone: '',
   });
   const [errors, setErrors] = useState<Errors>({});
@@ -37,11 +39,11 @@ export default function ShippingAddressForm({ onSubmit, onBack, loading }: Props
 
   function validate(): boolean {
     const newErrors: Errors = {};
-    if (!values.fullName.trim())      newErrors.fullName = 'Ange för- och efternamn';
-    if (!values.streetAddress.trim()) newErrors.streetAddress = 'Ange gatuadress';
-    if (!values.postalCode.trim())    newErrors.postalCode = 'Ange postnummer';
-    if (!values.city.trim())          newErrors.city = 'Ange stad';
-    if (!values.country.trim())       newErrors.country = 'Ange land';
+    if (!values.fullName.trim())      newErrors.fullName = t('error_name');
+    if (!values.streetAddress.trim()) newErrors.streetAddress = t('error_street');
+    if (!values.postalCode.trim())    newErrors.postalCode = t('error_postal');
+    if (!values.city.trim())          newErrors.city = t('error_city');
+    if (!values.country.trim())       newErrors.country = t('error_country');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -61,12 +63,12 @@ export default function ShippingAddressForm({ onSubmit, onBack, loading }: Props
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
         </svg>
-        Välj betalningsmetod
+        {t('back')}
       </button>
 
       <div className="space-y-3">
         {/* Full name */}
-        <Field label="För- och efternamn" error={errors.fullName}>
+        <Field label={t('label_name')} error={errors.fullName}>
           <input
             type="text"
             autoComplete="name"
@@ -78,7 +80,7 @@ export default function ShippingAddressForm({ onSubmit, onBack, loading }: Props
         </Field>
 
         {/* Street address */}
-        <Field label="Gatuadress" error={errors.streetAddress}>
+        <Field label={t('label_street')} error={errors.streetAddress}>
           <input
             type="text"
             autoComplete="street-address"
@@ -91,7 +93,7 @@ export default function ShippingAddressForm({ onSubmit, onBack, loading }: Props
 
         {/* Postal code + city */}
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Postnummer" error={errors.postalCode}>
+          <Field label={t('label_postal')} error={errors.postalCode}>
             <input
               type="text"
               autoComplete="postal-code"
@@ -101,7 +103,7 @@ export default function ShippingAddressForm({ onSubmit, onBack, loading }: Props
               className={inputClass(!!errors.postalCode)}
             />
           </Field>
-          <Field label="Stad" error={errors.city}>
+          <Field label={t('label_city')} error={errors.city}>
             <input
               type="text"
               autoComplete="address-level2"
@@ -114,7 +116,7 @@ export default function ShippingAddressForm({ onSubmit, onBack, loading }: Props
         </div>
 
         {/* Country */}
-        <Field label="Land" error={errors.country}>
+        <Field label={t('label_country')} error={errors.country}>
           <input
             type="text"
             autoComplete="country-name"
@@ -125,7 +127,7 @@ export default function ShippingAddressForm({ onSubmit, onBack, loading }: Props
         </Field>
 
         {/* Phone (optional) */}
-        <Field label="Telefonnummer (valfritt)">
+        <Field label={t('label_phone')}>
           <input
             type="tel"
             autoComplete="tel"
@@ -148,10 +150,10 @@ export default function ShippingAddressForm({ onSubmit, onBack, loading }: Props
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            Ansluter…
+            {t('connecting')}
           </>
         ) : (
-          'Fortsätt till betalning →'
+          t('continue_to_payment')
         )}
       </button>
     </form>

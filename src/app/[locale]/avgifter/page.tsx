@@ -1,5 +1,4 @@
 import { alternatesFor } from '@/lib/seo';
-import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import type { Metadata } from 'next';
 
@@ -149,8 +148,8 @@ export default async function FeesPage({
           </div>
           <p className="text-xs text-slate-400 pt-1">
             {isSv
-              ? '* Stripe-avgiften varierar beroende på korttyp och land. Utbetalningar sker via Stripe Connect.'
-              : '* Stripe fee varies by card type and country. Payouts are made via Stripe Connect.'}
+              ? '* Stripe-avgiften varierar beroende på betalsätt, korttyp och land. Klarna är till exempel dyrare än kort. Den faktiska avgiften för varje köp dras från din utbetalning, som sker via Stripe Connect.'
+              : '* The Stripe fee varies by payment method, card type and country. Klarna, for example, costs more than cards. The actual fee for each sale is deducted from your payout, which is made via Stripe Connect.'}
           </p>
         </div>
       </div>

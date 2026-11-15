@@ -28,6 +28,15 @@ export async function sendEmail({ to, subject, html }: EmailPayload) {
   }
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function buyerConfirmationEmail(opts: {
   orderId: string;
   artworkTitle: string;
@@ -37,9 +46,12 @@ export function buyerConfirmationEmail(opts: {
   shippingCost: number;
   appUrl: string;
 }) {
-  const { orderId, artworkTitle, imageUrl, artistName, amountSek, shippingCost, appUrl } = opts;
+  const { orderId, amountSek, shippingCost, appUrl } = opts;
+  const artworkTitle = escapeHtml(opts.artworkTitle);
+  const artistName = escapeHtml(opts.artistName);
+  const imageUrl = escapeHtml(opts.imageUrl);
   return {
-    subject: `Orderbekräftelse – ${artworkTitle}`,
+    subject: `Orderbekräftelse – ${opts.artworkTitle}`,
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
         <h2 style="margin-bottom:4px">Tack för ditt köp! 🎉</h2>
@@ -51,14 +63,15 @@ export function buyerConfirmationEmail(opts: {
         <table style="width:100%;border-collapse:collapse;font-size:14px">
           <tr><td style="padding:6px 0;color:#64748b">Konstverk</td><td style="padding:6px 0;font-weight:600">${artworkTitle}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Konstnär</td><td style="padding:6px 0">${artistName}</td></tr>
-          <tr><td style="padding:6px 0;color:#64748b">Pris</td><td style="padding:6px 0;font-weight:700">${amountSek.toLocaleString('sv-SE')} kr</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Frakt</td><td style="padding:6px 0">${shippingCost > 0 ? `${Math.round(shippingCost).toLocaleString('sv-SE')} kr` : 'Ingår'}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b">Totalt betalt</td><td style="padding:6px 0;font-weight:700">${amountSek.toLocaleString('sv-SE')} kr</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Leverans</td><td style="padding:6px 0">3–5 arbetsdagar</td></tr>
         </table>
 
         <p style="margin-top:20px;font-size:14px;color:#475569">
-          Konstnären packar och skickar ditt konstverk omsorgsfullt. Du får inget separat
-          fraktkvitto — verket är på väg när konstnären bekräftar.
+          Konstnären packar och skickar ditt konstverk omsorgsfullt. Du får ett mejl med
+          spårningsnummer när verket är skickat. När det har kommit fram, bekräfta mottagandet
+          på ordersidan så får konstnären sin betalning.
         </p>
 
         <a href="${appUrl}/orders/${orderId}"
@@ -74,14 +87,6 @@ export function buyerConfirmationEmail(opts: {
   };
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
 
 export function sellerNotificationEmail(opts: {
   orderId: string;
@@ -90,6 +95,8 @@ export function sellerNotificationEmail(opts: {
   buyerName: string;
   amountSek: number;
   sellerPayoutSek: number;
+  /** False when the seller hasn't connected Stripe yet; the email then asks them to. */
+  sellerStripeReady?: boolean;
   appUrl: string;
 }) {
   const { orderId, appUrl } = opts;
@@ -111,7 +118,7 @@ export function sellerNotificationEmail(opts: {
           <tr><td style="padding:6px 0;color:#64748b">Konstverk</td><td style="padding:6px 0;font-weight:600">${title}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Köpare</td><td style="padding:6px 0">${buyerName}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Köparen betalade</td><td style="padding:6px 0">${opts.amountSek.toLocaleString('sv-SE')} kr</td></tr>
-          <tr><td style="padding:6px 0;color:#64748b">Du får</td><td style="padding:6px 0;font-weight:700">${payout} kr</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b">Du får</td><td style="padding:6px 0"><strong>${payout} kr</strong> <span style="color:#64748b;font-size:12px">efter provision och Stripes avgift</span></td></tr>
         </table>
 
         <p style="font-size:14px;color:#475569;margin-top:12px;padding:12px;background:#fef3c7;border-radius:6px">
@@ -122,6 +129,12 @@ export function sellerNotificationEmail(opts: {
           💰 <strong>Utbetalning:</strong> pengarna skickas till ditt Stripe-konto när köparen har bekräftat
           att verket har kommit fram, eller automatiskt 14 dagar efter att du skickat det.
         </p>
+        ${opts.sellerStripeReady === false ? `
+        <p style="font-size:14px;color:#475569;margin-top:12px;padding:12px;background:#eef2ff;border-radius:6px">
+          💳 <strong>Koppla Stripe nu</strong> så att pengarna kan skickas till ditt bankkonto. Det tar
+          ungefär 5–10 minuter och du behöver BankID.
+          <a href="${appUrl}/seller/payouts" style="color:#4f46e5;font-weight:600">Koppla Stripe →</a>
+        </p>` : ''}
 
         <a href="${appUrl}/seller/orders"
           style="display:inline-block;margin-top:16px;padding:10px 20px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;font-size:14px">
@@ -140,9 +153,13 @@ export function shippedEmail(opts: {
   trackingUrl?: string | null;
   appUrl: string;
 }) {
-  const { orderId, artworkTitle, sellerName, trackingNumber, trackingUrl, appUrl } = opts;
+  const { orderId, appUrl } = opts;
+  const artworkTitle = escapeHtml(opts.artworkTitle);
+  const sellerName = escapeHtml(opts.sellerName);
+  const trackingNumber = opts.trackingNumber ? escapeHtml(opts.trackingNumber) : null;
+  const trackingUrl = opts.trackingUrl ? escapeHtml(opts.trackingUrl) : null;
   return {
-    subject: `Ditt konstverk är på väg! 📦 — ${artworkTitle}`,
+    subject: `Ditt konstverk är på väg! 📦 — ${opts.artworkTitle}`,
     html: `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
         <h2 style="margin-bottom:4px">Ditt konstverk är skickat! 📦</h2>
@@ -165,8 +182,37 @@ export function shippedEmail(opts: {
         </a>
 
         <p style="margin-top:24px;font-size:12px;color:#94a3b8">
-          Konstbyte ansvarar inte för frakt eller transportskador. Kontakta säljaren direkt om du har frågor om leveransen.
+          När verket har kommit fram: bekräfta mottagandet på ordersidan. Har det skadats under frakten
+          eller dröjer det? Kontakta oss på konstbyte@gmail.com innan du bekräftar.
         </p>
+      </div>
+    `,
+  };
+}
+
+export function payoutWaitingEmail(opts: {
+  artworkTitle: string;
+  sellerPayoutSek: number;
+  appUrl: string;
+}) {
+  const title = escapeHtml(opts.artworkTitle);
+  const amount = Math.round(opts.sellerPayoutSek).toLocaleString('sv-SE');
+  return {
+    subject: `${amount} kr väntar på dig – koppla Stripe för att få dem`,
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
+        <h2 style="margin-bottom:4px">Köparen har fått ditt konstverk 🎉</h2>
+        <p style="font-size:14px;color:#475569">
+          <strong>${title}</strong> har kommit fram. Du har <strong>${amount} kr</strong> som väntar på dig.
+        </p>
+        <p style="font-size:14px;color:#475569;margin-top:12px;padding:12px;background:#eef2ff;border-radius:6px">
+          💳 <strong>Koppla Stripe för att få pengarna.</strong> Det tar ungefär 5–10 minuter och du behöver
+          BankID och ditt kontonummer. När du är klar skickas pengarna automatiskt till ditt bankkonto.
+        </p>
+        <a href="${opts.appUrl}/seller/payouts"
+          style="display:inline-block;margin-top:16px;padding:10px 20px;background:#4f46e5;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600">
+          Koppla Stripe och få betalt
+        </a>
       </div>
     `,
   };

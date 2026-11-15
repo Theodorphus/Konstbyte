@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { isAllowedImageUrl } from '@/lib/image-url';
 
 export interface CreateCollectionInput {
   title: string;
@@ -17,13 +18,16 @@ export async function createCollection(input: CreateCollectionInput) {
       throw new Error('Unauthorized');
     }
 
+    // Server actions can be called with any input: validate like the API routes.
+    const title = typeof input?.title === 'string' ? input.title.trim().slice(0, 200) : '';
+    if (!title) throw new Error('Title is required');
+    const description =
+      typeof input.description === 'string' ? input.description.trim().slice(0, 2000) || null : null;
+    // Only image hosts next/image can load; anything else would crash the pages showing it.
+    const coverImage = isAllowedImageUrl(input.coverImage) ? input.coverImage : null;
+
     const collection = await prisma.collection.create({
-      data: {
-        artistId: user.id,
-        title: input.title.trim(),
-        description: input.description?.trim() || null,
-        coverImage: input.coverImage || null,
-      },
+      data: { artistId: user.id, title, description, coverImage },
     });
 
     revalidatePath('/artworks/new');
