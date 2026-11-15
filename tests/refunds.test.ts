@@ -84,7 +84,7 @@ describe('refunds and disputes', () => {
     expect(sendEmail).toHaveBeenCalled();
   });
 
-  it('releases the payout again when the dispute is won, cancels it when lost', async () => {
+  it('releases the payout again when the dispute is won or the bank inquiry closes, cancels it when lost', async () => {
     prisma.order.findUnique.mockResolvedValue({ ...order, sellerPayoutStatus: 'on_hold' });
 
     await handleDisputeClosed(dispute({ status: 'won' }));
@@ -92,6 +92,11 @@ describe('refunds and disputes', () => {
       where: { id: 'order_1' },
       data: { sellerPayoutStatus: 'unpaid', sellerPayoutNote: null },
     });
+
+    await handleDisputeClosed(dispute({ status: 'warning_closed' }));
+    expect(prisma.order.update).toHaveBeenLastCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ sellerPayoutStatus: 'unpaid' }) }),
+    );
 
     await handleDisputeClosed(dispute({ status: 'lost' }));
     expect(prisma.order.update).toHaveBeenLastCalledWith(

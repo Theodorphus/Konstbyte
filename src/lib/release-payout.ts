@@ -2,7 +2,7 @@ import type Stripe from 'stripe';
 import stripe from './stripe';
 import prisma from './prisma';
 import { calculatePayout, defaultCommissionRate } from './payout';
-import { stripeFeeForCharge } from './stripe-fee';
+import { stripeChargeCosts } from './stripe-fee';
 import { sendEmail, payoutWaitingEmail } from './email';
 import { APP_URL } from './urls';
 
@@ -98,14 +98,18 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
   // cron retries) rather than paying out too much.
   let chargeId: string | null = null;
   let stripeFee = 0;
+  // Part of the price given back to the buyer (a partial refund that an admin
+  // has released, see lib/refunds.ts). The artist's share is based on what the
+  // buyer actually kept paying.
+  let refunded = 0;
   let feeUnknown = false;
   if (order.paymentMethod === 'stripe') {
     try {
       chargeId = await resolveChargeId(order);
       if (chargeId) {
-        const fee = await stripeFeeForCharge(chargeId);
-        if (fee === null) feeUnknown = true;
-        else stripeFee = fee;
+        const costs = await stripeChargeCosts(chargeId);
+        if (costs === null) feeUnknown = true;
+        else ({ fee: stripeFee, refunded } = costs);
       }
     } catch (err) {
       feeUnknown = true;
@@ -114,10 +118,14 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
   }
 
   const commissionRate = defaultCommissionRate();
-  const { commissionAmount, commissionVat, sellerPayoutAmount } = calculatePayout(order.amount, commissionRate, stripeFee);
+  const { commissionAmount, commissionVat, sellerPayoutAmount } = calculatePayout(
+    Math.max(0, order.amount - refunded),
+    commissionRate,
+    stripeFee,
+  );
   const payoutBase = {
     sellerId: order.sellerId,
-    amount: order.amount,
+    amount: Math.max(0, order.amount - refunded),
     commissionRate,
     commissionAmount,
     commissionVat,

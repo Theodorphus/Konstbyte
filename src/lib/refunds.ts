@@ -80,7 +80,7 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
       order,
       alreadyPaid
         ? `Köparen fick tillbaka ${refundedSek} kr, men konstnären har redan fått betalt. Kräv vid behov tillbaka mellanskillnaden från konstnären.`
-        : `Köparen fick tillbaka ${refundedSek} kr. Utbetalningen till konstnären är pausad tills du har bestämt hur mycket konstnären ska få.`,
+        : `Köparen fick tillbaka ${refundedSek} kr. Utbetalningen till konstnären är pausad. Gå till Admin → Utbetalningar och välj "Släpp" (konstnären får sin andel av det köparen behöll) eller "Avbryt".`,
     );
     return;
   }
@@ -158,7 +158,9 @@ export async function handleDisputeClosed(dispute: Stripe.Dispute) {
   const order = await loadOrder(orderId);
   if (!order || order.sellerPayoutStatus !== 'on_hold') return;
 
-  const won = dispute.status === 'won';
+  // Only 'lost' means the money is gone. 'won' and 'warning_closed' (a bank
+  // inquiry that never became a chargeback) both release the payout again.
+  const won = dispute.status !== 'lost';
   await prisma.$transaction([
     prisma.order.update({
       where: { id: order.id },
@@ -171,7 +173,7 @@ export async function handleDisputeClosed(dispute: Stripe.Dispute) {
       data: {
         orderId: order.id,
         type: won ? 'dispute_won' : 'dispute_lost',
-        message: won ? 'Tvisten avgjordes till Konstbytes fördel.' : 'Tvisten förlorades. Ingen utbetalning görs.',
+        message: won ? 'Tvisten är avslutad och pengarna finns kvar.' : 'Tvisten förlorades. Ingen utbetalning görs.',
       },
     }),
   ]);

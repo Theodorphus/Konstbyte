@@ -2,13 +2,23 @@ import { APP_URL } from '@/lib/urls';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
-import { sendEmail, buyerConfirmationEmail, sellerNotificationEmail } from '../../../../lib/email';
+import { sendEmail, buyerConfirmationEmail, sellerNotificationEmail, escapeHtml } from '../../../../lib/email';
 import { calculatePayout, defaultCommissionRate } from '../../../../lib/payout';
 import { isAdmin } from '../../../../lib/admin';
+import { releaseSellerPayout } from '../../../../lib/release-payout';
+import { chargeIdForPaymentIntent, stripeChargeCosts } from '../../../../lib/stripe-fee';
+
+const orderInclude = {
+  artwork: { select: { id: true, title: true, imageUrl: true } },
+  buyer: { select: { name: true, email: true } },
+  seller: { select: { id: true, name: true, email: true } },
+  payout: { select: { sellerPayoutAmount: true, commissionAmount: true, adminNote: true } },
+};
 
 // GET /api/admin/payouts
 // ?filter=completed  → returns completed Payout records (history)
-// (default)          → returns pendingSwish + unpaidPayouts
+// (default)          → returns pendingSwish, unpaidPayouts (received by the buyer,
+//                       needs a manual payout) and onHold (paused by a refund or dispute)
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser();
   if (!user || !isAdmin(user.email)) {
@@ -37,37 +47,35 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ completedPayouts });
   }
 
-  const [pendingSwish, unpaidPayouts] = await Promise.all([
+  const [pendingSwish, unpaidPayouts, onHold] = await Promise.all([
     prisma.order.findMany({
       where: { status: 'awaiting_swish' },
-      include: {
-        artwork: { select: { id: true, title: true, imageUrl: true } },
-        buyer: { select: { name: true, email: true } },
-        seller: { select: { id: true, name: true, email: true } },
-      },
+      include: orderInclude,
+      orderBy: { createdAt: 'desc' },
+    }),
+    // Only orders the buyer has received. Before that the money must stay with
+    // Konstbyte, and artists with Stripe are paid automatically on delivery, so
+    // what's left here is what an admin has to pay by hand.
+    prisma.order.findMany({
+      where: { status: 'delivered', sellerPayoutStatus: 'unpaid' },
+      include: orderInclude,
       orderBy: { createdAt: 'desc' },
     }),
     prisma.order.findMany({
-      where: {
-        status: { in: ['completed', 'paid', 'delivered'] },
-        sellerPayoutStatus: 'unpaid',
-      },
-      include: {
-        artwork: { select: { id: true, title: true, imageUrl: true } },
-        buyer: { select: { name: true, email: true } },
-        seller: { select: { id: true, name: true, email: true } },
-        items: { take: 1 },
-      },
+      where: { sellerPayoutStatus: 'on_hold' },
+      include: orderInclude,
       orderBy: { createdAt: 'desc' },
     }),
   ]);
 
-  return NextResponse.json({ pendingSwish, unpaidPayouts });
+  return NextResponse.json({ pendingSwish, unpaidPayouts, onHold });
 }
 
 // PATCH /api/admin/payouts
 // action: 'confirm_swish' — mark Swish order as paid, send buyer+seller confirmation emails
-// action: 'payout'       — mark seller payout as done, create Payout record, send seller payout email
+// action: 'payout'        — mark seller payout as done, create Payout record, send seller payout email
+// action: 'release_hold'  — a paused payout (refund/dispute) goes back to the normal flow
+// action: 'cancel_payout' — a paused payout is cancelled; the artist gets nothing
 export async function PATCH(request: NextRequest) {
   const user = await getCurrentUser();
   if (!user || !isAdmin(user.email)) {
@@ -78,6 +86,7 @@ export async function PATCH(request: NextRequest) {
   if (!orderId) {
     return NextResponse.json({ error: 'orderId saknas' }, { status: 400 });
   }
+  const noteText = typeof note === 'string' && note.trim() ? note.trim().slice(0, 500) : null;
 
   const appUrl = APP_URL;
 
@@ -136,12 +145,49 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ok: true, order: updated });
   }
 
+  // ── Paused payouts (refund or dispute) ───────────────────────────────────
+  if (action === 'release_hold' || action === 'cancel_payout') {
+    const held = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, status: true, sellerPayoutStatus: true },
+    });
+    if (!held) return NextResponse.json({ error: 'Order hittades inte' }, { status: 404 });
+    if (held.sellerPayoutStatus !== 'on_hold') {
+      return NextResponse.json({ error: 'Utbetalningen är inte pausad' }, { status: 409 });
+    }
+
+    if (action === 'cancel_payout') {
+      await prisma.$transaction([
+        prisma.order.update({
+          where: { id: orderId },
+          data: { sellerPayoutStatus: 'cancelled', sellerPayoutNote: noteText ?? 'Utbetalningen avbröts av Konstbyte.' },
+        }),
+        prisma.payout.updateMany({ where: { orderId, status: { not: 'completed' } }, data: { status: 'cancelled' } }),
+        prisma.orderEvent.create({
+          data: { orderId, type: 'payout_cancelled', message: 'Utbetalningen till konstnären avbröts.' },
+        }),
+      ]);
+      return NextResponse.json({ ok: true });
+    }
+
+    await prisma.$transaction([
+      prisma.order.update({ where: { id: orderId }, data: { sellerPayoutStatus: 'unpaid', sellerPayoutNote: null } }),
+      prisma.orderEvent.create({
+        data: { orderId, type: 'payout_unpaused', message: 'Pausen hävdes. Utbetalningen följer det vanliga flödet.' },
+      }),
+    ]);
+    // Already received by the buyer: pay right away instead of waiting for the cron.
+    const result = held.status === 'delivered' ? await releaseSellerPayout(orderId) : null;
+    return NextResponse.json({ ok: true, payout: result?.status ?? 'waiting_for_delivery' });
+  }
+
   // ── Mark seller payout as done ───────────────────────────────────────────
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
       seller: { select: { id: true, name: true, email: true } },
       artwork: { select: { title: true } },
+      payments: { select: { stripeId: true } },
     },
   });
   if (!order) return NextResponse.json({ error: 'Order hittades inte' }, { status: 404 });
@@ -151,53 +197,69 @@ export async function PATCH(request: NextRequest) {
   if (order.sellerPayoutStatus === 'cancelled' || order.status === 'refunded') {
     return NextResponse.json({ error: 'Köpet är återbetalt – ingen utbetalning ska göras' }, { status: 409 });
   }
+  if (order.sellerPayoutStatus === 'on_hold') {
+    return NextResponse.json({ error: 'Utbetalningen är pausad – släpp eller avbryt den först' }, { status: 409 });
+  }
+  if (order.status !== 'delivered') {
+    return NextResponse.json({ error: 'Köparen har inte tagit emot verket än' }, { status: 409 });
+  }
   if (!order.sellerId) {
     return NextResponse.json({ error: 'Säljare saknas på order' }, { status: 400 });
   }
 
+  // Same sum as an automatic payout: minus commission and Stripe's fee, based on
+  // what the buyer kept paying if part of it was refunded.
+  let stripeFee = 0;
+  let refunded = 0;
+  const paymentIntentId = order.payments.find((p) => p.stripeId.startsWith('pi_'))?.stripeId;
+  if (order.paymentMethod === 'stripe' && paymentIntentId) {
+    try {
+      const chargeId = await chargeIdForPaymentIntent(paymentIntentId);
+      const costs = chargeId ? await stripeChargeCosts(chargeId) : null;
+      if (!costs) throw new Error('fee unknown');
+      ({ fee: stripeFee, refunded } = costs);
+    } catch (err) {
+      console.error(`[admin/payouts] could not read the Stripe fee for order ${orderId}:`, err);
+      return NextResponse.json({ error: 'Kunde inte läsa Stripes avgift. Försök igen om en stund.' }, { status: 502 });
+    }
+  }
+
   const rate = defaultCommissionRate();
-  const { commissionAmount, commissionVat, sellerPayoutAmount } = calculatePayout(order.amount, rate);
+  const paidAmount = Math.max(0, order.amount - refunded);
+  const { commissionAmount, commissionVat, sellerPayoutAmount } = calculatePayout(paidAmount, rate, stripeFee);
+  const payoutFields = {
+    amount: paidAmount,
+    commissionRate: rate,
+    commissionAmount,
+    commissionVat,
+    sellerPayoutAmount,
+    method,
+    status: 'completed',
+    adminNote: noteText,
+    completedAt: new Date(),
+  };
 
   const [updated] = await prisma.$transaction([
     prisma.order.update({
       where: { id: orderId },
       data: {
         sellerPayoutStatus: 'paid',
-        sellerPayoutNote: note ?? null,
+        sellerPayoutNote: noteText,
         sellerPayoutAt: new Date(),
       },
     }),
     // Upsert: a pending Payout row already exists if the buyer confirmed receipt.
     prisma.payout.upsert({
       where: { orderId },
-      create: {
-        sellerId: order.sellerId,
-        orderId,
-        amount: order.amount,
-        commissionRate: rate,
-        commissionAmount,
-        commissionVat,
-        sellerPayoutAmount,
-        method,
-        status: 'completed',
-        adminNote: note ?? null,
-        completedAt: new Date(),
-      },
-      update: {
-        amount: order.amount,
-        commissionRate: rate,
-        commissionAmount,
-        commissionVat,
-        sellerPayoutAmount,
-        method,
-        status: 'completed',
-        adminNote: note ?? null,
-        completedAt: new Date(),
-      },
+      create: { sellerId: order.sellerId, orderId, ...payoutFields },
+      update: payoutFields,
     }),
   ]);
 
   if (order.seller?.email) {
+    const fmt = (v: number) => v.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 });
+    const row = (label: string, value: string, style = '') =>
+      `<tr><td style="padding:6px 0;color:#94a3b8">${label}</td><td style="text-align:right;${style}">${value}</td></tr>`;
     await sendEmail({
       to: order.seller.email,
       subject: `Utbetalning skickad – ${order.artwork.title}`,
@@ -206,19 +268,20 @@ export async function PATCH(request: NextRequest) {
           <h2>Din utbetalning är på väg! 💸</h2>
           <p style="color:#475569;font-size:14px">
             Konstbyte har nu genomfört utbetalningen för försäljningen av
-            <strong>${order.artwork.title}</strong> (order #${orderId.slice(0, 8)}).
+            <strong>${escapeHtml(order.artwork.title)}</strong> (order #${orderId.slice(-8).toUpperCase()}).
           </p>
           <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">
-            <tr><td style="padding:6px 0;color:#94a3b8">Ordertotal</td><td style="text-align:right">${order.amount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', minimumFractionDigits: 0 })}</td></tr>
-            <tr><td style="padding:6px 0;color:#94a3b8">Provision (${Math.round(rate * 100)}%)</td><td style="text-align:right;color:#dc2626">-${commissionAmount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', minimumFractionDigits: 0 })}</td></tr>
-            <tr style="border-top:1px solid #e2e8f0"><td style="padding:8px 0;font-weight:bold">Din utbetalning</td><td style="text-align:right;font-weight:bold;color:#16a34a">${sellerPayoutAmount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', minimumFractionDigits: 0 })}</td></tr>
+            ${row('Betalt av köparen', fmt(paidAmount))}
+            ${row(`Provision (${Math.round(rate * 100)}%)`, `-${fmt(commissionAmount)}`, 'color:#dc2626')}
+            ${stripeFee > 0 ? row('Stripes avgift', `-${fmt(stripeFee)}`, 'color:#dc2626') : ''}
+            <tr style="border-top:1px solid #e2e8f0"><td style="padding:8px 0;font-weight:bold">Din utbetalning</td><td style="text-align:right;font-weight:bold;color:#16a34a">${fmt(sellerPayoutAmount)}</td></tr>
           </table>
-          ${note ? `<p style="font-size:14px;padding:12px;background:#f1f5f9;border-radius:6px;color:#475569">Anteckning: ${note}</p>` : ''}
+          ${noteText ? `<p style="font-size:14px;padding:12px;background:#f1f5f9;border-radius:6px;color:#475569">Anteckning: ${escapeHtml(noteText)}</p>` : ''}
           <p style="font-size:12px;color:#94a3b8;margin-top:24px">Konstbyte — tack för att du säljer hos oss.</p>
         </div>
       `,
     });
   }
 
-  return NextResponse.json({ ok: true, order: updated });
+  return NextResponse.json({ ok: true, order: updated, sellerPayoutAmount });
 }
