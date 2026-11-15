@@ -974,6 +974,7 @@
     "published": "Publicerad"
   },
   "seller": {
+    "stripe_fee_label": "Stripes avgift",
     "awaiting_stripe_status": "Väntar på Stripe",
     "waiting_title": "Väntar på dig",
     "waiting_body": "Köparen har fått verket. Koppla Stripe nedan så skickas pengarna till ditt bankkonto automatiskt.",

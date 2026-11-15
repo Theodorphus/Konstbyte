@@ -2,6 +2,7 @@ import type Stripe from 'stripe';
 import stripe from './stripe';
 import prisma from './prisma';
 import { calculatePayout, defaultCommissionRate } from './payout';
+import { stripeFeeForCharge } from './stripe-fee';
 import { sendEmail, payoutWaitingEmail } from './email';
 import { APP_URL } from './urls';
 
@@ -88,8 +89,28 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
   if (order.sellerPayoutStatus === 'paid') return { status: 'already_paid' };
   if (!PAID_ORDER_STATUSES.includes(order.status)) return { status: 'skipped', reason: 'not_paid' };
 
+  // The artist's share is net of Stripe's actual fee for this payment, so look
+  // up the charge first. If the fee can't be read, nothing is transferred (the
+  // cron retries) rather than paying out too much.
+  let chargeId: string | null = null;
+  let stripeFee = 0;
+  let feeUnknown = false;
+  if (order.paymentMethod === 'stripe') {
+    try {
+      chargeId = await resolveChargeId(order);
+      if (chargeId) {
+        const fee = await stripeFeeForCharge(chargeId);
+        if (fee === null) feeUnknown = true;
+        else stripeFee = fee;
+      }
+    } catch (err) {
+      feeUnknown = true;
+      console.error(`[release-payout] could not read the Stripe fee for order ${order.id}:`, err);
+    }
+  }
+
   const commissionRate = defaultCommissionRate();
-  const { commissionAmount, commissionVat, sellerPayoutAmount } = calculatePayout(order.amount, commissionRate);
+  const { commissionAmount, commissionVat, sellerPayoutAmount } = calculatePayout(order.amount, commissionRate, stripeFee);
   const payoutBase = {
     sellerId: order.sellerId,
     amount: order.amount,
@@ -116,8 +137,9 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
       }
 
       sellerReady = ready;
-      if (ready) {
-        const chargeId = await resolveChargeId(order);
+      if (ready && feeUnknown) {
+        transferFailed = true;
+      } else if (ready) {
         if (chargeId) {
           const transfer = await stripe.transfers.create(
             {

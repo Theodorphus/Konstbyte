@@ -5,6 +5,7 @@ import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
 import { sendEmail, buyerConfirmationEmail, sellerNotificationEmail } from '../../../../lib/email';
 import { calculatePayout, defaultCommissionRate } from '../../../../lib/payout';
+import { stripeFeeForPaymentIntent } from '../../../../lib/stripe-fee';
 
 // Order statuses from which a payment may still be fulfilled.
 const OPEN_STATUSES = ['pending', 'payment_processing'];
@@ -185,7 +186,17 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
   if (outcome !== 'fulfilled') return;
 
   const amountSek = amountRaw / 100;
-  const { sellerPayoutAmount } = calculatePayout(order.amount, defaultCommissionRate());
+  // Stripe's fee comes out of the artist's share; if it can't be read right now
+  // the estimate just leaves it out (the real payout always deducts it).
+  let stripeFee = 0;
+  if (piId) {
+    try {
+      stripeFee = (await stripeFeeForPaymentIntent(piId)) ?? 0;
+    } catch (err) {
+      console.error('[stripe/webhook] could not read the Stripe fee:', err);
+    }
+  }
+  const { sellerPayoutAmount } = calculatePayout(order.amount, defaultCommissionRate(), stripeFee);
 
   const sellerStripeReady = Boolean(order.seller?.stripeAccountId && order.seller.stripeOnboardingDone);
 

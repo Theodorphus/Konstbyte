@@ -1,8 +1,13 @@
-export function calculatePayout(orderAmount: number, commissionRate: number) {
+/**
+ * Splits an order between Konstbyte and the artist.
+ * The artist pays the platform commission and Stripe's processing fee for the
+ * payment (as described on the fees page), so `stripeFee` is deducted too.
+ */
+export function calculatePayout(orderAmount: number, commissionRate: number, stripeFee = 0) {
   const commissionAmount   = orderAmount * commissionRate;
   const commissionVat      = commissionAmount * 0.25;
-  const sellerPayoutAmount = orderAmount - commissionAmount;
-  return { commissionAmount, commissionVat, sellerPayoutAmount };
+  const sellerPayoutAmount = Math.max(0, orderAmount - commissionAmount - stripeFee);
+  return { commissionAmount, commissionVat, stripeFee, sellerPayoutAmount };
 }
 
 export function defaultCommissionRate(): number {

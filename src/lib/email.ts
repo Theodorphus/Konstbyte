@@ -118,7 +118,7 @@ export function sellerNotificationEmail(opts: {
           <tr><td style="padding:6px 0;color:#64748b">Konstverk</td><td style="padding:6px 0;font-weight:600">${title}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Köpare</td><td style="padding:6px 0">${buyerName}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Köparen betalade</td><td style="padding:6px 0">${opts.amountSek.toLocaleString('sv-SE')} kr</td></tr>
-          <tr><td style="padding:6px 0;color:#64748b">Du får</td><td style="padding:6px 0;font-weight:700">${payout} kr</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b">Du får</td><td style="padding:6px 0"><strong>${payout} kr</strong> <span style="color:#64748b;font-size:12px">efter provision och Stripes avgift</span></td></tr>
         </table>
 
         <p style="font-size:14px;color:#475569;margin-top:12px;padding:12px;background:#fef3c7;border-radius:6px">

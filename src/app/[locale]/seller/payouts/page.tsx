@@ -192,7 +192,7 @@ export default async function SellerPayoutsPage({
             </div>
 
             {/* Breakdown */}
-            <div className="grid grid-cols-3 gap-3 text-sm border-t border-stone-100 pt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm border-t border-stone-100 pt-4">
               <div>
                 <p className="text-xs text-stone-400 mb-0.5">{t('order_total_label')}</p>
                 <p className="font-semibold text-slate-800">{formatSek(payout.amount)}</p>
@@ -202,6 +202,12 @@ export default async function SellerPayoutsPage({
                   {t('commission_label', { rate: Math.round(payout.commissionRate * 100) })}
                 </p>
                 <p className="font-semibold text-red-600">−{formatSek(payout.commissionAmount)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-stone-400 mb-0.5">{t('stripe_fee_label')}</p>
+                <p className="font-semibold text-red-600">
+                  −{formatSek(Math.max(0, payout.amount - payout.commissionAmount - payout.sellerPayoutAmount))}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-stone-400 mb-0.5">{t('your_payout_label')}</p>
