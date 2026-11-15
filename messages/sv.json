@@ -466,6 +466,14 @@
     "days_ago": "{count} d sedan"
   },
   "orders": {
+    "state_processing": "Betalning behandlas",
+    "state_refunded": "Återbetald",
+    "state_delivered": "Mottagen",
+    "state_shipped": "Skickad",
+    "state_paid": "Betald – skickas snart",
+    "by_artist": "av {name}",
+    "view_order": "Visa order",
+    "confirm_receipt_cta": "Har du fått verket?",
     "confirm_received_title": "Har du fått konstverket?",
     "confirm_received_body": "När du bekräftar betalas pengarna ut till konstnären. Det går inte att ångra. Har verket skadats eller saknas något? Kontakta oss på konstbyte@gmail.com i stället.",
     "confirm_received_yes": "Ja, jag har fått verket",
@@ -503,7 +511,7 @@
     "anonymous_artist": "Anonym konstnär",
     "back_link": "← Mina beställningar",
     "paid_swish": "Betalat med Swish",
-    "paid_card": "Betalat med kort",
+    "paid_card": "Betald via Stripe",
     "plus_shipping": "+ frakt",
     "delivery_status_label": "Leveransstatus",
     "shipping_info_label": "Fraktinformation",
@@ -513,7 +521,7 @@
     "delivery_address_label": "Leveransadress",
     "mark_received": "Markera som mottaget",
     "payout_title": "Utbetalning",
-    "payout_desc": "Med ett kopplat Stripe-konto betalas du ut automatiskt när köparen bekräftat mottagandet (eller 14 dagar efter att du skickat verket). Utan Stripe betalar Konstbyte ut via Swish eller banköverföring inom 3–5 arbetsdagar. Plattformens provision är 3%.",
+    "payout_desc": "Koppla ett Stripe-konto så betalas du ut automatiskt när köparen bekräftat mottagandet (eller 14 dagar efter att du skickat verket). Har du inte kopplat Stripe än väntar pengarna på dig tills du har gjort det. Plattformens provision är 3 %.",
     "payout_done": "Utbetalning genomförd",
     "contact_support": "Vid frågor om din order, kontakta",
     "disclaimer": "Konstbyte är en teknisk plattform och ansvarar inte för frakt, skador eller transaktioner."

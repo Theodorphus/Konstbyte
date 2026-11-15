@@ -40,17 +40,23 @@ export default async function OrdersPage() {
     );
   }
 
+  // Abandoned or failed checkouts aren't purchases, so they aren't listed.
   const orders = await prisma.order.findMany({
-    where: { buyerId: user.id },
+    where: { buyerId: user.id, status: { notIn: ['pending', 'expired', 'payment_failed'] } },
     include: {
-      artwork: {
-        include: {
-          owner: true
-        }
-      }
+      artwork: { select: { id: true, title: true, imageUrl: true, owner: { select: { name: true } } } },
     },
     orderBy: { createdAt: 'desc' }
   });
+
+  // One label per order that tells the buyer where it is, including shipping.
+  function orderState(order: { status: string; shippingStatus: string }) {
+    if (order.status === 'payment_processing') return { label: t('state_processing'), classes: 'bg-yellow-100 text-yellow-700' };
+    if (order.status === 'refunded') return { label: t('state_refunded'), classes: 'bg-slate-100 text-slate-700' };
+    if (order.status === 'delivered' || order.shippingStatus === 'delivered') return { label: t('state_delivered'), classes: 'bg-green-100 text-green-700' };
+    if (order.shippingStatus === 'shipped') return { label: t('state_shipped'), classes: 'bg-amber-100 text-amber-700' };
+    return { label: t('state_paid'), classes: 'bg-blue-100 text-blue-700' };
+  }
 
   return (
     <div className="space-y-6">
@@ -80,15 +86,9 @@ export default async function OrdersPage() {
             <Card key={order.id} className="transition-all duration-200 ease-out motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-md">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Order #{order.id.slice(0, 8)}</CardTitle>
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    order.status === 'completed' ? 'bg-green-100 text-green-700' :
-                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-slate-100 text-slate-700'
-                  }`}>
-                    {order.status === 'completed' ? t('status_completed') :
-                     order.status === 'pending' ? t('status_pending') :
-                     order.status}
+                  <CardTitle className="text-base">Order #{order.id.slice(-8).toUpperCase()}</CardTitle>
+                  <span className={`text-xs px-2 py-1 rounded ${orderState(order).classes}`}>
+                    {orderState(order).label}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500">
@@ -112,15 +112,24 @@ export default async function OrdersPage() {
                   <div className="flex-1">
                     <h3 className="font-semibold mb-1">{order.artwork.title}</h3>
                     <p className="text-sm text-slate-600 mb-2">
-                      av {order.artwork.owner.name || t('anonymous_artist')}
+                      {t('by_artist', { name: order.artwork.owner.name || t('anonymous_artist') })}
                     </p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="font-bold">{formatSek(order.amount)}</span>
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/artworks/${order.artwork.id}`}>
-                          {t('view_artwork')}
-                        </Link>
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/artworks/${order.artwork.id}`}>
+                            {t('view_artwork')}
+                          </Link>
+                        </Button>
+                        <Button asChild size="sm">
+                          <Link href={`/orders/${order.id}`}>
+                            {order.shippingStatus === 'shipped' && order.status !== 'delivered'
+                              ? t('confirm_receipt_cta')
+                              : t('view_order')}
+                          </Link>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -25,7 +25,7 @@ export default async function AnsvarPage() {
         <h2 className="text-xl font-semibold">Vad Konstbyte tillhandahåller</h2>
         <ul className="list-disc list-inside space-y-2 text-slate-700">
           <li><strong>Teknisk plattform</strong> – möjligheten att ladda upp, visa och köpa konstverk online.</li>
-          <li><strong>Betalningslösning</strong> – säker betalning via Stripe. Pengarna tas emot av Konstbyte och betalas manuellt ut till konstnären efter bekräftad leverans.</li>
+          <li><strong>Betalningslösning</strong> – säker betalning via Stripe. Pengarna tas emot av Konstbyte och betalas automatiskt ut till konstnären när du har bekräftat att verket har kommit fram.</li>
           <li><strong>Viss support</strong> – vi kan svara på frågor och vid behov bistå som medlare om problem uppstår mellan köpare och säljare.</li>
         </ul>
       </section>

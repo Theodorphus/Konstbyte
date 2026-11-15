@@ -427,6 +427,14 @@
     "days_ago": "{count} d ago"
   },
   "orders": {
+    "state_processing": "Payment processing",
+    "state_refunded": "Refunded",
+    "state_delivered": "Received",
+    "state_shipped": "Shipped",
+    "state_paid": "Paid – ships soon",
+    "by_artist": "by {name}",
+    "view_order": "View order",
+    "confirm_receipt_cta": "Received it?",
     "confirm_received_title": "Have you received the artwork?",
     "confirm_received_body": "When you confirm, the money is paid out to the artist. This can’t be undone. Is the artwork damaged or is something missing? Contact us at konstbyte@gmail.com instead.",
     "confirm_received_yes": "Yes, I have the artwork",
@@ -464,7 +472,7 @@
     "anonymous_artist": "Anonymous artist",
     "back_link": "← My orders",
     "paid_swish": "Paid with Swish",
-    "paid_card": "Paid with card",
+    "paid_card": "Paid via Stripe",
     "plus_shipping": "+ shipping",
     "delivery_status_label": "Delivery status",
     "shipping_info_label": "Shipping information",
@@ -474,7 +482,7 @@
     "delivery_address_label": "Delivery address",
     "mark_received": "Mark as received",
     "payout_title": "Payout",
-    "payout_desc": "With a connected Stripe account you are paid automatically when the buyer confirms receipt (or 14 days after you ship). Without Stripe, Konstbyte pays out via Swish or bank transfer within 3–5 business days. The platform commission is 3%.",
+    "payout_desc": "Connect a Stripe account and you are paid automatically when the buyer confirms receipt (or 14 days after you ship). If you haven’t connected Stripe yet, the money waits for you until you do. The platform commission is 3%.",
     "payout_done": "Payout completed",
     "contact_support": "For questions about your order, contact",
     "disclaimer": "Konstbyte is a technical platform and is not responsible for shipping, damages or transactions."
