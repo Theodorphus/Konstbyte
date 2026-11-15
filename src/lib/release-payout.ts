@@ -87,6 +87,10 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
 
   if (!order || !order.sellerId || !order.seller) return { status: 'skipped', reason: 'no_seller' };
   if (order.sellerPayoutStatus === 'paid') return { status: 'already_paid' };
+  // Refunded or disputed (see lib/refunds.ts): never pay out automatically.
+  if (order.sellerPayoutStatus === 'on_hold' || order.sellerPayoutStatus === 'cancelled') {
+    return { status: 'skipped', reason: order.sellerPayoutStatus };
+  }
   if (!PAID_ORDER_STATUSES.includes(order.status)) return { status: 'skipped', reason: 'not_paid' };
 
   // The artist's share is net of Stripe's actual fee for this payment, so look

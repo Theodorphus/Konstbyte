@@ -148,6 +148,9 @@ export async function PATCH(request: NextRequest) {
   if (order.sellerPayoutStatus === 'paid') {
     return NextResponse.json({ error: 'Utbetalning redan markerad' }, { status: 409 });
   }
+  if (order.sellerPayoutStatus === 'cancelled' || order.status === 'refunded') {
+    return NextResponse.json({ error: 'Köpet är återbetalt – ingen utbetalning ska göras' }, { status: 409 });
+  }
   if (!order.sellerId) {
     return NextResponse.json({ error: 'Säljare saknas på order' }, { status: 400 });
   }

@@ -6,6 +6,7 @@ import prisma from '../../../../lib/prisma';
 import { sendEmail, buyerConfirmationEmail, sellerNotificationEmail } from '../../../../lib/email';
 import { calculatePayout, defaultCommissionRate } from '../../../../lib/payout';
 import { stripeFeeForPaymentIntent } from '../../../../lib/stripe-fee';
+import { handleChargeRefunded, handleDisputeCreated, handleDisputeClosed } from '../../../../lib/refunds';
 
 // Order statuses from which a payment may still be fulfilled.
 const OPEN_STATUSES = ['pending', 'payment_processing'];
@@ -15,6 +16,7 @@ const OPEN_STATUSES = ['pending', 'payment_processing'];
 //   checkout.session.async_payment_succeeded   (Swish, Klarna and other delayed methods)
 //   checkout.session.async_payment_failed
 //   checkout.session.expired
+//   charge.refunded, charge.dispute.created, charge.dispute.closed
 export async function POST(request: Request) {
   const signature = request.headers.get('stripe-signature') || '';
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -54,6 +56,16 @@ export async function POST(request: Request) {
         break;
       case 'checkout.session.expired':
         await closeOrder(event.data.object as Stripe.Checkout.Session, 'expired', 'Betalningen avbröts eller gick ut.');
+        break;
+      // Refunds and disputes stop (or flag) the artist's payout.
+      case 'charge.refunded':
+        await handleChargeRefunded(event.data.object as Stripe.Charge);
+        break;
+      case 'charge.dispute.created':
+        await handleDisputeCreated(event.data.object as Stripe.Dispute);
+        break;
+      case 'charge.dispute.closed':
+        await handleDisputeClosed(event.data.object as Stripe.Dispute);
         break;
     }
     return NextResponse.json({ received: true });

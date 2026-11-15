@@ -159,6 +159,12 @@ describe('releaseSellerPayout', () => {
     expect(stripe.transfers.create).not.toHaveBeenCalled();
   });
 
+  it.each(['on_hold', 'cancelled'])('never pays out an order whose payout is %s (refund or dispute)', async (status) => {
+    prisma.order.findUnique.mockResolvedValue(paidOrder({ sellerPayoutStatus: status }));
+    expect(await releaseSellerPayout('order_1')).toEqual({ status: 'skipped', reason: status });
+    expect(stripe.transfers.create).not.toHaveBeenCalled();
+  });
+
   it('does nothing for an order that is already paid out', async () => {
     prisma.order.findUnique.mockResolvedValue(paidOrder({ sellerPayoutStatus: 'paid' }));
     expect(await releaseSellerPayout('order_1')).toEqual({ status: 'already_paid' });
