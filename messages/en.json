@@ -767,6 +767,9 @@
     "view_all_artworks": "View all artworks"
   },
   "seller": {
+    "awaiting_stripe_status": "Waiting for Stripe",
+    "waiting_title": "Waiting for you",
+    "waiting_body": "The buyer has received the artwork. Connect Stripe below and the money is sent to your bank account automatically.",
     "connect_banner_title": "Connect Stripe to get paid automatically",
     "connect_banner_body": "Money from your sales is sent to your bank account once the buyer has received the artwork. It takes a few minutes and you need BankID.",
     "shipping_guide": {

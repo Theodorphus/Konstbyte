@@ -103,6 +103,7 @@ export default function NotificationsPage() {
       case 'order_auto_delivered':
       case 'payout_sent': return '💰';
       case 'order_refunded': return '↩️';
+      case 'payout_waiting': return '💳';
       default: return '🔔';
     }
   };

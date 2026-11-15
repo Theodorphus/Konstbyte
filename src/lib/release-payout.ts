@@ -2,6 +2,8 @@ import type Stripe from 'stripe';
 import stripe from './stripe';
 import prisma from './prisma';
 import { calculatePayout, defaultCommissionRate } from './payout';
+import { sendEmail, payoutWaitingEmail } from './email';
+import { APP_URL } from './urls';
 
 // Order statuses that mean the buyer's money has actually arrived.
 export const PAID_ORDER_STATUSES = ['completed', 'paid', 'delivered'];
@@ -9,6 +11,7 @@ export const PAID_ORDER_STATUSES = ['completed', 'paid', 'delivered'];
 export type ReleaseResult =
   | { status: 'transferred'; transferId: string; sellerPayoutAmount: number }
   | { status: 'manual'; sellerPayoutAmount: number }
+  | { status: 'awaiting_stripe'; sellerPayoutAmount: number }
   | { status: 'already_paid' }
   | { status: 'skipped'; reason: string };
 
@@ -63,8 +66,10 @@ async function resolveChargeId(order: {
  * Money is collected on the platform account at checkout ("separate charges and
  * transfers"). It is only moved to the artist once the buyer has confirmed receipt
  * (or the auto-release window has passed). If the artist has a ready Stripe
- * account, the transfer happens automatically; otherwise a pending Payout is left
- * for an admin to pay manually, exactly as before.
+ * account, the transfer happens automatically. If they haven't connected Stripe
+ * yet, the money waits (`awaiting_stripe`) and they're asked to connect; the daily
+ * cron and the Connect return page release it once they have. A pending Payout for
+ * an admin is only left when a transfer to a ready account fails.
  *
  * Safe to call more than once for the same order: the Stripe transfer uses an
  * idempotency key and the Payout row is upserted.
@@ -73,7 +78,7 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
-      seller: { select: { id: true, stripeAccountId: true, stripeOnboardingDone: true } },
+      seller: { select: { id: true, name: true, email: true, stripeAccountId: true, stripeOnboardingDone: true } },
       artwork: { select: { title: true } },
       payments: { select: { stripeId: true } },
     },
@@ -97,6 +102,7 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
   // ── Try an automatic Stripe transfer ────────────────────────────────────────
   let transferId: string | null = null;
   let transferFailed = false;
+  let sellerReady = false;
   const accountId = order.seller.stripeAccountId;
 
   if (order.paymentMethod === 'stripe' && accountId) {
@@ -109,6 +115,7 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
         }
       }
 
+      sellerReady = ready;
       if (ready) {
         const chargeId = await resolveChargeId(order);
         if (chargeId) {
@@ -173,6 +180,41 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
     return { status: 'transferred', transferId, sellerPayoutAmount };
   }
 
+  // ── Seller hasn't connected Stripe yet: hold the money and ask them to ─────
+  if (order.paymentMethod === 'stripe' && !sellerReady && !transferFailed) {
+    const firstTime = order.sellerPayoutStatus !== 'awaiting_stripe';
+    await prisma.$transaction([
+      prisma.payout.upsert({
+        where: { orderId: order.id },
+        create: { ...payoutBase, orderId: order.id, method: 'stripe', status: 'awaiting_stripe' },
+        update: { ...payoutBase, method: 'stripe', status: 'awaiting_stripe' },
+      }),
+      prisma.order.update({ where: { id: order.id }, data: { sellerPayoutStatus: 'awaiting_stripe' } }),
+    ]);
+    if (firstTime) {
+      const amount = Math.round(sellerPayoutAmount).toLocaleString('sv-SE');
+      await prisma.notification.create({
+        data: {
+          userId: order.sellerId,
+          type: 'payout_waiting',
+          message: `${amount} kr för "${order.artwork.title}" väntar på dig. Koppla Stripe så skickas pengarna till ditt bankkonto.`,
+          link: '/seller/payouts',
+        },
+      });
+      if (order.seller.email) {
+        const mail = payoutWaitingEmail({
+          artworkTitle: order.artwork.title,
+          sellerPayoutSek: sellerPayoutAmount,
+          appUrl: APP_URL,
+        });
+        await sendEmail({ to: order.seller.email, ...mail }).catch((err) =>
+          console.error('[release-payout] waiting email failed:', err),
+        );
+      }
+    }
+    return { status: 'awaiting_stripe', sellerPayoutAmount };
+  }
+
   // ── Fall back to a pending payout that an admin pays manually ──────────────
   await prisma.payout.upsert({
     where: { orderId: order.id },
@@ -181,7 +223,14 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
       orderId: order.id,
       ...(transferFailed ? { adminNote: 'Automatisk överföring misslyckades – betalas ut manuellt.' } : {}),
     },
-    update: transferFailed ? { adminNote: 'Automatisk överföring misslyckades – betalas ut manuellt.' } : {},
+    update: {
+      status: 'pending',
+      ...(transferFailed ? { adminNote: 'Automatisk överföring misslyckades – betalas ut manuellt.' } : {}),
+    },
   });
+  if (order.sellerPayoutStatus === 'awaiting_stripe') {
+    // Back in the admin's manual list (it only shows 'unpaid').
+    await prisma.order.update({ where: { id: order.id }, data: { sellerPayoutStatus: 'unpaid' } });
+  }
   return { status: 'manual', sellerPayoutAmount };
 }

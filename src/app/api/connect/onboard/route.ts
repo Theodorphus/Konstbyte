@@ -18,10 +18,20 @@ export async function POST() {
     if (!accountId) {
       // Express: Stripe hosts onboarding + a simple dashboard for the artist.
       // Only the `transfers` capability is needed — Konstbyte takes the payment.
+      // Prefill what Konstbyte already knows so the artist only has to give
+      // their personal details, BankID and bank account.
+      const profileUrl = `${APP_URL}/users/${user.id}`;
       const account = await stripe.accounts.create({
         type: 'express',
         country: 'SE',
         email: user.email || undefined,
+        business_type: 'individual',
+        business_profile: {
+          mcc: '5971', // Art dealers and galleries
+          product_description: 'Säljer egna konstverk via Konstbyte.',
+          // Stripe rejects non-public URLs (e.g. localhost in development).
+          ...(profileUrl.startsWith('https://') ? { url: profileUrl } : {}),
+        },
         capabilities: { transfers: { requested: true } },
         metadata: { konstbyteUserId: user.id },
       });

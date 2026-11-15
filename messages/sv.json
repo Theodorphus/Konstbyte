@@ -966,6 +966,9 @@
     "published": "Publicerad"
   },
   "seller": {
+    "awaiting_stripe_status": "Väntar på Stripe",
+    "waiting_title": "Väntar på dig",
+    "waiting_body": "Köparen har fått verket. Koppla Stripe nedan så skickas pengarna till ditt bankkonto automatiskt.",
     "connect_banner_title": "Koppla Stripe för att få betalt automatiskt",
     "connect_banner_body": "Pengarna från dina försäljningar skickas till ditt bankkonto när köparen har fått verket. Det tar några minuter och du behöver BankID.",
     "shipping_guide": {

@@ -103,7 +103,7 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
     include: {
       artwork: true,
       buyer: { select: { name: true, email: true } },
-      seller: { select: { name: true, email: true } },
+      seller: { select: { name: true, email: true, stripeAccountId: true, stripeOnboardingDone: true } },
     },
   });
   if (!order) throw new Error(`Order ${orderId} not found`);
@@ -187,6 +187,8 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
   const amountSek = amountRaw / 100;
   const { sellerPayoutAmount } = calculatePayout(order.amount, defaultCommissionRate());
 
+  const sellerStripeReady = Boolean(order.seller?.stripeAccountId && order.seller.stripeOnboardingDone);
+
   // Tell the artist right away, in the app as well as by email.
   if (order.sellerId) {
     try {
@@ -194,7 +196,9 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
         data: {
           userId: order.sellerId,
           type: 'artwork_sold',
-          message: `Du har sålt "${order.artwork.title}"! Packa och skicka verket till köparen. Du får ${Math.round(sellerPayoutAmount).toLocaleString('sv-SE')} kr när köparen har tagit emot det.`,
+          message:
+            `Du har sålt "${order.artwork.title}"! Packa och skicka verket till köparen. Du får ${Math.round(sellerPayoutAmount).toLocaleString('sv-SE')} kr när köparen har tagit emot det.` +
+            (sellerStripeReady ? '' : ' Koppla Stripe under Utbetalningar så att pengarna kan skickas till dig.'),
           link: '/seller/orders',
         },
       });
@@ -227,6 +231,7 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
       buyerName: order.buyer.name || 'Köparen',
       amountSek,
       sellerPayoutSek: sellerPayoutAmount,
+      sellerStripeReady,
       appUrl: APP_URL,
     });
     emails.push(sendEmail({ to: order.seller.email, ...mail }));

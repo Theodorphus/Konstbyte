@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
-import { isConnectAccountReady } from '../../../../lib/release-payout';
+import { isConnectAccountReady, releaseSellerPayout } from '../../../../lib/release-payout';
 
 const PAYOUTS_PAGE = `${APP_URL}/seller/payouts`;
 
@@ -34,6 +34,19 @@ export async function GET(request: NextRequest) {
         where: { id: user.id },
         data: { stripeOnboardingDone: true },
       });
+      // Pay out money that was waiting for the seller to connect Stripe.
+      const waiting = await prisma.order.findMany({
+        where: { sellerId: user.id, status: 'delivered', sellerPayoutStatus: 'awaiting_stripe' },
+        select: { id: true },
+      });
+      for (const { id } of waiting) {
+        try {
+          await releaseSellerPayout(id);
+        } catch (err) {
+          // The daily cron retries anything that's still waiting.
+          console.error(`[connect/return] releasing order ${id} failed:`, err);
+        }
+      }
       return NextResponse.redirect(`${PAYOUTS_PAGE}?connect=success`);
     }
     return NextResponse.redirect(`${PAYOUTS_PAGE}?connect=incomplete`);

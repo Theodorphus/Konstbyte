@@ -59,9 +59,11 @@ export async function GET(request: NextRequest) {
   const unpaid = await prisma.order.findMany({
     where: {
       status: 'delivered',
-      sellerPayoutStatus: 'unpaid',
+      // 'awaiting_stripe' = the seller hadn't connected Stripe yet; retried daily
+      // so the money goes out once they have.
+      sellerPayoutStatus: { in: ['unpaid', 'awaiting_stripe'] },
       paymentMethod: 'stripe',
-      // Only sellers who can actually receive a transfer; the rest wait for an admin.
+      // Only sellers who have at least started connecting Stripe.
       seller: { stripeAccountId: { not: null } },
     },
     select: { id: true },

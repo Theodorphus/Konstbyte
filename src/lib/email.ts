@@ -95,6 +95,8 @@ export function sellerNotificationEmail(opts: {
   buyerName: string;
   amountSek: number;
   sellerPayoutSek: number;
+  /** False when the seller hasn't connected Stripe yet; the email then asks them to. */
+  sellerStripeReady?: boolean;
   appUrl: string;
 }) {
   const { orderId, appUrl } = opts;
@@ -127,6 +129,12 @@ export function sellerNotificationEmail(opts: {
           💰 <strong>Utbetalning:</strong> pengarna skickas till ditt Stripe-konto när köparen har bekräftat
           att verket har kommit fram, eller automatiskt 14 dagar efter att du skickat det.
         </p>
+        ${opts.sellerStripeReady === false ? `
+        <p style="font-size:14px;color:#475569;margin-top:12px;padding:12px;background:#eef2ff;border-radius:6px">
+          💳 <strong>Koppla Stripe nu</strong> så att pengarna kan skickas till ditt bankkonto. Det tar
+          ungefär 5–10 minuter och du behöver BankID.
+          <a href="${appUrl}/seller/payouts" style="color:#4f46e5;font-weight:600">Koppla Stripe →</a>
+        </p>` : ''}
 
         <a href="${appUrl}/seller/orders"
           style="display:inline-block;margin-top:16px;padding:10px 20px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;font-size:14px">
@@ -177,6 +185,34 @@ export function shippedEmail(opts: {
           När verket har kommit fram: bekräfta mottagandet på ordersidan. Har det skadats under frakten
           eller dröjer det? Kontakta oss på konstbyte@gmail.com innan du bekräftar.
         </p>
+      </div>
+    `,
+  };
+}
+
+export function payoutWaitingEmail(opts: {
+  artworkTitle: string;
+  sellerPayoutSek: number;
+  appUrl: string;
+}) {
+  const title = escapeHtml(opts.artworkTitle);
+  const amount = Math.round(opts.sellerPayoutSek).toLocaleString('sv-SE');
+  return {
+    subject: `${amount} kr väntar på dig – koppla Stripe för att få dem`,
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
+        <h2 style="margin-bottom:4px">Köparen har fått ditt konstverk 🎉</h2>
+        <p style="font-size:14px;color:#475569">
+          <strong>${title}</strong> har kommit fram. Du har <strong>${amount} kr</strong> som väntar på dig.
+        </p>
+        <p style="font-size:14px;color:#475569;margin-top:12px;padding:12px;background:#eef2ff;border-radius:6px">
+          💳 <strong>Koppla Stripe för att få pengarna.</strong> Det tar ungefär 5–10 minuter och du behöver
+          BankID och ditt kontonummer. När du är klar skickas pengarna automatiskt till ditt bankkonto.
+        </p>
+        <a href="${opts.appUrl}/seller/payouts"
+          style="display:inline-block;margin-top:16px;padding:10px 20px;background:#4f46e5;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600">
+          Koppla Stripe och få betalt
+        </a>
       </div>
     `,
   };

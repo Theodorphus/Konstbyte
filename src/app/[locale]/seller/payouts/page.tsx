@@ -46,12 +46,22 @@ export default async function SellerPayoutsPage({
     .reduce((sum, p) => sum + p.sellerPayoutAmount, 0);
 
   const pendingCount = payouts.filter((p) => p.status === 'pending').length;
+  const waitingTotal = payouts
+    .filter((p) => p.status === 'awaiting_stripe')
+    .reduce((sum, p) => sum + p.sellerPayoutAmount, 0);
 
   function StatusPill({ status }: { status: string }) {
     if (status === 'completed') {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-green-100 text-green-700 border-green-200">
           {t('paid_status')}
+        </span>
+      );
+    }
+    if (status === 'awaiting_stripe') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-indigo-100 text-indigo-700 border-indigo-200">
+          {t('awaiting_stripe_status')}
         </span>
       );
     }
@@ -94,6 +104,15 @@ export default async function SellerPayoutsPage({
           }
         >
           {connectMessage.text}
+        </div>
+      )}
+
+      {/* Money held until the seller connects Stripe */}
+      {!stripeReady && waitingTotal > 0 && (
+        <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600 mb-1">{t('waiting_title')}</p>
+          <p className="text-2xl font-bold text-indigo-900">{formatSek(waitingTotal)}</p>
+          <p className="text-sm text-indigo-800 mt-1">{t('waiting_body')}</p>
         </div>
       )}
 
