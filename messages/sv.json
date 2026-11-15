@@ -466,6 +466,11 @@
     "days_ago": "{count} d sedan"
   },
   "orders": {
+    "confirm_received_title": "Har du fått konstverket?",
+    "confirm_received_body": "När du bekräftar betalas pengarna ut till konstnären. Det går inte att ångra. Har verket skadats eller saknas något? Kontakta oss på konstbyte@gmail.com i stället.",
+    "confirm_received_yes": "Ja, jag har fått verket",
+    "confirm_received_cancel": "Avbryt",
+    "confirm_received_sending": "Bekräftar…",
     "title": "Ordrar",
     "my_orders": "Mina köp",
     "seller_orders": "Säljarordrar",
@@ -695,6 +700,9 @@
     "go_home": "Gå till startsidan"
   },
   "cart": {
+    "shipping": "Frakt",
+    "sold": "Såld",
+    "own_artwork": "Det här är ditt eget konstverk.",
     "title": "Varukorg",
     "empty": "Din varukorg är tom",
     "checkout": "Till kassan",
@@ -900,7 +908,7 @@
     "next_step_1": "Konstnären packar och skickar ditt konstverk inom 1–2 arbetsdagar.",
     "next_step_2": "Du får ett e-postmeddelande med spårningsinformation när verket är skickat.",
     "next_step_3_prefix": "Vid frågor — kontakta oss på",
-    "legal": "Ditt köp är bindande. Ångerrätt gäller ej för original konstverk enligt distansavtalslagen 2 kap. 11 § p. 10.",
+    "legal": "Du har 14 dagars ångerrätt från att du tagit emot verket. Läs mer i våra köpvillkor.",
     "view_orders": "Visa mina beställningar",
     "keep_browsing": "Fortsätt utforska",
     "generic_thanks": "Tack för ditt köp. Konstnären kommer att packa och skicka ditt konstverk inom 1–2 arbetsdagar.",
@@ -958,6 +966,8 @@
     "published": "Publicerad"
   },
   "seller": {
+    "connect_banner_title": "Koppla Stripe för att få betalt automatiskt",
+    "connect_banner_body": "Pengarna från dina försäljningar skickas till ditt bankkonto när köparen har fått verket. Det tar några minuter och du behöver BankID.",
     "shipping_guide": {
       "title": "Så skickar du ditt konstverk",
       "show": "Visa",
@@ -1164,5 +1174,42 @@
     "form_success": "Tack! Jag återkommer inom 24 timmar.",
     "form_error": "Något gick fel — försök igen senare.",
     "form_note": "Jag återkommer inom 24 timmar. Ingen spam, inga säljsamtal."
+  },
+  "checkout": {
+    "buy_button": "Köp konstverk",
+    "dialog_label": "Kassa",
+    "title_checkout": "Genomför köp",
+    "title_address": "Leveransadress",
+    "close": "Stäng",
+    "by_artist": "av {name}",
+    "shipping": "Frakt",
+    "total": "Totalt",
+    "shipping_included": "Ingår",
+    "shipping_pickup": "Upphämtning",
+    "shipping_pickup_area": "Upphämtning – {area}",
+    "shipping_other": "Annat fraktbolag",
+    "shipping_agreed": "Överenskommes",
+    "shipping_agreed_note": "Frakten bestäms tillsammans med konstnären efter köpet.",
+    "pay_title": "Gå vidare till betalning",
+    "pay_methods": "Kort, Klarna, Apple Pay, Google Pay m.fl. Säkert via Stripe.",
+    "legal_note": "Säker betalning via Stripe. Konstnären får betalt först när du har tagit emot verket. 14 dagars ångerrätt.",
+    "connecting": "Ansluter till Stripe…",
+    "error_generic": "Något gick fel. Försök igen.",
+    "error_connect": "Kunde inte ansluta till betalningen. Kontrollera din uppkoppling och försök igen.",
+    "try_again": "Försök igen",
+    "back": "Tillbaka",
+    "country_default": "Sverige",
+    "label_name": "För- och efternamn",
+    "label_street": "Gatuadress",
+    "label_postal": "Postnummer",
+    "label_city": "Ort",
+    "label_country": "Land",
+    "label_phone": "Telefonnummer (valfritt)",
+    "error_name": "Ange för- och efternamn",
+    "error_street": "Ange gatuadress",
+    "error_postal": "Ange postnummer",
+    "error_city": "Ange ort",
+    "error_country": "Ange land",
+    "continue_to_payment": "Fortsätt till betalning →"
   }
 }

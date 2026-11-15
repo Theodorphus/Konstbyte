@@ -427,6 +427,11 @@
     "days_ago": "{count} d ago"
   },
   "orders": {
+    "confirm_received_title": "Have you received the artwork?",
+    "confirm_received_body": "When you confirm, the money is paid out to the artist. This can’t be undone. Is the artwork damaged or is something missing? Contact us at konstbyte@gmail.com instead.",
+    "confirm_received_yes": "Yes, I have the artwork",
+    "confirm_received_cancel": "Cancel",
+    "confirm_received_sending": "Confirming…",
     "title": "Orders",
     "my_orders": "My purchases",
     "seller_orders": "Seller orders",
@@ -656,6 +661,9 @@
     "go_home": "Go to homepage"
   },
   "cart": {
+    "shipping": "Shipping",
+    "sold": "Sold",
+    "own_artwork": "This is your own artwork.",
     "title": "Cart",
     "empty": "Your cart is empty",
     "checkout": "Checkout",
@@ -759,6 +767,8 @@
     "view_all_artworks": "View all artworks"
   },
   "seller": {
+    "connect_banner_title": "Connect Stripe to get paid automatically",
+    "connect_banner_body": "Money from your sales is sent to your bank account once the buyer has received the artwork. It takes a few minutes and you need BankID.",
     "shipping_guide": {
       "title": "How to ship your artwork",
       "show": "Show",
@@ -926,7 +936,7 @@
     "next_step_1": "The artist will pack and ship your artwork within 1–2 business days.",
     "next_step_2": "You will receive an email with tracking information when the work has been shipped.",
     "next_step_3_prefix": "For questions — contact us at",
-    "legal": "Your purchase is binding. The right of withdrawal does not apply to original artworks under the Distance Contracts Act.",
+    "legal": "You have a 14-day right of withdrawal from the day you receive the artwork. See our terms of purchase for details.",
     "view_orders": "View my orders",
     "keep_browsing": "Keep browsing",
     "generic_thanks": "Thank you for your purchase. The artist will pack and ship your artwork within 1–2 business days.",
@@ -1125,5 +1135,42 @@
     "form_success": "Thank you! I'll get back to you within 24 hours.",
     "form_error": "Something went wrong — please try again later.",
     "form_note": "I'll get back to you within 24 hours. No spam, no pushy sales calls."
+  },
+  "checkout": {
+    "buy_button": "Buy artwork",
+    "dialog_label": "Checkout",
+    "title_checkout": "Checkout",
+    "title_address": "Delivery address",
+    "close": "Close",
+    "by_artist": "by {name}",
+    "shipping": "Shipping",
+    "total": "Total",
+    "shipping_included": "Included",
+    "shipping_pickup": "Pickup",
+    "shipping_pickup_area": "Pickup – {area}",
+    "shipping_other": "Other carrier",
+    "shipping_agreed": "To be agreed",
+    "shipping_agreed_note": "Shipping is arranged with the artist after the purchase.",
+    "pay_title": "Continue to payment",
+    "pay_methods": "Card, Klarna, Apple Pay, Google Pay and more. Secure via Stripe.",
+    "legal_note": "Secure payment via Stripe. The artist is paid only after you have received the artwork. 14-day right of withdrawal.",
+    "connecting": "Connecting to Stripe…",
+    "error_generic": "Something went wrong. Please try again.",
+    "error_connect": "Couldn’t reach the payment service. Check your connection and try again.",
+    "try_again": "Try again",
+    "back": "Back",
+    "country_default": "Sweden",
+    "label_name": "Full name",
+    "label_street": "Street address",
+    "label_postal": "Postal code",
+    "label_city": "City",
+    "label_country": "Country",
+    "label_phone": "Phone number (optional)",
+    "error_name": "Enter your full name",
+    "error_street": "Enter your street address",
+    "error_postal": "Enter your postal code",
+    "error_city": "Enter your city",
+    "error_country": "Enter your country",
+    "continue_to_payment": "Continue to payment →"
   }
 }

@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
-import CheckoutButton from '@/components/CheckoutButton';
+import ArtworkCheckoutButton from '@/components/ArtworkCheckoutButton';
+import { getCurrentUser } from '@/lib/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SafeImage from '@/components/SafeImage';
 import { Link } from '@/i18n/navigation';
@@ -16,12 +17,18 @@ export default async function CartPage({ searchParams }: { searchParams: Promise
     searchParams,
     getTranslations('cart'),
   ]);
-  const artwork = artworkId
-    ? await prisma.artwork.findUnique({
-        where: { id: artworkId },
-        include: { owner: true },
-      })
-    : null;
+  const [found, user] = await Promise.all([
+    artworkId
+      ? prisma.artwork.findUnique({
+          where: { id: artworkId },
+          include: { owner: { select: { name: true } } },
+        })
+      : null,
+    getCurrentUser(),
+  ]);
+  // Only unsold, published artworks can be bought.
+  const artwork = found && found.isPublished ? found : null;
+  const shippingCost = artwork?.shippingType === 'fixed' ? (artwork.shippingCost ?? 0) : 0;
 
   return (
     <div className="space-y-6">
@@ -76,11 +83,35 @@ export default async function CartPage({ searchParams }: { searchParams: Promise
                   <span className="text-slate-600">{t('price')}</span>
                   <span className="font-semibold">{formatSek(artwork.price)}</span>
                 </div>
+                {shippingCost > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">{t('shipping')}</span>
+                    <span>{formatSek(shippingCost)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between pt-2 border-t">
                   <span className="font-semibold">{t('total')}</span>
-                  <span className="font-bold text-lg">{formatSek(artwork.price)}</span>
+                  <span className="font-bold text-lg">{formatSek(artwork.price + shippingCost)}</span>
                 </div>
-                <CheckoutButton artworkId={artwork.id} />
+                {artwork.isSold ? (
+                  <p className="w-full px-4 py-3 rounded-xl bg-slate-100 text-slate-500 font-semibold text-center text-sm">
+                    {t('sold')}
+                  </p>
+                ) : user?.id === artwork.ownerId ? (
+                  <p className="text-sm text-slate-500 text-center">{t('own_artwork')}</p>
+                ) : (
+                  <ArtworkCheckoutButton
+                    artworkId={artwork.id}
+                    title={artwork.title}
+                    imageUrl={artwork.imageUrl ?? ''}
+                    price={artwork.price ?? 0}
+                    ownerName={artwork.owner.name ?? t('anonymous_artist')}
+                    shippingType={artwork.shippingType}
+                    shippingCost={artwork.shippingCost ?? 0}
+                    shippingArea={artwork.shippingArea ?? ''}
+                    shippingCarrier={artwork.shippingCarrier ?? ''}
+                  />
+                )}
               </CardContent>
             </Card>
           </div>

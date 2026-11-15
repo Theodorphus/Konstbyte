@@ -57,7 +57,7 @@ export default async function KopvillkorPage() {
           Du har rätt att ångra ditt köp inom <strong>14 dagar</strong> från det att du tagit emot varan, i enlighet med distans- och hemförsäljningslagen (2005:59). Ångerrätten gäller under förutsättning att varan återlämnas i ursprungligt skick.
         </p>
         <p>
-          För att utöva din ångerrätt kontaktar du konstnären direkt. Returfrakten bekostas normalt av köparen, om inte annat avtalats.
+          För att utöva din ångerrätt kontaktar du Konstbyte på konstbyte@gmail.com inom 14 dagar. Returfrakten bekostas normalt av köparen, om inte annat avtalats.
         </p>
         <p>
           Observera att ångerrätten inte gäller för konstverk som är specialtillverkade eller tydligt personliga.
