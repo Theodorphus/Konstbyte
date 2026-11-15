@@ -217,3 +217,29 @@ export function payoutWaitingEmail(opts: {
     `,
   };
 }
+
+export function shipReminderEmail(opts: { artworkTitle: string; days: number; appUrl: string }) {
+  const title = escapeHtml(opts.artworkTitle);
+  return {
+    subject: `Påminnelse: skicka "${opts.artworkTitle}" till köparen`,
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
+        <h2 style="margin-bottom:4px">Köparen väntar på sitt konstverk 📦</h2>
+        <p style="font-size:14px;color:#475569">
+          Det har gått ${opts.days} dagar sedan någon köpte <strong>${title}</strong>, men verket är inte markerat som skickat än.
+        </p>
+        <p style="font-size:14px;color:#475569">
+          Skicka verket så snart du kan och tryck sedan på <strong>Markera som skickat</strong> på dina ordrar,
+          gärna med spårningsnummer. Du får betalt när köparen har tagit emot verket.
+        </p>
+        <p style="font-size:14px;color:#475569">
+          Kan du inte skicka det? Svara på det här mejlet eller kontakta oss på konstbyte@gmail.com, så hjälper vi köparen.
+        </p>
+        <a href="${opts.appUrl}/seller/orders"
+          style="display:inline-block;margin-top:16px;padding:10px 20px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600">
+          Till mina ordrar
+        </a>
+      </div>
+    `,
+  };
+}

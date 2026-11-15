@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../lib/prisma';
 import { markOrderDelivered, releaseSellerPayout } from '../../../../lib/release-payout';
+import { sendEmail, shipReminderEmail, escapeHtml } from '../../../../lib/email';
+import { adminEmails } from '../../../../lib/admin';
+import { APP_URL } from '../../../../lib/urls';
 
 // GET /api/cron/release-payouts — run daily by Vercel Cron (see vercel.json).
 //
@@ -8,6 +11,9 @@ import { markOrderDelivered, releaseSellerPayout } from '../../../../lib/release
 //    are marked delivered and the artist is paid.
 // 2. Delivered orders whose payout is still unpaid (e.g. the artist connected
 //    Stripe afterwards, or a transfer failed) are retried.
+// 3. Paid orders that haven't been shipped: the artist is reminded after
+//    SHIP_REMINDER_DAYS (default 3) and the admins are told after
+//    SHIP_OVERDUE_DAYS (default 7), so a buyer is never left waiting unnoticed.
 //
 // Vercel sends `Authorization: Bearer $CRON_SECRET` automatically when the
 // CRON_SECRET env var is set on the project.
@@ -82,5 +88,85 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ autoDelivered, payouts: results });
+  const reminders = await remindUnshipped();
+
+  return NextResponse.json({ autoDelivered, payouts: results, ...reminders });
+}
+
+const DAY = 24 * 60 * 60 * 1000;
+
+async function remindUnshipped() {
+  const reminderDays = Number(process.env.SHIP_REMINDER_DAYS) || 3;
+  const overdueDays = Number(process.env.SHIP_OVERDUE_DAYS) || 7;
+  const unshipped = { status: { in: ['completed', 'paid'] }, shippingStatus: 'not_shipped' };
+  const select = {
+    id: true,
+    sellerId: true,
+    seller: { select: { email: true } },
+    artwork: { select: { title: true } },
+  };
+
+  // Each reminder is sent once: the order event marks it as done.
+  const toRemind = await prisma.order.findMany({
+    where: {
+      ...unshipped,
+      createdAt: { lt: new Date(Date.now() - reminderDays * DAY) },
+      events: { none: { type: 'ship_reminder' } },
+    },
+    select,
+    take: BATCH,
+  });
+  let shipReminders = 0;
+  for (const order of toRemind) {
+    if (!order.sellerId) continue;
+    await prisma.$transaction([
+      prisma.orderEvent.create({
+        data: { orderId: order.id, type: 'ship_reminder', message: 'Konstnären påmindes om att skicka verket.' },
+      }),
+      prisma.notification.create({
+        data: {
+          userId: order.sellerId,
+          type: 'ship_reminder',
+          message: `Köparen väntar på "${order.artwork.title}". Skicka verket och markera det som skickat.`,
+          link: '/seller/orders',
+        },
+      }),
+    ]);
+    shipReminders++;
+    if (order.seller?.email) {
+      const mail = shipReminderEmail({ artworkTitle: order.artwork.title, days: reminderDays, appUrl: APP_URL });
+      await sendEmail({ to: order.seller.email, ...mail }).catch((err) =>
+        console.error(`[cron/release-payouts] reminder email failed for ${order.id}:`, err),
+      );
+    }
+  }
+
+  const overdue = await prisma.order.findMany({
+    where: {
+      ...unshipped,
+      createdAt: { lt: new Date(Date.now() - overdueDays * DAY) },
+      events: { none: { type: 'ship_overdue' } },
+    },
+    select,
+    take: BATCH,
+  });
+  for (const order of overdue) {
+    await prisma.orderEvent.create({
+      data: { orderId: order.id, type: 'ship_overdue', message: `Inte skickad efter ${overdueDays} dagar. Konstbyte har meddelats.` },
+    });
+  }
+  if (overdue.length > 0) {
+    const list = overdue
+      .map((o) => `<li><a href="${APP_URL}/orders/${o.id}">#${o.id.slice(-8).toUpperCase()}</a> – ${escapeHtml(o.artwork.title)}</li>`)
+      .join('');
+    const html = `<div style="font-family:sans-serif;max-width:560px">
+      <p>De här köpen har inte skickats ${overdueDays} dagar efter betalningen. Kontakta konstnären, och återbetala köparen i Stripe om verket inte kan skickas (då stoppas utbetalningen automatiskt).</p>
+      <ul>${list}</ul>
+    </div>`;
+    await Promise.allSettled(
+      adminEmails().map((to) => sendEmail({ to, subject: `${overdue.length} köp har inte skickats`, html })),
+    );
+  }
+
+  return { shipReminders, shipOverdue: overdue.length };
 }

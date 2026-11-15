@@ -98,7 +98,8 @@ export default function NotificationsPage() {
       case 'purchase': return '🎨';
       case 'artwork_sold': return '🎉';
       case 'new_order': return '🛒';
-      case 'shipped': return '📦';
+      case 'shipped':
+      case 'ship_reminder': return '📦';
       case 'order_delivered':
       case 'order_auto_delivered':
       case 'payout_sent': return '💰';
