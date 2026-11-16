@@ -10,6 +10,7 @@ import TrackingInfo from '@/components/shipping/TrackingInfo';
 import SellerShippingPanel from '@/components/shipping/SellerShippingPanel';
 import ConfirmReceivedButton from '@/components/shipping/ConfirmReceivedButton';
 import { getTranslations } from 'next-intl/server';
+import { isAdmin } from '@/lib/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,12 +34,17 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   });
 
   if (!order) return notFound();
-  if (order.buyerId !== user.id && order.sellerId !== user.id) return notFound();
+  // Admins can look at any order (the links in their alert emails point here).
+  const viewerIsAdmin = isAdmin(user.email);
+  if (order.buyerId !== user.id && order.sellerId !== user.id && !viewerIsAdmin) return notFound();
 
   const item = order.items[0];
   const isSeller = order.sellerId === user.id;
   const isBuyer = order.buyerId === user.id;
-  const canReceive = isBuyer && order.shippingStatus === 'shipped';
+  const isRefunded = order.status === 'refunded';
+  const isPaid = ['completed', 'paid', 'delivered'].includes(order.status);
+  const canReceive = isBuyer && isPaid && order.shippingStatus === 'shipped';
+  const payoutState = order.sellerPayoutStatus;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 py-8 px-4">
@@ -49,7 +55,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         </Link>
         <div className="flex items-start justify-between mt-3 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Order #{id.slice(0, 8).toUpperCase()}</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Order #{id.slice(-8).toUpperCase()}</h1>
             <p className="text-sm text-slate-500 mt-0.5">
               {new Date(order.createdAt).toLocaleDateString('sv-SE', { year: 'numeric', month: 'long', day: 'numeric' })}
               {' · '}{order.paymentMethod === 'swish' ? t('paid_swish') : t('paid_card')}
@@ -57,6 +63,24 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       </div>
+
+      {viewerIsAdmin && !isBuyer && !isSeller && (
+        <p className="text-xs rounded-lg px-3 py-2 bg-slate-100 text-slate-600">{t('admin_view')}</p>
+      )}
+
+      {isRefunded && (
+        <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+          <p className="font-semibold">↩️ {t('refunded_title')}</p>
+          <p className="mt-1">{isSeller ? t('refunded_desc_seller') : t('refunded_desc_buyer')}</p>
+        </div>
+      )}
+
+      {!isRefunded && !isPaid && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <p className="font-semibold">{t('not_paid_title')}</p>
+          <p className="mt-1">{t('not_paid_desc')}</p>
+        </div>
+      )}
 
       {/* Product summary */}
       {item && (
@@ -79,6 +103,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       )}
 
       {/* Shipping status + actions */}
+      {isPaid && (
       <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm space-y-5">
         <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">{t('delivery_status_label')}</p>
 
@@ -114,6 +139,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           </div>
         )}
       </div>
+      )}
 
       {/* Shipping method summary */}
       <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm space-y-2">
@@ -153,9 +179,10 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
           <p className="font-semibold mb-1">💰 {t('payout_title')}</p>
           <p>{t('payout_desc')}</p>
-          {order.sellerPayoutStatus === 'paid' && (
-            <p className="mt-2 text-green-700 font-medium">✓ {t('payout_done')}</p>
-          )}
+          {payoutState === 'paid' && <p className="mt-2 text-green-700 font-medium">✓ {t('payout_done')}</p>}
+          {payoutState === 'awaiting_stripe' && <p className="mt-2 font-medium">{t('payout_awaiting_stripe')}</p>}
+          {payoutState === 'on_hold' && <p className="mt-2 text-red-700 font-medium">{t('payout_on_hold')}</p>}
+          {payoutState === 'cancelled' && <p className="mt-2 text-red-700 font-medium">{t('payout_cancelled')}</p>}
         </div>
       )}
 
