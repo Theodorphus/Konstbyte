@@ -5,9 +5,6 @@ import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 
-// Must match PLATFORM_FEE_PERCENT env var
-const COMMISSION_RATE = 0.03;
-
 interface Order {
   id: string;
   amount: number;
@@ -16,6 +13,9 @@ interface Order {
   artwork: { id: string; title: string; imageUrl: string } | null;
   buyer: { name: string | null; email: string } | null;
   seller: { id: string; name: string | null; email: string } | null;
+  sellerPayoutNote?: string | null;
+  // Saved when the payout was calculated (net of commission and Stripe's fee).
+  payout?: { sellerPayoutAmount: number; commissionAmount: number; adminNote: string | null } | null;
 }
 
 interface CompletedPayout {
@@ -45,12 +45,17 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('sv-SE', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-function CommissionBreakdown({ amount }: { amount: number }) {
+function CommissionBreakdown({ order }: { order: Order }) {
   const t = useTranslations('admin');
-  const commission = amount * COMMISSION_RATE;
-  const sellerAmount = amount - commission;
+  const { amount, payout } = order;
+  if (!payout) {
+    return <p className="text-xs text-stone-500 mt-3 pt-3 border-t border-stone-100">{t('payout_not_calculated')}</p>;
+  }
+  const commission = payout.commissionAmount;
+  const sellerAmount = payout.sellerPayoutAmount;
+  const stripeFee = Math.max(0, amount - commission - sellerAmount);
   return (
-    <div className="grid grid-cols-3 gap-2 text-xs mt-3 pt-3 border-t border-stone-100">
+    <div className="grid grid-cols-4 gap-2 text-xs mt-3 pt-3 border-t border-stone-100">
       <div>
         <p className="text-stone-400 mb-0.5">{t('order_total')}</p>
         <p className="font-semibold text-slate-800">{formatAmount(amount)}</p>
@@ -58,6 +63,10 @@ function CommissionBreakdown({ amount }: { amount: number }) {
       <div>
         <p className="text-stone-400 mb-0.5">{t('commission')}</p>
         <p className="font-semibold text-red-600">−{formatAmount(commission)}</p>
+      </div>
+      <div>
+        <p className="text-stone-400 mb-0.5">{t('stripe_fee')}</p>
+        <p className="font-semibold text-red-600">−{formatAmount(stripeFee)}</p>
       </div>
       <div>
         <p className="text-stone-400 mb-0.5">{t('to_seller')}</p>
@@ -79,6 +88,8 @@ function OrderCard({
   showCommission,
   method,
   onMethodChange,
+  secondaryLabel,
+  onSecondary,
 }: {
   order: Order;
   actionLabel: string;
@@ -91,6 +102,8 @@ function OrderCard({
   showCommission: boolean;
   method?: 'swish' | 'bank';
   onMethodChange?: (m: 'swish' | 'bank') => void;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
 }) {
   const t = useTranslations('admin');
   return (
@@ -128,7 +141,14 @@ function OrderCard({
             </div>
           </div>
 
-          {showCommission && <CommissionBreakdown amount={order.amount} />}
+          {showCommission && <CommissionBreakdown order={order} />}
+
+          {order.sellerPayoutNote && (
+            <p className="text-xs mt-3 p-2.5 rounded-lg bg-red-50 border border-red-100 text-red-800">{order.sellerPayoutNote}</p>
+          )}
+          {order.payout?.adminNote && !order.sellerPayoutNote && (
+            <p className="text-xs mt-3 text-stone-500 italic">{order.payout.adminNote}</p>
+          )}
 
           {onMethodChange && method && (
             <div className="flex items-center gap-4 pt-3 text-sm">
@@ -175,6 +195,15 @@ function OrderCard({
             >
               {loading ? t('saving') : actionLabel}
             </button>
+            {onSecondary && secondaryLabel && (
+              <button
+                onClick={onSecondary}
+                disabled={loading}
+                className="flex-shrink-0 px-4 py-1.5 text-sm font-semibold rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-50 disabled:opacity-60 transition-colors"
+              >
+                {secondaryLabel}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -251,6 +280,7 @@ export default function AdminPayoutsPage() {
   const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
   const [pendingSwish, setPendingSwish] = useState<Order[]>([]);
   const [unpaidPayouts, setUnpaidPayouts] = useState<Order[]>([]);
+  const [onHold, setOnHold] = useState<Order[]>([]);
   const [completedPayouts, setCompletedPayouts] = useState<CompletedPayout[]>([]);
   const [loading, setLoading] = useState(true);
   const [completedLoading, setCompletedLoading] = useState(false);
@@ -266,6 +296,7 @@ export default function AdminPayoutsPage() {
         if (data.pendingSwish) {
           setPendingSwish(data.pendingSwish);
           setUnpaidPayouts(data.unpaidPayouts);
+          setOnHold(data.onHold ?? []);
         } else {
           setError(data.error ?? t('error_unknown'));
         }
@@ -285,7 +316,8 @@ export default function AdminPayoutsPage() {
       .finally(() => setCompletedLoading(false));
   }, [activeTab, completedPayouts.length]);
 
-  async function doAction(orderId: string, action: 'confirm_swish' | 'payout') {
+  async function doAction(orderId: string, action: 'confirm_swish' | 'payout' | 'release_hold' | 'cancel_payout') {
+    if (action === 'cancel_payout' && !confirm(t('cancel_payout_confirm'))) return;
     setActingId(orderId);
     try {
       const res = await fetch('/api/admin/payouts', {
@@ -302,6 +334,9 @@ export default function AdminPayoutsPage() {
       if (!res.ok) { alert(data.error ?? 'Fel'); return; }
       if (action === 'confirm_swish') {
         setPendingSwish((prev) => prev.filter((o) => o.id !== orderId));
+      } else if (action === 'release_hold' || action === 'cancel_payout') {
+        setOnHold((prev) => prev.filter((o) => o.id !== orderId));
+        setCompletedPayouts([]);
       } else {
         setUnpaidPayouts((prev) => prev.filter((o) => o.id !== orderId));
         // Reset completed cache so it reloads if user switches tab
@@ -312,8 +347,9 @@ export default function AdminPayoutsPage() {
     }
   }
 
-  const totalPayout = unpaidPayouts.reduce((s, o) => s + (o.amount * (1 - COMMISSION_RATE)), 0);
-  const isEmpty = pendingSwish.length === 0 && unpaidPayouts.length === 0;
+  const totalPayout = unpaidPayouts.reduce((s, o) => s + (o.payout?.sellerPayoutAmount ?? 0), 0);
+  const pendingCount = pendingSwish.length + unpaidPayouts.length + onHold.length;
+  const isEmpty = pendingCount === 0;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 space-y-10">
@@ -332,9 +368,9 @@ export default function AdminPayoutsPage() {
           className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${activeTab === 'pending' ? 'bg-white text-slate-900 shadow-sm' : 'text-stone-500 hover:text-slate-800'}`}
         >
           {t('tab_pending')}
-          {(pendingSwish.length + unpaidPayouts.length) > 0 && (
+          {pendingCount > 0 && (
             <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
-              {pendingSwish.length + unpaidPayouts.length}
+              {pendingCount}
             </span>
           )}
         </button>
@@ -356,6 +392,33 @@ export default function AdminPayoutsPage() {
               <div className="text-3xl">✓</div>
               <p className="text-slate-500">{t('all_done')}</p>
             </div>
+          )}
+
+          {onHold.length > 0 && (
+            <section className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-red-500" />
+                <h2 className="font-semibold text-slate-900">{t('on_hold_title')}</h2>
+                <span className="ml-auto text-xs text-slate-400">{t('orders_count', { count: onHold.length })}</span>
+              </div>
+              <p className="text-xs text-slate-500 -mt-1">{t('on_hold_desc')}</p>
+              {onHold.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  actionLabel={t('release_hold')}
+                  actionColor="bg-slate-800 hover:bg-slate-900"
+                  note={notes[order.id] ?? ''}
+                  onNoteChange={(v) => setNotes((p) => ({ ...p, [order.id]: v }))}
+                  onAction={() => doAction(order.id, 'release_hold')}
+                  secondaryLabel={t('cancel_payout')}
+                  onSecondary={() => doAction(order.id, 'cancel_payout')}
+                  loading={actingId === order.id}
+                  showNote={false}
+                  showCommission={false}
+                />
+              ))}
+            </section>
           )}
 
           {pendingSwish.length > 0 && (

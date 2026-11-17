@@ -22,7 +22,7 @@ export default async function PrivacyPage() {
       <PolicySection title="1. Personuppgiftsansvarig">
         <p>
           Konstbyte är personuppgiftsansvarig för behandlingen av dina personuppgifter. Kontakta oss vid frågor:{' '}
-          <a href="mailto:konstbyte@gmail.com" className="underline underline-offset-2">konstbyte@gmail.com</a>
+          <a href="mailto:webbdevstudio@gmail.com" className="underline underline-offset-2">webbdevstudio@gmail.com</a>
         </p>
       </PolicySection>
 
@@ -116,7 +116,7 @@ export default async function PrivacyPage() {
         ]} />
         <p>
           Kontakta oss på{' '}
-          <a href="mailto:konstbyte@gmail.com" className="underline underline-offset-2">konstbyte@gmail.com</a>{' '}
+          <a href="mailto:webbdevstudio@gmail.com" className="underline underline-offset-2">webbdevstudio@gmail.com</a>{' '}
           för att utöva dina rättigheter. Vi svarar inom 30 dagar.
         </p>
       </PolicySection>

@@ -81,6 +81,15 @@ describe('releaseSellerPayout', () => {
     );
   });
 
+  it('pays the share of what the buyer kept after a released partial refund', async () => {
+    prisma.order.findUnique.mockResolvedValue(paidOrder());
+    stripe.charges.retrieve.mockResolvedValue({ balance_transaction: { fee: 1680 }, amount_refunded: 20_000 });
+
+    // 800 kr kept − 3 % (24 kr) − 16,80 kr Stripe fee
+    expect(await releaseSellerPayout('order_1')).toEqual({ status: 'transferred', transferId: 'tr_1', sellerPayoutAmount: 759.2 });
+    expect(stripe.transfers.create).toHaveBeenCalledWith(expect.objectContaining({ amount: 75_920 }), expect.anything());
+  });
+
   it('holds the money and asks the artist to connect Stripe when they have not', async () => {
     prisma.order.findUnique.mockResolvedValue(
       paidOrder({ seller: { id: 'seller_1', email: 'seller@example.com', stripeAccountId: null, stripeOnboardingDone: false } }),
@@ -156,6 +165,12 @@ describe('releaseSellerPayout', () => {
     const result = await releaseSellerPayout('order_1');
 
     expect(result.status).toBe('manual');
+    expect(stripe.transfers.create).not.toHaveBeenCalled();
+  });
+
+  it.each(['on_hold', 'cancelled'])('never pays out an order whose payout is %s (refund or dispute)', async (status) => {
+    prisma.order.findUnique.mockResolvedValue(paidOrder({ sellerPayoutStatus: status }));
+    expect(await releaseSellerPayout('order_1')).toEqual({ status: 'skipped', reason: status });
     expect(stripe.transfers.create).not.toHaveBeenCalled();
   });
 

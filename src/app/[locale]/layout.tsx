@@ -88,7 +88,7 @@ async function FooterContent({ locale, currentYear }: { locale: string; currentY
             {t('brand_tagline')}
           </p>
           <div className="space-y-1 text-slate-500 text-xs">
-            <p><span aria-hidden="true">📧</span> <a href="mailto:konstbyte@gmail.com" className="hover:text-slate-700 transition-colors">konstbyte@gmail.com</a></p>
+            <p><span aria-hidden="true">📧</span> <a href="mailto:webbdevstudio@gmail.com" className="hover:text-slate-700 transition-colors">webbdevstudio@gmail.com</a></p>
             <p><span aria-hidden="true">📍</span> {t('location')}</p>
           </div>
         </div>

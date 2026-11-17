@@ -35,7 +35,7 @@ const faqData: FAQSection[] = [
       },
       {
         question: 'Kan jag returnera ett köpt konstverk?',
-        answer: 'Ja. Du har 14 dagars ångerrätt från den dag du tar emot konstverket. Kontakta oss på konstbyte@gmail.com så hjälper vi dig med returen. Verket ska skickas tillbaka i ursprungligt skick, och returfrakten betalas normalt av köparen.',
+        answer: 'Ja. Du har 14 dagars ångerrätt från den dag du tar emot konstverket. Kontakta oss på webbdevstudio@gmail.com så hjälper vi dig med returen. Verket ska skickas tillbaka i ursprungligt skick, och returfrakten betalas normalt av köparen.',
       },
       {
         question: 'Vad kostar det att köpa?',
@@ -117,7 +117,7 @@ const faqData: FAQSection[] = [
       },
       {
         question: 'Hur raderar jag mitt konto?',
-        answer: 'Kontakta oss på konstbyte@gmail.com med en radering förfrågan. Vi raderar ditt konto och dina personuppgifter inom 30 dagar, med undantag för transaktionsdata.',
+        answer: 'Kontakta oss på webbdevstudio@gmail.com med en radering förfrågan. Vi raderar ditt konto och dina personuppgifter inom 30 dagar, med undantag för transaktionsdata.',
       },
       {
         question: 'Är mina meddelanden privata?',
@@ -135,7 +135,7 @@ const faqData: FAQSection[] = [
     items: [
       {
         question: 'Jag kan inte logga in — vad gör jag?',
-        answer: 'Prova att rensa webbläsarens cache och cookies. Kontrollera att du loggar in med rätt Google-konto. Kontakta oss på konstbyte@gmail.com om problemet kvarstår.',
+        answer: 'Prova att rensa webbläsarens cache och cookies. Kontrollera att du loggar in med rätt Google-konto. Kontakta oss på webbdevstudio@gmail.com om problemet kvarstår.',
       },
       {
         question: 'Min bild laddas inte upp — varför?',
@@ -143,11 +143,11 @@ const faqData: FAQSection[] = [
       },
       {
         question: 'Betalningen gick igenom men jag fick inget kvitto — vad gör jag?',
-        answer: 'Stripe skickar ett kvitto automatiskt till din e-post. Kolla skräpposten. Om du fortfarande inte fått något, kontakta konstbyte@gmail.com med ordernumret.',
+        answer: 'Stripe skickar ett kvitto automatiskt till din e-post. Kolla skräpposten. Om du fortfarande inte fått något, kontakta webbdevstudio@gmail.com med ordernumret.',
       },
       {
         question: 'Jag ser ett konstverk som verkar bryta mot reglerna — hur anmäler jag?',
-        answer: 'Skicka ett e-postmeddelande till konstbyte@gmail.com med en länk till konstverket och en kort beskrivning av problemet. Vi granskar alla anmälningar.',
+        answer: 'Skicka ett e-postmeddelande till webbdevstudio@gmail.com med en länk till konstverket och en kort beskrivning av problemet. Vi granskar alla anmälningar.',
       },
       {
         question: 'Mitt konstverk visas inte i sökresultaten — varför?',
@@ -217,7 +217,7 @@ export default function FAQPage() {
         <p className="text-sm font-medium text-amber-900">{t('faq_not_found_title')}</p>
         <p className="text-sm text-amber-800">{t('faq_not_found_msg')}</p>
         <Link
-          href="mailto:konstbyte@gmail.com"
+          href="mailto:webbdevstudio@gmail.com"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors"
         >
           {t('faq_write')}

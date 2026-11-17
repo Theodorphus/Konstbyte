@@ -104,7 +104,7 @@ export default async function AnvandarvillkorPage() {
         <h2 className="text-xl font-semibold">9. Kontakt</h2>
         <p>
           Kontakta oss på{' '}
-          <a href="mailto:hej@konstbyte.se" className="underline text-blue-600">hej@konstbyte.se</a>{' '}
+          <a href="mailto:webbdevstudio@gmail.com" className="underline text-blue-600">webbdevstudio@gmail.com</a>{' '}
           vid frågor om dessa villkor.
         </p>
       </section>

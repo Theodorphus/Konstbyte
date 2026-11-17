@@ -25,7 +25,7 @@ export default async function TermsPage() {
         </p>
         <p>
           Konstbyte.se ägs och drivs av Konstbyte. Alla frågor kan riktas till{' '}
-          <a href="mailto:konstbyte@gmail.com" className="underline underline-offset-2">konstbyte@gmail.com</a>.
+          <a href="mailto:webbdevstudio@gmail.com" className="underline underline-offset-2">webbdevstudio@gmail.com</a>.
         </p>
       </PolicySection>
 

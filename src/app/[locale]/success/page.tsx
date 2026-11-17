@@ -103,8 +103,8 @@ async function SuccessContent({ orderId }: { orderId: string }) {
           <li className="flex items-start gap-2">
             <span className="mt-0.5 text-amber-500">✓</span>
             {t('next_step_3_prefix')}{' '}
-            <a href="mailto:konstbyte@gmail.com" className="underline underline-offset-2">
-              konstbyte@gmail.com
+            <a href="mailto:webbdevstudio@gmail.com" className="underline underline-offset-2">
+              webbdevstudio@gmail.com
             </a>
             .
           </li>
