@@ -89,7 +89,7 @@ export default async function AIPolicyPage() {
         </p>
         <p>
           Vi välkomnar feedback om AI-verktygen via{' '}
-          <a href="mailto:konstbyte@gmail.com" className="underline underline-offset-2">konstbyte@gmail.com</a>.
+          <a href="mailto:webbdevstudio@gmail.com" className="underline underline-offset-2">webbdevstudio@gmail.com</a>.
         </p>
       </PolicySection>
     </PolicyLayout>

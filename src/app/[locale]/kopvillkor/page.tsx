@@ -57,7 +57,7 @@ export default async function KopvillkorPage() {
           Du har rätt att ångra ditt köp inom <strong>14 dagar</strong> från det att du tagit emot varan, i enlighet med distans- och hemförsäljningslagen (2005:59). Ångerrätten gäller under förutsättning att varan återlämnas i ursprungligt skick.
         </p>
         <p>
-          För att utöva din ångerrätt kontaktar du Konstbyte på konstbyte@gmail.com inom 14 dagar. Returfrakten bekostas normalt av köparen, om inte annat avtalats.
+          För att utöva din ångerrätt kontaktar du Konstbyte på webbdevstudio@gmail.com inom 14 dagar. Returfrakten bekostas normalt av köparen, om inte annat avtalats.
         </p>
         <p>
           Observera att ångerrätten inte gäller för konstverk som är specialtillverkade eller tydligt personliga.
@@ -92,7 +92,7 @@ export default async function KopvillkorPage() {
         <h2 className="text-xl font-semibold">9. Kontakt</h2>
         <p>
           Frågor om ett köp riktas i första hand till konstnären. Kan du inte lösa ärendet kontaktar du Konstbyte på{' '}
-          <a href="mailto:hej@konstbyte.se" className="underline text-blue-600">hej@konstbyte.se</a>.
+          <a href="mailto:webbdevstudio@gmail.com" className="underline text-blue-600">webbdevstudio@gmail.com</a>.
         </p>
       </section>
     </div>

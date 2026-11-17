@@ -62,7 +62,7 @@ export default async function ContentPolicyPage() {
         </p>
         <p>
           Om du anser att ditt upphovsrättsligt skyddade material publicerats på Konstbyte utan ditt tillstånd, kontakta oss omgående på{' '}
-          <a href="mailto:konstbyte@gmail.com" className="underline underline-offset-2">konstbyte@gmail.com</a>{' '}
+          <a href="mailto:webbdevstudio@gmail.com" className="underline underline-offset-2">webbdevstudio@gmail.com</a>{' '}
           med en beskrivning av situationen och ditt krav.
         </p>
       </PolicySection>
@@ -81,7 +81,7 @@ export default async function ContentPolicyPage() {
       <PolicySection title="6. Anmälningar och åtgärder">
         <p>
           Ser du innehåll som verkar bryta mot dessa riktlinjer? Kontakta oss på{' '}
-          <a href="mailto:konstbyte@gmail.com" className="underline underline-offset-2">konstbyte@gmail.com</a>.
+          <a href="mailto:webbdevstudio@gmail.com" className="underline underline-offset-2">webbdevstudio@gmail.com</a>.
           Vi granskar alla anmälningar och agerar om vi bedömer att ett brott har skett.
         </p>
         <p>

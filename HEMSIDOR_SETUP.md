@@ -60,7 +60,7 @@ USING (auth.uid() IS NOT NULL);
 
 ## 📧 Email Notifications Setup
 
-**Mottagare:** `konstbyte@gmail.com`
+**Mottagare:** `webbdevstudio@gmail.com`
 
 För att få email-notifieringar när nya leads kommer in, lägg till dessa miljövariabler i `.env.local`:
 
@@ -95,7 +95,7 @@ Uppdatera `transporter`-konfigurationen i `src/app/api/lead/route.ts` för din t
 npm run dev
 # Öppna http://localhost:3000/sv/hemsidor
 # Skicka testformulär
-# Du bör få email på konstbyte@gmail.com efter ~5 sekunder
+# Du bör få email på webbdevstudio@gmail.com efter ~5 sekunder
 ```
 
 ## 📱 Länk & Routing

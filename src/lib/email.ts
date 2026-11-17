@@ -183,7 +183,7 @@ export function shippedEmail(opts: {
 
         <p style="margin-top:24px;font-size:12px;color:#94a3b8">
           När verket har kommit fram: bekräfta mottagandet på ordersidan. Har det skadats under frakten
-          eller dröjer det? Kontakta oss på konstbyte@gmail.com innan du bekräftar.
+          eller dröjer det? Kontakta oss på webbdevstudio@gmail.com innan du bekräftar.
         </p>
       </div>
     `,
@@ -233,7 +233,7 @@ export function shipReminderEmail(opts: { artworkTitle: string; days: number; ap
           gärna med spårningsnummer. Du får betalt när köparen har tagit emot verket.
         </p>
         <p style="font-size:14px;color:#475569">
-          Kan du inte skicka det? Svara på det här mejlet eller kontakta oss på konstbyte@gmail.com, så hjälper vi köparen.
+          Kan du inte skicka det? Svara på det här mejlet eller kontakta oss på webbdevstudio@gmail.com, så hjälper vi köparen.
         </p>
         <a href="${opts.appUrl}/seller/orders"
           style="display:inline-block;margin-top:16px;padding:10px 20px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600">

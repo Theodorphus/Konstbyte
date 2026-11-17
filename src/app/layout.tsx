@@ -43,7 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "contactPoint": [{
               "@type": "ContactPoint",
               "contactType": "customer support",
-              "email": "konstbyte@gmail.com",
+              "email": "webbdevstudio@gmail.com",
               "availableLanguage": [locale === 'en' ? 'en' : 'sv'],
             }]
           }) }}

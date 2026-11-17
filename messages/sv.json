@@ -475,7 +475,7 @@
     "view_order": "Visa order",
     "confirm_receipt_cta": "Har du fått verket?",
     "confirm_received_title": "Har du fått konstverket?",
-    "confirm_received_body": "När du bekräftar betalas pengarna ut till konstnären. Det går inte att ångra. Har verket skadats eller saknas något? Kontakta oss på konstbyte@gmail.com i stället.",
+    "confirm_received_body": "När du bekräftar betalas pengarna ut till konstnären. Det går inte att ångra. Har verket skadats eller saknas något? Kontakta oss på webbdevstudio@gmail.com i stället.",
     "confirm_received_yes": "Ja, jag har fått verket",
     "confirm_received_cancel": "Avbryt",
     "confirm_received_sending": "Bekräftar…",
@@ -667,7 +667,7 @@
     "kopvillkor_title": "Köpvillkor",
     "anvandarvillkor_title": "Användarvillkor",
     "last_updated": "Senast uppdaterad:",
-    "faq_subtitle": "Hittar du inte svaret du letar efter? Kontakta oss på konstbyte@gmail.com så hjälper vi dig.",
+    "faq_subtitle": "Hittar du inte svaret du letar efter? Kontakta oss på webbdevstudio@gmail.com så hjälper vi dig.",
     "faq_not_found_title": "Hittade du inte svaret?",
     "faq_not_found_msg": "Vi svarar på alla frågor via e-post, vanligtvis inom 1–2 arbetsdagar.",
     "faq_write": "Skriv till oss",
@@ -915,7 +915,7 @@
     "send": "Skicka",
     "sent": "Meddelande skickat!",
     "contact_us": "Kontakta oss",
-    "email_info": "E‑post: konstbyte@gmail.com",
+    "email_info": "E‑post: webbdevstudio@gmail.com",
     "location": "Plats: Göteborg, Sverige"
   },
   "success": {

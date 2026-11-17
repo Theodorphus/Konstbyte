@@ -77,7 +77,7 @@ async function sendNotificationEmail(rawWebsiteUrl: string, rawEmail: string) {
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
-      to: 'konstbyte@gmail.com',
+      to: 'webbdevstudio@gmail.com',
       subject,
       html,
     });

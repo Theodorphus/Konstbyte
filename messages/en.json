@@ -436,7 +436,7 @@
     "view_order": "View order",
     "confirm_receipt_cta": "Received it?",
     "confirm_received_title": "Have you received the artwork?",
-    "confirm_received_body": "When you confirm, the money is paid out to the artist. This can’t be undone. Is the artwork damaged or is something missing? Contact us at konstbyte@gmail.com instead.",
+    "confirm_received_body": "When you confirm, the money is paid out to the artist. This can’t be undone. Is the artwork damaged or is something missing? Contact us at webbdevstudio@gmail.com instead.",
     "confirm_received_yes": "Yes, I have the artwork",
     "confirm_received_cancel": "Cancel",
     "confirm_received_sending": "Confirming…",
@@ -628,7 +628,7 @@
     "kopvillkor_title": "Purchase terms",
     "anvandarvillkor_title": "Terms of service",
     "last_updated": "Last updated:",
-    "faq_subtitle": "Can't find the answer you're looking for? Contact us at konstbyte@gmail.com and we'll help you.",
+    "faq_subtitle": "Can't find the answer you're looking for? Contact us at webbdevstudio@gmail.com and we'll help you.",
     "faq_not_found_title": "Didn't find the answer?",
     "faq_not_found_msg": "We answer all questions by email, usually within 1–2 business days.",
     "faq_write": "Write to us",
@@ -947,7 +947,7 @@
     "send": "Send",
     "sent": "Message sent!",
     "contact_us": "Contact us",
-    "email_info": "Email: konstbyte@gmail.com",
+    "email_info": "Email: webbdevstudio@gmail.com",
     "location": "Location: Gothenburg, Sweden"
   },
   "success": {

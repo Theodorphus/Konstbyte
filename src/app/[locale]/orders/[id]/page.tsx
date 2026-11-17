@@ -191,8 +191,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm text-slate-500">
           <p>
             {t('contact_support')}{' '}
-            <a href="mailto:hej@konstbyte.se" className="underline hover:text-slate-900 transition-colors">
-              hej@konstbyte.se
+            <a href="mailto:webbdevstudio@gmail.com" className="underline hover:text-slate-900 transition-colors">
+              webbdevstudio@gmail.com
             </a>.
           </p>
         </div>

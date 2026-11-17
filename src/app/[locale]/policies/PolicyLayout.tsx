@@ -77,8 +77,8 @@ export default function PolicyLayout({
       {/* Footer note */}
       <div className="rounded-xl bg-stone-50 border border-stone-200 p-4 text-xs text-slate-500 leading-relaxed">
         Har du frågor om dessa villkor? Kontakta oss på{' '}
-        <a href="mailto:konstbyte@gmail.com" className="text-slate-700 underline underline-offset-2">
-          konstbyte@gmail.com
+        <a href="mailto:webbdevstudio@gmail.com" className="text-slate-700 underline underline-offset-2">
+          webbdevstudio@gmail.com
         </a>
       </div>
     </div>

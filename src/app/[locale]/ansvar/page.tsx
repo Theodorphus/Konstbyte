@@ -47,7 +47,7 @@ export default async function AnsvarPage() {
         </p>
         <p>
           Kontakta oss på{' '}
-          <a href="mailto:hej@konstbyte.se" className="underline text-blue-600">hej@konstbyte.se</a>{' '}
+          <a href="mailto:webbdevstudio@gmail.com" className="underline text-blue-600">webbdevstudio@gmail.com</a>{' '}
           om du behöver hjälp med ett ärende.
         </p>
       </section>
