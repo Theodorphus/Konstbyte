@@ -7,7 +7,7 @@ export default async function AnsvarPage() {
   return (
     <div className="max-w-2xl mx-auto py-10 space-y-10 text-slate-800">
       <div>
-        <p className="text-sm text-slate-500 mb-1">{t('last_updated')} mars 2026</p>
+        <p className="text-sm text-slate-500 mb-1">{t('last_updated')} november 2026</p>
         <h1 className="text-3xl font-bold">{t('ansvar_title')}</h1>
         <p className="mt-3 text-slate-600">
           Denna sida förklarar tydligt vad Konstbyte är, vad vi gör – och vad vi inte gör.
@@ -55,17 +55,31 @@ export default async function AnsvarPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Ansvarsbegränsning</h2>
         <p>
-          Konstbyttes ansvar är alltid begränsat till de avgifter du faktiskt betalat till Konstbyte (plattformsprovision) för den aktuella transaktionen. Vi ersätter aldrig:
+          Plattformen tillhandahålls i befintligt skick. Vi arbetar för att den ska fungera väl, men kan inte garantera att den alltid är tillgänglig, felfri eller fri från avbrott.
         </p>
+        <p>I den utsträckning lagen tillåter ansvarar Konstbyte inte för:</p>
         <ul className="list-disc list-inside space-y-1 text-slate-700">
-          <li>indirekta skador eller följdskador</li>
-          <li>inkomstbortfall eller utebliven vinst</li>
-          <li>skador som beror på tredje parts handlande (t.ex. fraktbolag, konstnär eller köpare)</li>
+          <li>indirekta skador eller följdskador, till exempel inkomstbortfall eller utebliven vinst</li>
+          <li>skador som beror på köparen, konstnären eller tredje part, till exempel fraktbolag eller betaltjänsten Stripe</li>
+          <li>innehåll som användare laddar upp, till exempel bilder, beskrivningar och meddelanden</li>
+          <li>driftstopp, tekniska fel eller förlust av data</li>
+          <li>händelser utanför vår kontroll, till exempel strejk, myndighetsbeslut, naturhändelser eller omfattande störningar hos internet- eller betaltjänster (force majeure)</li>
         </ul>
+        <p>
+          Konstbytes sammanlagda ansvar är begränsat till den plattformsprovision du har betalat till Konstbyte för den aktuella transaktionen.
+        </p>
+        <p className="text-slate-600">Begränsningarna gäller inte om Konstbyte har orsakat skadan med uppsåt eller genom grov vårdslöshet, och de inskränker inte de rättigheter du har enligt tvingande lag, till exempel konsumentköplagen eller lagen om distansavtal.</p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">Tillämpllig lag</h2>
+        <h2 className="text-xl font-semibold">Konstnärens ansvar gentemot Konstbyte</h2>
+        <p>
+          Som konstnär ansvarar du för det du säljer och laddar upp. Om Konstbyte får krav från någon annan för att du har brutit mot villkoren eller lagen, ska du ersätta Konstbyte för den skada och de kostnader det leder till, inklusive rimliga kostnader för juridisk hjälp. Det gäller till exempel om du säljer ett verk du inte har rätt att sälja, laddar upp bilder som gör intrång i någon annans upphovsrätt eller inte levererar ett sålt verk.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold">Tillämplig lag</h2>
         <p>
           Svensk lag gäller. Tvister prövas av Allmänna reklamationsnämnden (ARN) i första hand, och allmän domstol i andra hand.
         </p>
