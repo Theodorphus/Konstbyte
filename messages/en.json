@@ -200,6 +200,7 @@
     "delete_confirm_artwork": "Are you sure you want to delete this artwork? This cannot be undone.",
     "artwork_updated": "Artwork updated!",
     "artwork_deleted": "Artwork deleted!",
+    "artwork_hidden": "Someone started buying this artwork, so it cannot be fully deleted. It is now hidden and no longer visible to others.",
     "owner_only": "You can only edit your own artworks",
     "update_failed": "Failed to update artwork",
     "delete_failed": "Failed to delete artwork",

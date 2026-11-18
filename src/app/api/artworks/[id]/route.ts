@@ -135,31 +135,39 @@ export async function DELETE(
 
     const artwork = await prisma.artwork.findUnique({
       where: { id },
-      include: {
-        orders: true,
-      },
+      include: { orders: { select: { status: true, createdAt: true } } },
     });
 
     if (!artwork) {
-      return NextResponse.json({ error: 'Artwork not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Verket hittades inte' }, { status: 404 });
     }
 
     if (artwork.ownerId !== user.id) {
-      return NextResponse.json(
-        { error: 'You can only delete your own artworks' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Du kan bara ta bort dina egna verk' }, { status: 403 });
     }
 
-    // Check if artwork has orders
+    // Orders keep a reference to the artwork, so it can't be deleted once anyone
+    // has tried to buy it. A real sale (or a payment in progress) blocks removal;
+    // if all attempts were abandoned, the artwork is hidden instead.
+    const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    const abandoned = (o: { status: string; createdAt: Date }) =>
+      ['expired', 'payment_failed'].includes(o.status) || (o.status === 'pending' && o.createdAt.getTime() < dayAgo);
+    if (artwork.orders.some((o) => !abandoned(o))) {
+      return NextResponse.json(
+        { error: 'Verket har sålts eller håller på att köpas och kan inte tas bort.' },
+        { status: 409 },
+      );
+    }
     if (artwork.orders.length > 0) {
-      return NextResponse.json(
-        { error: 'Cannot delete artwork with existing orders' },
-        { status: 400 }
-      );
+      await prisma.artwork.update({ where: { id }, data: { isPublished: false } });
+      return NextResponse.json({ success: true, hidden: true });
     }
 
-    await prisma.artwork.delete({ where: { id } });
+    // Favorites don't cascade in the schema, so remove them first.
+    await prisma.$transaction([
+      prisma.favorite.deleteMany({ where: { artworkId: id } }),
+      prisma.artwork.delete({ where: { id } }),
+    ]);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('[artworks/[id]]', err);

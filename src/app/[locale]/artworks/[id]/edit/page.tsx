@@ -116,7 +116,8 @@ export default function EditArtworkPage() {
       });
 
       if (response.ok) {
-        alert(t('artwork_deleted'));
+        const data = await response.json().catch(() => ({}));
+        alert(data.hidden ? t('artwork_hidden') : t('artwork_deleted'));
         router.push('/profile');
       } else {
         const data = await response.json();
