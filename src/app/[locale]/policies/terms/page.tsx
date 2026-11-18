@@ -13,7 +13,7 @@ export default async function TermsPage() {
       title={t('terms_title')}
       icon="📋"
       subtitle={t('terms_subtitle')}
-      lastUpdated="mars 2025"
+      lastUpdated="november 2026"
     >
       <PolicyNote>
         <strong>Viktigt:</strong> Konstbyte tillhandahåller en plattform för köp och försäljning av konst. Vi är inte part i transaktioner mellan användare och tar inget ansvar för äktheten, värdet eller skicket på konstverk som listas på plattformen.
@@ -54,6 +54,9 @@ export default async function TermsPage() {
         <p>
           Vid betalning via Stripe gäller Stripes egna villkor. Konstbyte tar en plattformsavgift på 3 % vid genomförda köp.
         </p>
+        <p>
+          Konstbytes sammanlagda ansvar är begränsat till den plattformsavgift som betalats för den aktuella transaktionen. Begränsningarna gäller inte om Konstbyte har orsakat skadan med uppsåt eller genom grov vårdslöshet, och de inskränker inte de rättigheter du har enligt tvingande lag, till exempel konsumentköplagen eller lagen om distansavtal.
+        </p>
       </PolicySection>
 
       <PolicySection title="4. Säljarens ansvar">
@@ -84,6 +87,9 @@ export default async function TermsPage() {
           'Du ger Konstbyte en icke-exklusiv licens att visa och distribuera ditt innehåll på plattformen.',
           'Upphovsrättsskyddat material som laddas upp utan tillstånd tas bort.',
         ]} />
+        <p>
+          Om Konstbyte får krav från någon annan på grund av innehåll du har laddat upp, eller för att du som säljare har brutit mot villkoren eller lagen, ska du ersätta Konstbyte för den skada och de kostnader det leder till, inklusive rimliga kostnader för juridisk hjälp.
+        </p>
       </PolicySection>
 
       <PolicySection title="7. Förbjudet innehåll och beteende">
@@ -113,7 +119,7 @@ export default async function TermsPage() {
 
       <PolicySection title="10. Tillämplig lag">
         <p>
-          Dessa villkor regleras av svensk lag. Tvister hänvisas i första hand till medling och i andra hand till allmän domstol i Göteborg.
+          Dessa villkor regleras av svensk lag. Tvister hänvisas i första hand till medling och i andra hand till Allmänna reklamationsnämnden (ARN) eller allmän domstol.
         </p>
       </PolicySection>
     </PolicyLayout>

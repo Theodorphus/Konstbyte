@@ -7,7 +7,7 @@ export default async function KopvillkorPage() {
   return (
     <div className="max-w-2xl mx-auto py-10 space-y-10 text-slate-800">
       <div>
-        <p className="text-sm text-slate-500 mb-1">{t('last_updated')} mars 2026</p>
+        <p className="text-sm text-slate-500 mb-1">{t('last_updated')} november 2026</p>
         <h1 className="text-3xl font-bold">{t('kopvillkor_title')}</h1>
         <p className="mt-3 text-slate-600">
           Dessa köpvillkor gäller för alla köp som genomförs via Konstbyte. Genom att slutföra ett köp godkänner du villkoren nedan.
@@ -15,7 +15,7 @@ export default async function KopvillkorPage() {
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">1. Konstbyttes roll</h2>
+        <h2 className="text-xl font-semibold">1. Konstbytes roll</h2>
         <p>
           Konstbyte är en digital marknadsplats som förmedlar kontakt mellan köpare och konstnärer. Konstbyte är <strong>inte</strong> säljare av konstverken. Varje konstverk säljs av den konstnär som har lagt upp det, och konstnären är den juridiska säljaren i varje transaktion.
         </p>
@@ -79,6 +79,7 @@ export default async function KopvillkorPage() {
         <p>
           Konstbyte ansvarar inte för konstverkets kvalitet, äkthet, konstnärens leveransförmåga eller skador som uppstår under transport. Konstbytes maximala ansvar gentemot köparen är begränsat till det belopp som betalats för det aktuella köpet.
         </p>
+        <p className="text-slate-600">Begränsningarna gäller inte om Konstbyte har orsakat skadan med uppsåt eller genom grov vårdslöshet, och de inskränker inte de rättigheter du har enligt tvingande lag, till exempel konsumentköplagen eller lagen om distansavtal.</p>
       </section>
 
       <section className="space-y-3">

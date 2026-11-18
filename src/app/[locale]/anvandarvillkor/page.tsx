@@ -7,7 +7,7 @@ export default async function AnvandarvillkorPage() {
   return (
     <div className="max-w-2xl mx-auto py-10 space-y-10 text-slate-800">
       <div>
-        <p className="text-sm text-slate-500 mb-1">{t('last_updated')} mars 2026</p>
+        <p className="text-sm text-slate-500 mb-1">{t('last_updated')} november 2026</p>
         <h1 className="text-3xl font-bold">{t('anvandarvillkor_title')}</h1>
         <p className="mt-3 text-slate-600">
           Dessa användarvillkor gäller för alla som skapar ett konto på Konstbyte. Genom att registrera dig godkänner du villkoren nedan.
@@ -66,12 +66,12 @@ export default async function AnvandarvillkorPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">5. Immaterialrätt</h2>
         <p>
-          Konstnären behåller upphovsrätten till sina verk. Genom att ladda upp ett verk på Konstbyte ger du plattformen rätt att visa bilden i marknadsföringssyfte, t.ex. i sociala medier eller på Konstbyttes hemsida. Denna rätt gäller så länge verket är publicerat på plattformen.
+          Konstnären behåller upphovsrätten till sina verk. Genom att ladda upp ett verk på Konstbyte ger du plattformen rätt att visa bilden i marknadsföringssyfte, t.ex. i sociala medier eller på Konstbytes hemsida. Denna rätt gäller så länge verket är publicerat på plattformen.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">6. Konstbyttes ansvar</h2>
+        <h2 className="text-xl font-semibold">6. Konstbytes ansvar</h2>
         <p>
           Konstbyte tillhandahåller en teknisk plattform och är inte part i avtalet mellan köpare och säljare. Konstbyte ansvarar inte för:
         </p>
@@ -80,9 +80,17 @@ export default async function AnvandarvillkorPage() {
           <li>utebliven eller försenad leverans</li>
           <li>skador på verk under transport</li>
           <li>indirekta skador, inkomstbortfall eller följdskador</li>
+          <li>innehåll som användare laddar upp</li>
+          <li>driftstopp, tekniska fel eller förlust av data</li>
+          <li>fel hos tredje part, till exempel fraktbolag eller betaltjänsten Stripe</li>
+          <li>händelser utanför Konstbytes kontroll (force majeure)</li>
         </ul>
         <p>
-          Konstbyttes maximala ansvar är begränsat till vad användaren betalat i avgifter till Konstbyte under de senaste 12 månaderna.
+          Konstbytes maximala ansvar är begränsat till vad användaren betalat i avgifter till Konstbyte under de senaste 12 månaderna.
+        </p>
+        <p className="text-slate-600">Begränsningarna gäller inte om Konstbyte har orsakat skadan med uppsåt eller genom grov vårdslöshet, och de inskränker inte de rättigheter du har enligt tvingande lag, till exempel konsumentköplagen eller lagen om distansavtal.</p>
+        <p>
+          <strong>Säljarens ansvar gentemot Konstbyte.</strong> Om Konstbyte får krav från någon annan för att du som säljare har brutit mot dessa villkor eller mot lagen, till exempel genom att sälja ett verk du inte har rätt att sälja, göra intrång i någon annans upphovsrätt eller inte leverera ett sålt verk, ska du ersätta Konstbyte för den skada och de kostnader det leder till, inklusive rimliga kostnader för juridisk hjälp.
         </p>
       </section>
 
@@ -96,7 +104,7 @@ export default async function AnvandarvillkorPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">8. Tillämplig lag och tvistlösning</h2>
         <p>
-          Dessa villkor lyder under svensk lag. Tvister prövas i första hand av Allmänna reklamationsnämnden (ARN) och i andra hand av allmän domstol med Stockholms tingsrätt som första instans.
+          Dessa villkor lyder under svensk lag. Tvister prövas i första hand av Allmänna reklamationsnämnden (ARN) och i andra hand av allmän domstol.
         </p>
       </section>
 
