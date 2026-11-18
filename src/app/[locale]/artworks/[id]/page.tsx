@@ -11,12 +11,14 @@ import WallPreview from '@/components/WallPreview';
 import ArtworkCheckoutButton from '@/components/ArtworkCheckoutButton';
 import ShippingOptionsCard from '@/components/shipping/ShippingOptionsCard';
 import { getTranslations } from 'next-intl/server';
+import { isAdmin } from '@/lib/admin';
 
 export async function generateMetadata({ params }: { params: Promise<{ id?: string; locale: string }> }) {
   const { id, locale } = await params;
   if (!id) return {};
   const artwork = await prisma.artwork.findUnique({ where: { id }, include: { owner: true } });
-  if (!artwork) return {};
+  // Hidden artworks (unpublished by the artist or removed by an admin) aren't indexed.
+  if (!artwork || !artwork.isPublished) return { robots: { index: false } };
   const base = SITE_URL;
   return {
     title: `${artwork.title} — Konstbyte`,
@@ -54,6 +56,8 @@ export default async function ArtworkDetail({
 
   if (!artwork) return notFound();
   const isOwner = currentUser?.id === artwork.ownerId;
+  // Hidden artworks are only visible to the artist and admins.
+  if (!artwork.isPublished && !isOwner && !isAdmin(currentUser?.email)) return notFound();
 
   const categoryMap: Record<string, string> = {
     malningar: t('paintings'),

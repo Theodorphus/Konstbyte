@@ -200,6 +200,7 @@
     "delete_confirm_artwork": "Är du säker på att du vill ta bort detta konstverk? Detta kan inte ångras.",
     "artwork_updated": "Konstverk uppdaterat!",
     "artwork_deleted": "Konstverk raderat!",
+    "artwork_hidden": "Någon har påbörjat ett köp av verket, så det kan inte raderas helt. Det är nu dolt och syns inte längre för andra.",
     "owner_only": "Du kan bara redigera dina egna konstverk",
     "update_failed": "Misslyckades att uppdatera konstverk",
     "delete_failed": "Misslyckades att radera konstverk",
