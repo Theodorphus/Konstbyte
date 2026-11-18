@@ -4,6 +4,7 @@ import { markOrderDelivered, releaseSellerPayout } from '../../../../lib/release
 import { sendEmail, shipReminderEmail, escapeHtml } from '../../../../lib/email';
 import { adminEmails } from '../../../../lib/admin';
 import { APP_URL } from '../../../../lib/urls';
+import { ensureWeeklyChallenge } from '../../../../lib/weekly-challenge';
 
 // GET /api/cron/release-payouts — run daily by Vercel Cron (see vercel.json).
 //
@@ -14,6 +15,7 @@ import { APP_URL } from '../../../../lib/urls';
 // 3. Paid orders that haven't been shipped: the artist is reminded after
 //    SHIP_REMINDER_DAYS (default 3) and the admins are told after
 //    SHIP_OVERDUE_DAYS (default 7), so a buyer is never left waiting unnoticed.
+// 4. If no weekly challenge is running or scheduled, this week's is created.
 //
 // Vercel sends `Authorization: Bearer $CRON_SECRET` automatically when the
 // CRON_SECRET env var is set on the project.
@@ -90,7 +92,14 @@ export async function GET(request: NextRequest) {
 
   const reminders = await remindUnshipped();
 
-  return NextResponse.json({ autoDelivered, payouts: results, ...reminders });
+  let challengeCreated: string | null = null;
+  try {
+    challengeCreated = await ensureWeeklyChallenge();
+  } catch (err) {
+    console.error('[cron/release-payouts] weekly challenge:', err);
+  }
+
+  return NextResponse.json({ autoDelivered, payouts: results, ...reminders, challengeCreated });
 }
 
 const DAY = 24 * 60 * 60 * 1000;

@@ -424,7 +424,9 @@ export default function UtmaningPage() {
                   <div className="flex items-center justify-between gap-2">
                     <button
                       onClick={() => handleLike(s)}
-                      className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all duration-150 ${
+                      // Voting closes when the challenge ends, and you can't like your own entry.
+                      disabled={!current.isActive || s.artist.id === session?.user?.id}
+                      className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all duration-150 disabled:cursor-default disabled:hover:bg-transparent ${
                         s.hasLiked
                           ? 'bg-rose-50 border-rose-200 text-rose-600'
                           : 'border-slate-200 text-slate-500 hover:border-rose-200 hover:text-rose-500 hover:bg-rose-50/50'
