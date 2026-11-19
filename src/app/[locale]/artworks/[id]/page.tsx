@@ -36,6 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id?: stri
         },
       ],
     },
+    twitter: { card: 'summary_large_image', images: [`${base}/api/og/${artwork.id}`] },
   };
 }
 
