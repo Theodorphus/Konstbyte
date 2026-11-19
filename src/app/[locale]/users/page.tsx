@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 interface User {
   id: string;
   name: string | null;
-  email?: string | null;
   image: string | null;
   _count: {
     artworks: number;
@@ -19,82 +18,75 @@ interface User {
   };
 }
 
+const SORTS = ['recent', 'followers', 'artworks'] as const;
+type Sort = (typeof SORTS)[number];
+
 export default function UsersSearchPage() {
   const t = useTranslations('users');
-  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('recent');
+  const [loading, setLoading] = useState(true);
+  const [input, setInput] = useState('');
+  // The search that the list currently shows ('' = all artists).
+  const [query, setQuery] = useState('');
+  const [sortBy, setSortBy] = useState<Sort>('recent');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
 
+  // Start from the URL (?q=…&sortBy=…) so a search can be shared.
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = (params.get('q') || '').slice(0, 100);
+    const sort = params.get('sortBy') as Sort | null;
+    setInput(q);
+    setQuery(q);
+    if (sort && SORTS.includes(sort)) setSortBy(sort);
     fetchCurrentUser();
   }, []);
 
+  // Load the list whenever the search or sort changes, and keep the URL in step.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const query = params.get('q') || '';
-    const sort = params.get('sortBy') || 'recent';
-    setSearchQuery(query);
-    setSortBy(sort);
-    if (query) performSearch(query, sort);
-  }, []);
+    let current = true;
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    if (sortBy !== 'recent') params.set('sortBy', sortBy);
+    const qs = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
+
+    fetch(`/api/users/search?q=${encodeURIComponent(query)}&sortBy=${sortBy}`)
+      .then((res) => (res.ok ? res.json() : { users: [] }))
+      .then((data) => { if (current) setUsers(data.users ?? []); })
+      .catch(() => { if (current) setUsers([]); })
+      .finally(() => { if (current) setLoading(false); });
+    return () => { current = false; };
+  }, [query, sortBy]);
 
   const fetchCurrentUser = async () => {
     try {
       const res = await fetch('/api/me');
-      if (res.ok) {
-        const data = await res.json();
-        setCurrentUserId(data.id);
-        
-        // Fetch following list
-        const followingRes = await fetch(`/api/users/${data.id}/following`);
-        if (followingRes.ok) {
-            const followingData = await followingRes.json();
-            const follows = followingData as Array<{ following: { id: string } }>;
-            const ids = new Set<string>(follows.map((f) => String(f.following.id)));
-            setFollowingIds(ids);
-        }
+      if (!res.ok) return;
+      const data = await res.json();
+      const id: string | undefined = data?.user?.id;
+      if (!id) return;
+      setCurrentUserId(id);
+      const followingRes = await fetch(`/api/users/${id}/following`);
+      if (followingRes.ok) {
+        const follows = (await followingRes.json()) as Array<{ following: { id: string } }>;
+        setFollowingIds(new Set(follows.map((f) => String(f.following.id))));
       }
     } catch (error) {
       console.error('Failed to fetch current user:', error);
     }
   };
 
-  const performSearch = async (query: string, sort: string) => {
-    if (!query.trim()) {
-      setUsers([]);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}&sortBy=${sort}`);
-      if (res.ok) {
-        const data = await res.json();
-        setUsers(data.users);
-      }
-    } catch (error) {
-      console.error('Failed to search users:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/users?q=${encodeURIComponent(searchQuery)}&sortBy=${sortBy}`);
-    }
+    setQuery(input.trim());
   };
 
-  const handleSortChange = (newSort: string) => {
-    setSortBy(newSort);
-    if (searchQuery.trim()) {
-      router.push(`/users?q=${encodeURIComponent(searchQuery)}&sortBy=${newSort}`);
-    }
+  const clearSearch = () => {
+    setInput('');
+    setQuery('');
   };
 
   const handleFollow = async (userId: string) => {
@@ -103,144 +95,122 @@ export default function UsersSearchPage() {
       const res = await fetch(`/api/users/${userId}/follow`, {
         method: isFollowing ? 'DELETE' : 'POST',
       });
-
       if (res.ok) {
-        setFollowingIds(prev => {
-          const newSet = new Set(prev);
-          if (isFollowing) {
-            newSet.delete(userId);
-          } else {
-            newSet.add(userId);
-          }
-          return newSet;
+        setFollowingIds((prev) => {
+          const next = new Set(prev);
+          if (isFollowing) next.delete(userId);
+          else next.add(userId);
+          return next;
         });
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === userId
+              ? { ...u, _count: { ...u._count, followers: u._count.followers + (isFollowing ? -1 : 1) } }
+              : u,
+          ),
+        );
       }
     } catch (error) {
       console.error('Failed to toggle follow:', error);
     }
   };
 
-  return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">{t('search_title')}</h1>
+  const sortButton = (value: Sort, label: string) => (
+    <button
+      key={value}
+      onClick={() => setSortBy(value)}
+      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+        sortBy === value ? 'bg-stone-900 text-white' : 'border border-stone-200 text-stone-600 hover:border-stone-400 hover:bg-stone-50'
+      }`}
+    >
+      {label}
+    </button>
+  );
 
-        <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+  return (
+    <div className="max-w-5xl mx-auto py-8">
+      <div className="mb-8 space-y-4">
+        <h1 className="font-display text-3xl md:text-4xl text-slate-900">{t('find_artists')}</h1>
+
+        <form onSubmit={handleSearch} className="flex gap-2">
           <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            type="search"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
             placeholder={t('search_placeholder')}
-            className="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            maxLength={100}
+            className="flex-grow px-4 py-2.5 border border-stone-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
           />
-          <Button type="submit">
-            {t('search_btn')}
-          </Button>
+          <Button type="submit" className="rounded-xl bg-slate-900 px-6 text-white hover:bg-slate-800">{t('search_btn')}</Button>
         </form>
 
-        {searchQuery && (
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-slate-600">{t('sort_by')}</span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleSortChange('recent')}
-                className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                  sortBy === 'recent'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                {t('sort_recent')}
-              </button>
-              <button
-                onClick={() => handleSortChange('followers')}
-                className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                  sortBy === 'followers'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                {t('sort_followers')}
-              </button>
-              <button
-                onClick={() => handleSortChange('artworks')}
-                className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                  sortBy === 'artworks'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                {t('sort_artworks')}
-              </button>
-            </div>
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-slate-500 mr-1">{t('sort_by')}</span>
+          {sortButton('recent', t('sort_recent'))}
+          {sortButton('followers', t('sort_followers'))}
+          {sortButton('artworks', t('sort_artworks'))}
+        </div>
       </div>
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="animate-pulse bg-white border rounded-lg p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 bg-slate-200 rounded-full"></div>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="animate-pulse bg-white border border-stone-200 rounded-2xl p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-slate-200 rounded-full" />
                 <div className="flex-grow">
-                  <div className="h-4 bg-slate-200 rounded w-1/2 mb-2"></div>
-                  <div className="h-3 bg-slate-200 rounded w-1/3"></div>
+                  <div className="h-4 bg-slate-200 rounded w-1/2 mb-2" />
+                  <div className="h-3 bg-slate-200 rounded w-1/3" />
                 </div>
               </div>
             </div>
           ))}
         </div>
-      ) : !searchQuery ? (
-        <div className="text-center py-16 bg-white border rounded-lg">
-          <div className="text-6xl mb-4">🔍</div>
-          <h2 className="text-xl font-semibold mb-2">{t('empty_title')}</h2>
-          <p className="text-slate-600 mb-6">{t('empty_msg')}</p>
-          <div className="flex gap-3 justify-center">
-            <Button asChild>
-              <Link href="/artworks">{t('explore_art')}</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/community">{t('go_community')}</Link>
-            </Button>
-          </div>
-        </div>
       ) : users.length === 0 ? (
-        <div className="text-center py-16 bg-white border rounded-lg">
-          <div className="text-6xl mb-4">😕</div>
-          <h2 className="text-xl font-semibold mb-2">{t('no_results_title')}</h2>
-          <p className="text-slate-600 mb-6">
-            {t('no_results_msg', { query: searchQuery })}
-          </p>
-          <Button variant="outline" onClick={() => setSearchQuery('')}>
-            {t('clear_search')}
-          </Button>
+        <div className="text-center py-16 bg-white border border-stone-200 rounded-2xl">
+          <div className="text-5xl mb-4">🔍</div>
+          <h2 className="text-xl font-semibold mb-2">{query ? t('no_results_title') : t('no_users')}</h2>
+          {query && <p className="text-slate-600 mb-6">{t('no_results_msg', { query })}</p>}
+          <div className="flex gap-3 justify-center">
+            {query ? (
+              <Button variant="outline" onClick={clearSearch}>{t('clear_search')}</Button>
+            ) : (
+              <Button asChild>
+                <Link href="/artworks">{t('explore_art')}</Link>
+              </Button>
+            )}
+          </div>
         </div>
       ) : (
         <>
-          <div className="mb-4 text-sm text-slate-600">
-            {t('showing_results', { count: users.length, query: searchQuery })}
+          <div className="mb-4 flex items-center justify-between gap-4 text-sm text-slate-600">
+            <span>{query ? t('showing_results', { count: users.length, query }) : t('all_artists', { count: users.length })}</span>
+            {query && (
+              <button onClick={clearSearch} className="text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline">
+                {t('clear_search')}
+              </button>
+            )}
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {users.map(user => (
-              <div key={user.id} className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
+            {users.map((user) => (
+              <div key={user.id} className="bg-white border border-stone-200 rounded-2xl p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-4">
-                  <Link href={`/users/${user.id}`}>
-                    <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center text-slate-600 text-2xl font-semibold hover:bg-slate-300 transition-colors">
-                      {user.name?.[0]?.toUpperCase() || '?'}
+                  <Link href={`/users/${user.id}`} className="flex-shrink-0">
+                    <div className="relative w-16 h-16 overflow-hidden rounded-full bg-gradient-to-br from-amber-200 to-stone-200 flex items-center justify-center text-stone-700 text-2xl font-semibold">
+                      {user.image ? (
+                        <Image src={user.image} alt={user.name ?? ''} fill sizes="64px" className="object-cover" />
+                      ) : (
+                        user.name?.[0]?.toUpperCase() || '?'
+                      )}
                     </div>
                   </Link>
                   <div className="flex-grow min-w-0">
-                    <Link
-                      href={`/users/${user.id}`}
-                      className="font-semibold text-lg hover:underline block truncate"
-                    >
+                    <Link href={`/users/${user.id}`} className="font-semibold text-lg hover:underline block truncate">
                       {user.name || t('anonymous')}
                     </Link>
-                    <div className="mb-3" />
 
-                    <div className="flex gap-4 text-sm text-slate-600 mb-3">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600 mt-1 mb-3">
                       <span>{t('artworks_count', { count: user._count.artworks })}</span>
                       <span>{t('followers_count', { count: user._count.followers })}</span>
                       <span>{t('posts_count', { count: user._count.posts })}</span>
@@ -257,12 +227,7 @@ export default function UsersSearchPage() {
                       </Button>
                     )}
                     {currentUserId === user.id && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        asChild
-                        className="w-full"
-                      >
+                      <Button size="sm" variant="outline" asChild className="w-full">
                         <Link href="/profile">{t('your_profile')}</Link>
                       </Button>
                     )}

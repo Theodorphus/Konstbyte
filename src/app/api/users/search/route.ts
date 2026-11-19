@@ -1,29 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import prisma from '../../../../lib/prisma';
 
+// GET /api/users/search?q=…&sortBy=recent|followers|artworks
+// With a query: people whose name or Instagram matches. Without one: artists
+// who have published work. Deleted accounts (no email left) never show up.
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const query = searchParams.get('q') || '';
-    const sortBy = searchParams.get('sortBy') || 'recent'; // recent, followers, artworks
+    const query = (searchParams.get('q') || '').trim().slice(0, 100);
+    const sortBy = searchParams.get('sortBy') || 'recent';
 
-    if (!query || query.trim().length === 0) {
-      return NextResponse.json({ users: [] });
-    }
+    const where: Prisma.UserWhereInput = query
+      ? {
+          email: { not: null },
+          OR: [
+            { name: { contains: query, mode: 'insensitive' } },
+            { instagram: { contains: query, mode: 'insensitive' } },
+          ],
+        }
+      : { email: { not: null }, artworks: { some: { isPublished: true } } };
 
-    // Build where clause for search
-    const whereClause = {
-      email: { not: null }, // not deleted accounts
-      OR: [
-        { name: { contains: query, mode: 'insensitive' as const } },
-        { instagram: { contains: query, mode: 'insensitive' as const } },
-      ],
-    };
+    const orderBy: Prisma.UserOrderByWithRelationInput =
+      sortBy === 'followers' ? { followers: { _count: 'desc' } } :
+      sortBy === 'artworks' ? { artworks: { _count: 'desc' } } :
+      { createdAt: 'desc' };
 
-    // Build orderBy based on sortBy parameter
-    
     const users = await prisma.user.findMany({
-      where: whereClause,
+      where,
       // Only public profile fields — never email, Stripe ids or auth data.
       select: {
         id: true,
@@ -34,36 +38,20 @@ export async function GET(request: NextRequest) {
         createdAt: true,
         _count: {
           select: {
-            artworks: true,
+            artworks: { where: { isPublished: true } },
             followers: true,
             following: true,
             posts: true,
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy,
       take: 50,
     });
 
-    // Sort users based on sortBy parameter (since Prisma can't directly sort by relation counts in all cases)
-    const sortedUsers = [...users];
-    if (sortBy === 'followers') {
-      sortedUsers.sort((a, b) => b._count.followers - a._count.followers);
-    } else if (sortBy === 'artworks') {
-      sortedUsers.sort((a, b) => b._count.artworks - a._count.artworks);
-    } else {
-      // Default to recent (already sorted by createdAt desc)
-    }
-
-    return NextResponse.json({
-      users: sortedUsers,
-      count: sortedUsers.length,
-    });
+    return NextResponse.json({ users, count: users.length });
   } catch (error) {
     console.error('Error searching users:', error);
-    return NextResponse.json(
-      { error: 'Failed to search users' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to search users' }, { status: 500 });
   }
 }
