@@ -2,12 +2,16 @@ import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
 import { isAdmin } from '../../../lib/admin';
-import { themeImageFor } from '@/lib/weekly-challenge';
+import { ensureWeeklyChallenge, themeImageFor } from '@/lib/weekly-challenge';
 
 export async function GET() {
   try {
     const user = await getCurrentUser();
     const now = new Date();
+
+    // Don't wait for the daily cron: if nothing is running, start this week's
+    // challenge now (a no-op when one exists; one per week is enforced).
+    await ensureWeeklyChallenge(now).catch((err) => console.error('[challenges] ensureWeeklyChallenge', err));
 
     // Most recent challenge (active or latest ended)
     const challenge = await prisma.challenge.findFirst({

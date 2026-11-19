@@ -8,7 +8,7 @@ import SafeImage from '@/components/SafeImage';
 import HomepageCommunityPreview from '@/components/HomepageCommunityPreview';
 import Image from 'next/image';
 import HowItWorksSteps from '@/components/HowItWorksSteps';
-import { themeImageFor } from '@/lib/weekly-challenge';
+import { ensureWeeklyChallenge, themeImageFor } from '@/lib/weekly-challenge';
 
 type Artwork = {
   id: string;
@@ -59,6 +59,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       take: 6,
       include: { owner: { select: { name: true } } },
     });
+    await ensureWeeklyChallenge(now).catch((err) => console.error('[home] ensureWeeklyChallenge', err));
     const challenge = await prisma.challenge.findFirst({
       where: { startsAt: { lte: now } },
       orderBy: { startsAt: 'desc' },

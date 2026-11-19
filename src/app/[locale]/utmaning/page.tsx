@@ -204,36 +204,35 @@ export default function UtmaningPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-10 pb-16">
 
-      {/* Challenge image banner */}
-      {current?.imageUrl && (
-        <div className="relative w-full aspect-[16/7] overflow-hidden rounded-2xl bg-slate-100 shadow-md">
-          <SafeImage
-            src={current.imageUrl}
-            alt={current.title}
-            fill
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-        </div>
-      )}
-
       {/* Hero */}
       {current ? (
-        <div className={`relative overflow-hidden rounded-2xl text-white ${
+        <div className={`relative overflow-hidden rounded-2xl text-white shadow-xl ${
           current.isActive
-            ? 'bg-gradient-to-br from-violet-950 via-indigo-950 to-slate-900'
-            : 'bg-gradient-to-br from-stone-800 to-stone-900'
+            ? 'bg-gradient-to-br from-violet-950 via-indigo-950 to-slate-900 shadow-violet-900/20'
+            : 'bg-gradient-to-br from-rose-950 via-stone-900 to-amber-950 shadow-rose-900/20'
         }`}>
-          {current.isActive && (
+          {current.imageUrl ? (
+            <>
+              {/* The theme image, darkened on the left so the text stays readable */}
+              <SafeImage
+                src={current.imageUrl}
+                alt=""
+                fill
+                sizes="(min-width: 896px) 896px, 100vw"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-slate-950/10" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent md:hidden" />
+            </>
+          ) : (
             <>
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_5%_90%,_rgba(251,191,36,0.45),_transparent_50%)]" />
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_95%_5%,_rgba(232,72,142,0.35),_transparent_50%)]" />
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_60%_55%,_rgba(99,102,241,0.22),_transparent_50%)]" />
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-950/40 to-transparent" />
             </>
           )}
 
-          <div className="relative p-8 md:p-10">
+          <div className="relative flex flex-col justify-end p-8 md:min-h-[360px] md:p-10">
             <p className="text-[11px] uppercase tracking-[0.25em] text-white/50 mb-3">
               {t('week')} {current.weekNumber} · {current.year}
               {!current.isActive && ` ${t('active_ended')}`}
@@ -241,7 +240,7 @@ export default function UtmaningPage() {
             <h1 className="font-display text-3xl md:text-4xl text-white leading-tight mb-4">
               {(locale === 'en' && current.titleEn) ? current.titleEn : current.title}
             </h1>
-            <p className="text-white/65 leading-relaxed max-w-2xl text-sm md:text-base mb-8">
+            <p className="text-white/75 leading-relaxed max-w-xl text-sm md:text-base mb-8">
               {(locale === 'en' && current.descriptionEn) ? current.descriptionEn : current.description}
             </p>
 
@@ -277,7 +276,7 @@ export default function UtmaningPage() {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-white/45">{t('ended_text')}</p>
+              <p className="text-sm text-white/60">{t('ended_text')}</p>
             )}
           </div>
         </div>
