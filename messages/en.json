@@ -19,7 +19,10 @@
     "become_artist": "Become an artist",
     "sign_out": "Sign out",
     "close_menu": "Close menu",
-    "open_menu": "Open menu"
+    "open_menu": "Open menu",
+    "missing_name_text": "Your profile has no name yet, so your artworks and messages show up as “Anonymous”. Add your artist name so buyers know who you are.",
+    "missing_name_cta": "Add name",
+    "missing_name_dismiss": "Hide reminder"
   },
   "footer": {
     "brand_tagline": "A community where creators grow together. Buy and sell unique works directly from artists.",

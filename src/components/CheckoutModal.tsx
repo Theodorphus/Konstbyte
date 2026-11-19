@@ -124,6 +124,7 @@ export default function CheckoutModal({
   shippingCarrier = '',
 }: Props) {
   const t = useTranslations('checkout');
+  const locale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<Step>('method_select');
   const [error, setError] = useState('');
@@ -160,7 +161,7 @@ export default function CheckoutModal({
       const res = await fetch('/api/checkout/stripe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ artworkId, shippingAddress: address }),
+        body: JSON.stringify({ artworkId, shippingAddress: address, locale }),
       });
       const data = await res.json() as { url?: string; error?: string };
       if (!res.ok || !data.url) {

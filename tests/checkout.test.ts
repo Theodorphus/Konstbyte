@@ -18,14 +18,21 @@ const address = { fullName: 'Anna Berg', streetAddress: 'Storgatan 1', postalCod
 const checkout = (body: unknown) => POST(new Request('https://konstbyte.se/api/checkout/stripe', { method: 'POST', body: JSON.stringify(body) }));
 
 let buyer = 0;
+// Two different counts: the buyer's own recent attempts, and other buyers paying for the artwork.
+let recentAttempts = 0;
+let othersPaying = 0;
 beforeEach(() => {
+  recentAttempts = 0;
+  othersPaying = 0;
   vi.clearAllMocks();
   getCurrentUser.mockResolvedValue({ id: `buyer_${++buyer}`, email: 'b@example.com' });
   prisma.artwork.findUnique.mockResolvedValue({
     id: 'art1', ownerId: 'artist', isPublished: true, isSold: false, price: 1000, title: 'Hav',
     description: null, imageUrl: 'https://x/y.jpg', shippingType: 'postnord', shippingCost: null, owner: { id: 'artist', name: 'Anna' },
   });
-  prisma.order.count.mockResolvedValue(0);
+  prisma.order.count.mockImplementation(({ where }: { where: { artworkId?: string } }) =>
+    Promise.resolve(where.artworkId ? othersPaying : recentAttempts),
+  );
   prisma.order.create.mockResolvedValue({ id: 'order1' });
   stripe.checkout.sessions.create.mockResolvedValue({ id: 'cs_1', url: 'https://stripe/cs_1' });
 });
@@ -49,10 +56,30 @@ describe('POST /api/checkout/stripe', () => {
   });
 
   it('stops a second buyer while someone else is paying', async () => {
-    prisma.order.count.mockResolvedValue(1);
+    othersPaying = 1;
     const res = await checkout({ artworkId: 'art1', shippingAddress: address });
     expect(res.status).toBe(409);
     expect(stripe.checkout.sessions.create).not.toHaveBeenCalled();
-    expect(prisma.order.count.mock.calls[0][0].where).toMatchObject({ artworkId: 'art1', buyerId: { not: expect.any(String) } });
+    const where = prisma.order.count.mock.calls.map((c) => c[0].where).find((w) => w.artworkId);
+    expect(where).toMatchObject({ artworkId: 'art1', buyerId: { not: expect.any(String) } });
+  });
+
+  it('limits how many checkouts one buyer can start per hour', async () => {
+    recentAttempts = 10;
+    const res = await checkout({ artworkId: 'art1', shippingAddress: address });
+    expect(res.status).toBe(429);
+    expect(prisma.order.create).not.toHaveBeenCalled();
+    recentAttempts = 9;
+    expect((await checkout({ artworkId: 'art1', shippingAddress: address })).status).toBe(200);
+  });
+
+  it('keeps English buyers in English', async () => {
+    await checkout({ artworkId: 'art1', shippingAddress: address, locale: 'en' });
+    await checkout({ artworkId: 'art1', shippingAddress: address });
+    const [en, sv] = stripe.checkout.sessions.create.mock.calls.map((c) => c[0]);
+    expect(en).toMatchObject({ locale: 'en', success_url: expect.stringContaining('/en/success?orderId=order1') });
+    expect(en.cancel_url).toContain('/en/cancel?orderId=order1');
+    expect(sv.locale).toBe('sv');
+    expect(sv.success_url).not.toContain('/en/');
   });
 });

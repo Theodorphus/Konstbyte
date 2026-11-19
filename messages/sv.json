@@ -19,7 +19,10 @@
     "become_artist": "Bli konstnär",
     "sign_out": "Logga ut",
     "close_menu": "Stäng mobilmeny",
-    "open_menu": "Öppna mobilmeny"
+    "open_menu": "Öppna mobilmeny",
+    "missing_name_text": "Du har inget namn på din profil ännu, så dina verk och meddelanden visas som ”Anonym”. Lägg till ditt konstnärsnamn så att köpare vet vem du är.",
+    "missing_name_cta": "Lägg till namn",
+    "missing_name_dismiss": "Dölj påminnelsen"
   },
   "footer": {
     "brand_tagline": "Ett svenskt community där kreatörer växer tillsammans. Köp och sälj unika verk direkt från konstnärer.",

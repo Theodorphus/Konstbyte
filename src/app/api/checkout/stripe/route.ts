@@ -3,7 +3,9 @@ import { NextResponse } from 'next/server';
 import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
-import { hitLimit, tooManyRequests, HOUR } from '@/lib/rate-limit';
+import { tooManyRequests, since, HOUR } from '@/lib/rate-limit';
+
+const MAX_CHECKOUTS_PER_HOUR = 10;
 
 // A Stripe Checkout Session stays open this long (Stripe's minimum is 30 min).
 // While one buyer is paying, nobody else can start a checkout for the same
@@ -34,7 +36,8 @@ function cleanAddress(raw: unknown) {
 // under Settings → Payment methods — not in code.
 export async function POST(request: Request) {
   try {
-    const { artworkId, shippingAddress } = await request.json();
+    const { artworkId, shippingAddress, locale } = await request.json();
+    const english = locale === 'en';
     if (!artworkId) {
       return NextResponse.json({ error: 'artworkId saknas' }, { status: 400 });
     }
@@ -43,7 +46,12 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: 'Inloggning krävs' }, { status: 401 });
     }
-    if (hitLimit(`checkout:${user.id}`, 10, HOUR)) return tooManyRequests();
+    // Counted in the database so the limit holds across serverless instances
+    // (each attempt creates an order, and a pending order holds the artwork).
+    const recentAttempts = await prisma.order.count({
+      where: { buyerId: user.id, createdAt: { gt: since(HOUR) } },
+    });
+    if (recentAttempts >= MAX_CHECKOUTS_PER_HOUR) return tooManyRequests();
 
     const artwork = await prisma.artwork.findUnique({
       where: { id: artworkId },
@@ -159,8 +167,10 @@ export async function POST(request: Request) {
         metadata: { orderId: order.id, artworkId: artwork.id },
       },
       // Pass orderId in success URL for the confirmation page
-      success_url: `${appUrl}/success?orderId=${order.id}`,
-      cancel_url: `${appUrl}/cancel?orderId=${order.id}`,
+      // Stripe's page and the return pages in the buyer's language
+      locale: english ? 'en' : 'sv',
+      success_url: `${appUrl}${english ? '/en' : ''}/success?orderId=${order.id}`,
+      cancel_url: `${appUrl}${english ? '/en' : ''}/cancel?orderId=${order.id}`,
     });
 
     // Store Stripe session ID on the order

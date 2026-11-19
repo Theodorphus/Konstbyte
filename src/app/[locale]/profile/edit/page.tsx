@@ -4,13 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Link } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import { UploadButton } from '@uploadthing/react';
 import type { UploadRouter } from '@/lib/uploadthing';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 interface User {
   id: string;
@@ -23,6 +22,7 @@ interface User {
 
 export default function EditProfilePage() {
   const router = useRouter();
+  const { update: refreshSession } = useSession();
   const t = useTranslations('profile');
   const [user, setUser] = useState<User | null>(null);
   const [name, setName] = useState('');
@@ -91,8 +91,11 @@ export default function EditProfilePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, image: imageUrl, bio, instagram }),
       });
-      if (res.ok) router.push('/profile');
-      else alert(t('update_failed'));
+      if (res.ok) {
+        // The nav and the name reminder read the session — refresh it with the new name.
+        await refreshSession().catch(() => undefined);
+        router.push('/profile');
+      } else alert(t('update_failed'));
     } finally {
       setIsSaving(false);
     }
