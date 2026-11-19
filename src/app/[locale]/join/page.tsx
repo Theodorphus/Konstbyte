@@ -2,7 +2,11 @@ import { alternatesFor } from '@/lib/seo';
 import { Link } from '@/i18n/navigation';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import prisma from '@/lib/prisma';
 import Image from 'next/image';
+
+// Testimonials come from the database; refresh the page now and then.
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,
@@ -33,7 +37,12 @@ export default async function JoinPage({
 
   const benefits = t.raw('benefits') as Array<{ icon: string; title: string; desc: string }>;
   const steps = t.raw('steps') as Array<{ num: string; title: string; desc: string }>;
-  const testimonials = t.raw('testimonials') as Array<{ quote: string; name: string; role: string; color: string }>;
+  // Only real quotes, added by an admin under Admin → Testimonials. Made-up
+  // reviews are illegal (marknadsföringslagen), so the section hides when empty.
+  const testimonials = await prisma.testimonial
+    .findMany({ orderBy: { createdAt: 'desc' }, take: 3 })
+    .catch(() => []);
+  const cardColors = ['from-amber-100 to-rose-100', 'from-sky-100 to-indigo-100', 'from-violet-100 to-fuchsia-100'];
 
   return (
     <div className="space-y-24 pb-24">
@@ -118,23 +127,22 @@ export default async function JoinPage({
       </section>
 
       {/* Testimonials */}
+      {testimonials.length > 0 && (
       <section>
         <div className="text-center mb-10">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500 mb-2">{t('testimonials_label')}</p>
           <h2 className="font-display text-3xl md:text-4xl text-slate-900">{t('testimonials_heading')}</h2>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
-          {testimonials.map((item) => (
-            <div key={item.name} className={`rounded-2xl bg-gradient-to-br ${item.color} p-7 border border-white/60 shadow-sm`}>
-              <p className="text-slate-700 leading-relaxed text-sm mb-5">&ldquo;{item.quote}&rdquo;</p>
-              <div>
-                <p className="font-semibold text-sm text-slate-900">{item.name}</p>
-                <p className="text-xs text-slate-500">{item.role}</p>
-              </div>
+          {testimonials.map((item, i) => (
+            <div key={item.id} className={`rounded-2xl bg-gradient-to-br ${cardColors[i % cardColors.length]} p-7 border border-white/60 shadow-sm`}>
+              <p className="text-slate-700 leading-relaxed text-sm mb-5">&ldquo;{item.text}&rdquo;</p>
+              <p className="font-semibold text-sm text-slate-900">{item.author}</p>
             </div>
           ))}
         </div>
       </section>
+      )}
 
       {/* Final CTA */}
       <section>

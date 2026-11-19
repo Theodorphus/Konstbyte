@@ -7,6 +7,7 @@ import { formatSek } from '@/lib/currency';
 import ChallengeAdmin from './ChallengeAdmin';
 import ArtworksAdmin from './ArtworksAdmin';
 import { getTranslations } from 'next-intl/server';
+import { Link } from '@/i18n/navigation';
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,14 @@ export default async function AdminPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">{t('panel_title')}</h1>
+      <nav className="flex flex-wrap gap-2 text-sm">
+        <Link href="/admin/payouts" className="rounded-full border border-slate-200 bg-white px-4 py-1.5 font-medium text-slate-700 hover:bg-slate-50">
+          💸 Utbetalningar
+        </Link>
+        <Link href="/admin/testimonials" className="rounded-full border border-slate-200 bg-white px-4 py-1.5 font-medium text-slate-700 hover:bg-slate-50">
+          💬 Omdömen
+        </Link>
+      </nav>
       <ChallengeAdmin
         initial={challenges.map(c => ({
           id: c.id,
