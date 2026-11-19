@@ -736,23 +736,6 @@
     "not_found_description": "Sidan du letar efter finns inte eller har flyttats.",
     "go_home": "Gå till startsidan"
   },
-  "cart": {
-    "shipping": "Frakt",
-    "sold": "Såld",
-    "own_artwork": "Det här är ditt eget konstverk.",
-    "title": "Varukorg",
-    "empty": "Din varukorg är tom",
-    "checkout": "Till kassan",
-    "total": "Totalt",
-    "remove": "Ta bort",
-    "continue_shopping": "Fortsätt handla",
-    "your_order": "Din order",
-    "summary": "Sammanfattning",
-    "price": "Pris",
-    "explore_artworks": "Utforska konstverk",
-    "empty_msg": "Lägg till ett konstverk för att gå vidare till betalning.",
-    "anonymous_artist": "Anonym konstnär"
-  },
   "join": {
     "title": "Bli konstnär på Konstbyte",
     "subtitle": "Skapa din konstnärssida och börja sälja dina verk",
@@ -976,6 +959,7 @@
     "go_back": "Gå tillbaka",
     "payment_cancelled": "Betalning avbruten",
     "no_charge": "Ingen betalning har genomförts. Du kan gå tillbaka och försöka igen när du är redo.",
+    "back_to_artwork": "Tillbaka till verket",
     "back_to_artworks": "Tillbaka till konstverken"
   },
   "favorites": {

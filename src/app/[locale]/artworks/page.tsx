@@ -279,17 +279,15 @@ export default function ArtworksPage() {
 
   const fetchFavorites = async () => {
     try {
+      // Who is signed in first; favourites only exist for signed-in users.
+      const meResponse = await fetch('/api/me');
+      const userId: string | null = meResponse.ok ? (await meResponse.json())?.user?.id || null : null;
+      setCurrentUserId(userId);
+      if (!userId) return;
       const response = await fetch('/api/favorites');
       if (response.ok) {
-        const data = await response.json();
-        const favs = data as Array<{ artworkId: string }>;
-        const ids = new Set<string>(favs.map((fav) => String(fav.artworkId)));
-        setFavoriteIds(ids);
-      }
-      const meResponse = await fetch('/api/me');
-      if (meResponse.ok) {
-        const userData = await meResponse.json();
-        setCurrentUserId(userData?.user?.id || null);
+        const favs = (await response.json()) as Array<{ artworkId: string }>;
+        setFavoriteIds(new Set<string>(favs.map((fav) => String(fav.artworkId))));
       }
     } catch (error) {
       // still ignore here

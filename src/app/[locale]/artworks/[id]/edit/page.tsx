@@ -22,6 +22,8 @@ interface Artwork {
   shippingCost: number | null;
   shippingArea: string | null;
   shippingCarrier: string | null;
+  technique: string | null;
+  dimensions: string | null;
   owner: {
     id: string;
     name: string | null;
@@ -45,6 +47,8 @@ export default function EditArtworkPage() {
   const [shippingCost, setShippingCost] = useState('');
   const [shippingArea, setShippingArea] = useState('');
   const [shippingCarrier, setShippingCarrier] = useState('');
+  const [technique, setTechnique] = useState('');
+  const [dimensions, setDimensions] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -68,6 +72,8 @@ export default function EditArtworkPage() {
         setShippingCost(data.shippingCost != null ? String(data.shippingCost) : '');
         setShippingArea(data.shippingArea || '');
         setShippingCarrier(data.shippingCarrier || '');
+        setTechnique(data.technique || '');
+        setDimensions(data.dimensions || '');
       } else if (response.status === 404) {
         alert(t('artwork_not_found'));
         router.push('/artworks');
@@ -103,6 +109,8 @@ export default function EditArtworkPage() {
           shippingCost: shippingType === 'fixed' ? shippingCost : null,
           shippingArea,
           shippingCarrier,
+          technique,
+          dimensions,
         }),
       });
 
@@ -224,6 +232,17 @@ export default function EditArtworkPage() {
                 required
                 min="1"
               />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="technique" className="text-sm font-medium">{t('technique_label')}</label>
+                <Input id="technique" value={technique} onChange={(e) => setTechnique(e.target.value)} placeholder={t('technique_placeholder')} maxLength={200} />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="dimensions" className="text-sm font-medium">{t('dimensions_label')}</label>
+                <Input id="dimensions" value={dimensions} onChange={(e) => setDimensions(e.target.value)} placeholder={t('dimensions_placeholder')} maxLength={200} />
+              </div>
             </div>
 
             <div className="space-y-2">

@@ -181,6 +181,24 @@ export default async function ArtworkDetail({
               )}
             </div>
 
+            {/* Facts buyers ask about first */}
+            {(artwork.technique || artwork.dimensions) && (
+              <dl className="grid grid-cols-2 gap-3 rounded-xl border border-stone-200/80 bg-stone-50/60 p-4 text-sm">
+                {artwork.dimensions && (
+                  <div>
+                    <dt className="text-xs uppercase tracking-wide text-slate-400">{t('dimensions_label')}</dt>
+                    <dd className="mt-0.5 font-medium text-slate-800">{artwork.dimensions}</dd>
+                  </div>
+                )}
+                {artwork.technique && (
+                  <div>
+                    <dt className="text-xs uppercase tracking-wide text-slate-400">{t('technique_label')}</dt>
+                    <dd className="mt-0.5 font-medium text-slate-800">{artwork.technique}</dd>
+                  </div>
+                )}
+              </dl>
+            )}
+
             {/* Description */}
             {artwork.description && (
               <p className="text-sm text-slate-600 leading-relaxed border-l-2 border-amber-200 pl-4">

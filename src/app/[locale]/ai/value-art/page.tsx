@@ -372,11 +372,8 @@ export default function ValueArtPage() {
                     src={img}
                     alt={t("example_artwork_alt", { num: i + 1 })}
                     fill
+                    sizes="(max-width: 640px) 33vw, 220px"
                     className="object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "https://via.placeholder.com/200x200?text=Bild+saknas";
-                    }}
                   />
                 </button>
               ))}

@@ -147,6 +147,8 @@ export async function PUT(
         imageUrl: body.imageUrl,
         category: body.category,
         isPublished: typeof body.isPublished === 'boolean' ? body.isPublished : undefined,
+        technique: body.technique !== undefined ? optionalText(body.technique) : undefined,
+        dimensions: body.dimensions !== undefined ? optionalText(body.dimensions) : undefined,
         ...shipping,
       },
       include: {

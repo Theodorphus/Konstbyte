@@ -63,14 +63,19 @@ export default async function SellerOrdersPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{t('sold_artworks_title')}</h1>
           <p className="text-sm text-slate-500 mt-1">{t('manage_shipping_desc')}</p>
         </div>
-        <Link href="/profile" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
-          {t('back_profile')}
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/seller/payouts" className="text-sm font-medium text-amber-700 hover:text-amber-800 transition-colors">
+            💸 {t('payouts_title')}
+          </Link>
+          <Link href="/profile" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
+            {t('back_profile')}
+          </Link>
+        </div>
       </div>
 
       {/* Summary badges */}

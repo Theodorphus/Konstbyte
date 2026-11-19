@@ -697,23 +697,6 @@
     "not_found_description": "The page you're looking for doesn't exist or has been moved.",
     "go_home": "Go to homepage"
   },
-  "cart": {
-    "shipping": "Shipping",
-    "sold": "Sold",
-    "own_artwork": "This is your own artwork.",
-    "title": "Cart",
-    "empty": "Your cart is empty",
-    "checkout": "Checkout",
-    "total": "Total",
-    "remove": "Remove",
-    "continue_shopping": "Continue shopping",
-    "your_order": "Your order",
-    "summary": "Summary",
-    "price": "Price",
-    "explore_artworks": "Explore artworks",
-    "empty_msg": "Add an artwork to proceed to payment.",
-    "anonymous_artist": "Anonymous artist"
-  },
   "join": {
     "title": "Become an artist on Konstbyte",
     "subtitle": "Create your artist page and start selling your works",
@@ -1008,6 +991,7 @@
     "go_back": "Go back",
     "payment_cancelled": "Payment cancelled",
     "no_charge": "No payment has been made. You can go back and try again when you're ready.",
+    "back_to_artwork": "Back to the artwork",
     "back_to_artworks": "Back to artworks"
   },
   "favorites": {
