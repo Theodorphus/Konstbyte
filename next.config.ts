@@ -33,6 +33,14 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false
   },
+  // The business-website service moved to its own site.
+  async redirects() {
+    return ['/hemsidor', '/sv/hemsidor', '/en/hemsidor'].map((source) => ({
+      source,
+      destination: 'https://www.webbdev.se/',
+      permanent: true,
+    }));
+  },
   async headers() {
     return [
       {

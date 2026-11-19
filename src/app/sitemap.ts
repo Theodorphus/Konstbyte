@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 
 const baseUrl = SITE_URL;
 
-const highPriorityRoutes = ['', '/artworks', '/join', '/hemsidor'];
+const highPriorityRoutes = ['', '/artworks', '/join'];
 const mediumPriorityRoutes = ['/community', '/utmaning', '/users', '/ai', '/ai/value-art', '/ai/inspiration', '/om-oss', '/kontakt', '/hur-det-fungerar', '/avgifter'];
 const lowPriorityRoutes = ['/policies/faq', '/policies/privacy', '/policies/terms'];
 

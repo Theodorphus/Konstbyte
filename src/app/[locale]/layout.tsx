@@ -98,8 +98,8 @@ async function FooterContent({ locale, currentYear }: { locale: string; currentY
           <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">{t('marketplace')}</div>
           <ul className="space-y-2.5 text-slate-600">
             <li><Link href="/artworks" className="hover:text-slate-900 transition-colors">{t('all_artworks')}</Link></li>
-            <li><Link href="/artworks?category=Målning" className="hover:text-slate-900 transition-colors">{t('paintings')}</Link></li>
-            <li><Link href="/artworks?category=Skulptur" className="hover:text-slate-900 transition-colors">{t('sculptures')}</Link></li>
+            <li><Link href="/artworks?category=malningar" className="hover:text-slate-900 transition-colors">{t('paintings')}</Link></li>
+            <li><Link href="/artworks?category=skulpturer" className="hover:text-slate-900 transition-colors">{t('sculptures')}</Link></li>
             <li><Link href="/join" className="font-semibold text-amber-700 hover:text-amber-800 transition-colors">{t('become_artist')} →</Link></li>
             <li><Link href="/ai/value-art" className="hover:text-slate-900 transition-colors">{t('ai_valuation')}</Link></li>
           </ul>
@@ -120,11 +120,6 @@ async function FooterContent({ locale, currentYear }: { locale: string; currentY
         <div className="space-y-4">
           <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">{t('information')}</div>
           <ul className="space-y-2.5 text-slate-600">
-            <li>
-              <Link href="/hemsidor" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
-                {t('websites')} →
-              </Link>
-            </li>
             <li><Link href="/om-oss" className="hover:text-slate-900 transition-colors">{t('about')}</Link></li>
             <li><Link href="/hur-det-fungerar" className="hover:text-slate-900 transition-colors">{t('how_it_works')}</Link></li>
             <li><Link href="/avgifter" className="hover:text-slate-900 transition-colors">{t('fees')}</Link></li>
@@ -139,6 +134,17 @@ async function FooterContent({ locale, currentYear }: { locale: string; currentY
       <div className="border-t border-slate-200/70 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-400">
         <span>© {currentYear} Konstbyte.se. {t('all_rights_reserved')}</span>
         <span className="font-medium text-slate-500">{t('fee_tagline')}</span>
+        <span>
+          {t('made_by')}{' '}
+          <a
+            href="https://www.webbdev.se/"
+            target="_blank"
+            rel="noopener"
+            className="font-semibold text-slate-600 underline-offset-2 hover:text-slate-900 hover:underline"
+          >
+            webbdev.se
+          </a>
+        </span>
       </div>
     </div>
   );
