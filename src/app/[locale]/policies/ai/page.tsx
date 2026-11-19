@@ -2,7 +2,7 @@ import PolicyLayout, { PolicySection, PolicyList, PolicyNote } from '../PolicyLa
 import { getTranslations } from 'next-intl/server';
 
 export const metadata = {
-  title: 'AI-policy — Konstbyte',
+  title: 'AI-policy',
   description: 'Hur Konstbyte använder AI och vad du bör tänka på när du tolkar AI-genererade resultat.',
 };
 

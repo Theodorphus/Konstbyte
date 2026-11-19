@@ -2,7 +2,7 @@ import PolicyLayout, { PolicySection, PolicyList, PolicyNote } from '../PolicyLa
 import { getTranslations } from 'next-intl/server';
 
 export const metadata = {
-  title: 'Innehållspolicy — Konstbyte',
+  title: 'Innehållspolicy',
   description: 'Riktlinjer för vilket innehåll som är tillåtet att ladda upp och publicera på Konstbyte.',
 };
 

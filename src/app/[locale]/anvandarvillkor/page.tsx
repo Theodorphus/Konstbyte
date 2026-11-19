@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 
-export const metadata = { title: 'Användarvillkor – Konstbyte' };
+export const metadata = { title: 'Användarvillkor' };
 
 export default async function AnvandarvillkorPage() {
   const t = await getTranslations('policies');

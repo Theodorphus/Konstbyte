@@ -2,7 +2,7 @@ import PolicyLayout, { PolicySection, PolicyList, PolicyNote } from '../PolicyLa
 import { getTranslations } from 'next-intl/server';
 
 export const metadata = {
-  title: 'Användarvillkor — Konstbyte',
+  title: 'Användarvillkor',
   description: 'Läs Konstbytes användarvillkor för köp, försäljning och användning av plattformen.',
 };
 

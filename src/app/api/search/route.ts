@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     const users = await prisma.user.findMany({
       where: {
         name: { contains: query, mode: 'insensitive' },
+        email: { not: null }, // not deleted accounts
       },
       select: {
         id: true,

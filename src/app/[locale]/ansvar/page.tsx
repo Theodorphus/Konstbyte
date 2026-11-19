@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 
-export const metadata = { title: 'Plattformens roll och ansvarsbegränsning – Konstbyte' };
+export const metadata = { title: 'Plattformens roll och ansvarsbegränsning' };
 
 export default async function AnsvarPage() {
   const t = await getTranslations('policies');

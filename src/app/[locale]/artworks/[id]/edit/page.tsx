@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
+import { SHIPPING_OPTIONS } from '@/lib/shipping';
 
 interface Artwork {
   id: string;
@@ -17,6 +18,10 @@ interface Artwork {
   imageUrl: string;
   category: string;
   isPublished: boolean;
+  shippingType: string;
+  shippingCost: number | null;
+  shippingArea: string | null;
+  shippingCarrier: string | null;
   owner: {
     id: string;
     name: string | null;
@@ -36,6 +41,10 @@ export default function EditArtworkPage() {
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('malningar');
   const [isPublished, setIsPublished] = useState(true);
+  const [shippingType, setShippingType] = useState('overenskommes');
+  const [shippingCost, setShippingCost] = useState('');
+  const [shippingArea, setShippingArea] = useState('');
+  const [shippingCarrier, setShippingCarrier] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -55,6 +64,10 @@ export default function EditArtworkPage() {
         setPrice(data.price ? data.price.toString() : '');
         setCategory(data.category);
         setIsPublished(data.isPublished);
+        setShippingType(data.shippingType || 'overenskommes');
+        setShippingCost(data.shippingCost != null ? String(data.shippingCost) : '');
+        setShippingArea(data.shippingArea || '');
+        setShippingCarrier(data.shippingCarrier || '');
       } else if (response.status === 404) {
         alert(t('artwork_not_found'));
         router.push('/artworks');
@@ -86,6 +99,10 @@ export default function EditArtworkPage() {
           price: parseInt(price),
           category,
           isPublished,
+          shippingType,
+          shippingCost: shippingType === 'fixed' ? shippingCost : null,
+          shippingArea,
+          shippingCarrier,
         }),
       });
 
@@ -95,7 +112,9 @@ export default function EditArtworkPage() {
       } else if (response.status === 403) {
         alert(t('owner_only'));
       } else {
-        alert(t('update_failed'));
+        // Show the server's reason (price range, sale in progress, ...) when there is one.
+        const data = await response.json().catch(() => ({}));
+        alert(typeof data.error === 'string' ? data.error : t('update_failed'));
       }
     } catch (error) {
       console.error('Error updating artwork:', error);
@@ -219,6 +238,47 @@ export default function EditArtworkPage() {
                 <option value="fotografi">{t('photography')}</option>
                 <option value="digital">{t('digital')}</option>
               </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t('shipping_options_label')}</label>
+              <select
+                value={shippingType}
+                onChange={(e) => setShippingType(e.target.value)}
+                className="w-full px-3 py-2 border rounded text-sm"
+              >
+                {SHIPPING_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+              {shippingType === 'fixed' && (
+                <Input
+                  type="number"
+                  min="0"
+                  value={shippingCost}
+                  onChange={(e) => setShippingCost(e.target.value)}
+                  placeholder={t('shipping_cost_placeholder')}
+                  aria-label={t('shipping_cost_label')}
+                />
+              )}
+              {shippingType === 'pickup' && (
+                <Input
+                  value={shippingArea}
+                  onChange={(e) => setShippingArea(e.target.value)}
+                  placeholder={t('pickup_area_placeholder')}
+                  aria-label={t('pickup_area_label')}
+                  maxLength={200}
+                />
+              )}
+              {shippingType === 'other' && (
+                <Input
+                  value={shippingCarrier}
+                  onChange={(e) => setShippingCarrier(e.target.value)}
+                  placeholder={t('carrier_placeholder')}
+                  aria-label={t('carrier_label')}
+                  maxLength={200}
+                />
+              )}
             </div>
 
             <div className="flex items-center gap-2">

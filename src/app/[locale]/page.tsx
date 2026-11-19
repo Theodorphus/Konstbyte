@@ -22,7 +22,7 @@ export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   return {
-    title: 'Konstbyte — ' + (locale === 'en' ? 'Art Marketplace' : 'Marknadsplats för konst'),
+    title: { absolute: 'Konstbyte — ' + (locale === 'en' ? 'Art Marketplace' : 'Marknadsplats för konst') },
     description: locale === 'en'
       ? 'Discover, buy and sell art from independent artists. Create an account and start today.'
       : 'Upptäck, köp och sälj konst från oberoende konstnärer. Skapa konto och börja handla idag.',

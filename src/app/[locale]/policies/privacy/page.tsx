@@ -2,7 +2,7 @@ import PolicyLayout, { PolicySection, PolicyList, PolicyNote } from '../PolicyLa
 import { getTranslations } from 'next-intl/server';
 
 export const metadata = {
-  title: 'Integritetspolicy — Konstbyte',
+  title: 'Integritetspolicy',
   description: 'Hur Konstbyte samlar in, använder och skyddar dina personuppgifter enligt GDPR.',
 };
 

@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAllowedImageUrl } from '@/lib/image-url';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
-import { parseArtworkPrice, MIN_ARTWORK_PRICE, MAX_ARTWORK_PRICE } from '../../../../lib/payout';
+import { parseArtworkPrice, parseShippingCost, MIN_ARTWORK_PRICE, MAX_ARTWORK_PRICE } from '../../../../lib/payout';
+import { SHIPPING_OPTIONS } from '@/lib/shipping';
+import { isAdmin } from '@/lib/admin';
+
+const CATEGORIES = ['malningar', 'skulpturer', 'fotografi', 'digital'];
+const SHIPPING_TYPES: string[] = SHIPPING_OPTIONS.map((o) => o.value);
+const optionalText = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 200) : null);
 
 export async function GET(
   request: NextRequest,
@@ -22,6 +28,13 @@ export async function GET(
       },
     });
     if (!artwork) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (!artwork.isPublished) {
+      // Hidden artworks are only visible to their owner and admins.
+      const user = await getCurrentUser();
+      if (!user || (user.id !== artwork.ownerId && !isAdmin(user.email))) {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      }
+    }
     return NextResponse.json(artwork);
   } catch (err) {
     console.error('[artworks/[id]]', err);
@@ -75,12 +88,36 @@ export async function PUT(
     if (body.title !== undefined && !String(body.title).trim()) {
       return NextResponse.json({ error: 'Titel krävs' }, { status: 400 });
     }
+    if (body.category !== undefined && !CATEGORIES.includes(body.category)) {
+      return NextResponse.json({ error: 'Ogiltig kategori' }, { status: 400 });
+    }
+
+    // Shipping: only sent by the edit form; the type decides which extra field applies.
+    let shipping: { shippingType: string; shippingCost: number | null; shippingArea: string | null; shippingCarrier: string | null } | undefined;
+    if (body.shippingType !== undefined) {
+      if (!SHIPPING_TYPES.includes(body.shippingType)) {
+        return NextResponse.json({ error: 'Välj ett fraktsätt' }, { status: 400 });
+      }
+      const cost = body.shippingType === 'fixed' ? parseShippingCost(body.shippingCost) : null;
+      if (cost === undefined) {
+        return NextResponse.json({ error: 'Ogiltig fraktkostnad' }, { status: 400 });
+      }
+      shipping = {
+        shippingType: body.shippingType,
+        shippingCost: cost,
+        shippingArea: body.shippingType === 'pickup' ? optionalText(body.shippingArea) : null,
+        shippingCarrier: body.shippingType === 'other' ? optionalText(body.shippingCarrier) : null,
+      };
+    }
 
     // A sold artwork, or one a buyer is paying for right now, must keep the price
     // and image the buyer saw.
     const changesSale =
       (price !== undefined && price !== existingArtwork.price) ||
-      (body.imageUrl !== undefined && body.imageUrl !== existingArtwork.imageUrl);
+      (body.imageUrl !== undefined && body.imageUrl !== existingArtwork.imageUrl) ||
+      (shipping !== undefined &&
+        (shipping.shippingType !== existingArtwork.shippingType ||
+          (shipping.shippingCost ?? 0) !== (existingArtwork.shippingCost ?? 0)));
     if (changesSale) {
       const locked =
         existingArtwork.isSold ||
@@ -89,7 +126,7 @@ export async function PUT(
         })) > 0;
       if (locked) {
         return NextResponse.json(
-          { error: 'Pris och bild kan inte ändras på ett sålt verk eller medan ett köp pågår.' },
+          { error: 'Pris, bild och frakt kan inte ändras på ett sålt verk eller medan ett köp pågår.' },
           { status: 409 },
         );
       }
@@ -103,7 +140,8 @@ export async function PUT(
         price,
         imageUrl: body.imageUrl,
         category: body.category,
-        isPublished: body.isPublished
+        isPublished: typeof body.isPublished === 'boolean' ? body.isPublished : undefined,
+        ...shipping,
       },
       include: {
         owner: {

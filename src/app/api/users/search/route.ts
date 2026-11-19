@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
 
     // Build where clause for search
     const whereClause = {
+      email: { not: null }, // not deleted accounts
       OR: [
         { name: { contains: query, mode: 'insensitive' as const } },
         { instagram: { contains: query, mode: 'insensitive' as const } },

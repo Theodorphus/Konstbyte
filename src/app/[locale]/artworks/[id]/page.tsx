@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id?: stri
   if (!artwork || !artwork.isPublished) return { robots: { index: false } };
   const base = SITE_URL;
   return {
-    title: `${artwork.title} — Konstbyte`,
+    title: artwork.title,
     description: artwork.description || 'Konstverk på Konstbyte',
     alternates: alternatesFor(locale, `/artworks/${artwork.id}`),
     openGraph: {

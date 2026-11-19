@@ -32,9 +32,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         orderBy: { createdAt: 'desc' },
         take: 1000,
       }),
+      // Only artists with published art (matches the profile page's noindex rule).
       prisma.user.findMany({
+        where: { email: { not: null }, artworks: { some: { isPublished: true } } },
         select: { id: true },
-        take: 500,
+        take: 1000,
       }),
     ]);
 
