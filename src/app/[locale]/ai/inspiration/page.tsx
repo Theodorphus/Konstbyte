@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from '@/i18n/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 export default function InspirationPage() {
   const t = useTranslations('ai');
+  const locale = useLocale();
   const [prompt, setPrompt] = useState('');
   const [result, setResult] = useState('');
   const [error, setError] = useState('');
@@ -25,13 +26,15 @@ export default function InspirationPage() {
       const res = await fetch('/api/ai/inspiration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: prompt || 'Generera kreativa idéer för målning' }),
+        body: JSON.stringify({ prompt, locale }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        if (res.status === 503) {
+        if (res.status === 401) {
+          setError(t('error_login'));
+        } else if (res.status === 503) {
           setError(t('error_not_configured'));
         } else {
           setError(data.error || t('error_generic'));

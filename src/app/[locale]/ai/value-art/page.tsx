@@ -3,11 +3,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import UploadImageButton from "@/components/UploadImageButton";
 import WallPreview from "@/components/WallPreview";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 // ─── Helper components ────────────────────────────────────────────────────────
 
@@ -80,6 +80,7 @@ function TipsBox({ tips, title }: { tips: string[]; title: string }) {
 
 export default function ValueArtPage() {
   const t = useTranslations("ai");
+  const locale = useLocale();
   const [imageUrl, setImageUrl] = useState("");
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
@@ -113,11 +114,13 @@ export default function ValueArtPage() {
       const res = await fetch("/api/ai/value-art", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl, artist, artType, style, sizeMaterial, provenance, other }),
+        body: JSON.stringify({ imageUrl, artist, artType, style, sizeMaterial, provenance, other, locale }),
       });
       const data = await res.json();
       if (!res.ok) {
-        if (res.status === 503) {
+        if (res.status === 401) {
+          setError(t("error_login"));
+        } else if (res.status === 503) {
           setError(t("error_not_configured"));
         } else {
           setError(data.error || t("error_valuation_generic"));

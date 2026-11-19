@@ -10,6 +10,7 @@ const { prisma, sendEmail } = vi.hoisted(() => ({
   sendEmail: vi.fn(() => Promise.resolve()),
 }));
 vi.mock('@/lib/prisma', () => ({ default: prisma }));
+vi.mock('@/lib/weekly-challenge', () => ({ ensureWeeklyChallenge: vi.fn(() => Promise.resolve(null)) }));
 vi.mock('@/lib/release-payout', () => ({ markOrderDelivered: vi.fn(), releaseSellerPayout: vi.fn() }));
 vi.mock('@/lib/email', async (orig) => ({ ...(await orig<typeof import('@/lib/email')>()), sendEmail }));
 
