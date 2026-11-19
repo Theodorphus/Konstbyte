@@ -124,6 +124,7 @@ async function FooterContent({ locale, currentYear }: { locale: string; currentY
             <li><Link href="/hur-det-fungerar" className="hover:text-slate-900 transition-colors">{t('how_it_works')}</Link></li>
             <li><Link href="/avgifter" className="hover:text-slate-900 transition-colors">{t('fees')}</Link></li>
             <li><Link href="/policies/faq" className="hover:text-slate-900 transition-colors">{t('faq')}</Link></li>
+            <li><Link href="/kontakt" className="hover:text-slate-900 transition-colors">{t('contact')}</Link></li>
             <li><Link href="/policies/terms" className="hover:text-slate-900 transition-colors">{t('terms')}</Link></li>
             <li><Link href="/policies/privacy" className="hover:text-slate-900 transition-colors">{t('privacy')}</Link></li>
           </ul>

@@ -31,9 +31,15 @@ export default function NavBar() {
       }
     };
 
+    // Only poll while the tab is visible; catch up as soon as it is shown again.
+    const tick = () => { if (document.visibilityState === 'visible') fetchCount(); };
     fetchCount();
-    const interval = setInterval(fetchCount, 30000);
-    return () => clearInterval(interval);
+    const interval = setInterval(tick, 30000);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', tick);
+    };
   }, [session]);
 
   useEffect(() => {
@@ -179,7 +185,7 @@ export default function NavBar() {
                   className="bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-sm shadow-amber-200/50"
                   asChild
                 >
-                  <Link href="/artworks/new">{t('become_artist')}</Link>
+                  <Link href="/join">{t('become_artist')}</Link>
                 </Button>
               </>
             )}
@@ -317,7 +323,7 @@ export default function NavBar() {
                     className="w-full bg-amber-400 text-slate-950 hover:bg-amber-300"
                     asChild
                   >
-                    <Link href="/artworks/new" onClick={() => setMobileMenuOpen(false)}>
+                    <Link href="/join" onClick={() => setMobileMenuOpen(false)}>
                       {t('become_artist')}
                     </Link>
                   </Button>

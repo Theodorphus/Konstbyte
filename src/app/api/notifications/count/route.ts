@@ -3,30 +3,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import prisma from '../../../../lib/prisma';
 
-// GET - Get unread notification count
+// GET - Unread notification count (polled by the nav bar every 30 s).
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ count: 0 });
-    }
+    const userId = session?.user?.id;
+    if (!userId) return NextResponse.json({ count: 0 });
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ count: 0 });
-    }
-
-    const count = await prisma.notification.count({
-      where: { 
-        userId: user.id,
-        read: false,
-      },
-    });
-
+    const count = await prisma.notification.count({ where: { userId, read: false } });
     return NextResponse.json({ count });
   } catch (error) {
     console.error('Error counting notifications:', error);
