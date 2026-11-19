@@ -64,12 +64,16 @@ export async function GET(request: NextRequest) {
     const ownerId  = searchParams.get('ownerId');
     const search   = searchParams.get('search')?.slice(0, 100) || undefined;
     const category = searchParams.get('category') || undefined;
-    const minPrice = searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined;
-    const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined;
+    const num = (v: string | null) => {
+      const n = v ? Number(v) : NaN;
+      return Number.isFinite(n) && n >= 0 ? n : undefined;
+    };
+    const minPrice = num(searchParams.get('minPrice'));
+    const maxPrice = num(searchParams.get('maxPrice'));
     const sortBy   = searchParams.get('sortBy') || 'newest';
 
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-    const take = Math.min(MAX_TAKE, Math.max(1, parseInt(searchParams.get('take') || '12', 10)));
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+    const take = Math.min(MAX_TAKE, Math.max(1, parseInt(searchParams.get('take') || '12', 10) || 12));
     const skip = (page - 1) * take;
 
     const where: Record<string, unknown> = { isPublished: true };

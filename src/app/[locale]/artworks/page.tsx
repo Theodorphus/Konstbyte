@@ -3,6 +3,7 @@ import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { formatSek } from '@/lib/currency';
 import SafeImage from '@/components/SafeImage';
 import { PageHeader } from '@/components/PageHeader';
@@ -117,18 +118,41 @@ function ArtworksGrid({ artworks, favoriteIds, toggleFavorite, currentUserId, ca
   );
 }
 
+const SORTS = ['newest', 'price-asc', 'price-desc', 'name'];
+
+/** The value, but only after it has stopped changing for `ms` (typing in search/price). */
+function useDebounced<T>(value: T, ms = 350): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), ms);
+    return () => clearTimeout(id);
+  }, [value, ms]);
+  return debounced;
+}
+
+const priceParam = (v: string | null) => (v && /^\d{1,7}$/.test(v) ? v : '');
+
 export default function ArtworksPage() {
   const t = useTranslations('artworks');
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [total, setTotal] = useState<number>(0);
-  const [page, setPage] = useState<number>(1);
+  // Filters live in the URL too, so a filtered view can be shared and survives Back.
+  const searchParams = useSearchParams();
+  const urlCategory = searchParams.get('category') ?? '';
+  const [page, setPage] = useState<number>(() => Math.max(1, Number(searchParams.get('page')) || 1));
   const pageSize = 12;
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(() => (searchParams.get('q') ?? '').slice(0, 100));
   const [searchResults, setSearchResults] = useState<Artist[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [sortBy, setSortBy] = useState<string>('newest');
-  const [minPrice, setMinPrice] = useState<string>('');
-  const [maxPrice, setMaxPrice] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => (categories.includes(urlCategory) ? urlCategory : ''));
+  const [sortBy, setSortBy] = useState<string>(() => {
+    const s = searchParams.get('sort');
+    return s && SORTS.includes(s) ? s : 'newest';
+  });
+  const [minPrice, setMinPrice] = useState<string>(() => priceParam(searchParams.get('min')));
+  const [maxPrice, setMaxPrice] = useState<string>(() => priceParam(searchParams.get('max')));
+  const debouncedSearch = useDebounced(searchQuery);
+  const debouncedMin = useDebounced(minPrice);
+  const debouncedMax = useDebounced(maxPrice);
   const [isLoading, setIsLoading] = useState(true);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -173,7 +197,31 @@ export default function ArtworksPage() {
     };
     fetchData();
     return () => { isCurrent = false; };
-  }, [page, searchQuery, selectedCategory, sortBy, minPrice, maxPrice]);
+  }, [page, debouncedSearch, selectedCategory, sortBy, debouncedMin, debouncedMax]);
+
+  // Keep the address bar in step with the filters (no navigation, no reload).
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (selectedCategory) params.set('category', selectedCategory);
+    if (debouncedSearch) params.set('q', debouncedSearch);
+    if (debouncedMin) params.set('min', debouncedMin);
+    if (debouncedMax) params.set('max', debouncedMax);
+    if (sortBy !== 'newest') params.set('sort', sortBy);
+    if (page > 1) params.set('page', String(page));
+    const qs = params.toString();
+    const url = `${window.location.pathname}${qs ? `?${qs}` : ''}`;
+    if (url !== `${window.location.pathname}${window.location.search}`) window.history.replaceState(null, '', url);
+  }, [page, debouncedSearch, selectedCategory, sortBy, debouncedMin, debouncedMax]);
+
+  // A link to another category while already on this page (e.g. the footer).
+  useEffect(() => {
+    const next = categories.includes(urlCategory) ? urlCategory : '';
+    if (next !== selectedCategory) {
+      setSelectedCategory(next);
+      setPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlCategory]);
 
   useEffect(() => {
     fetchFavorites();
@@ -198,10 +246,10 @@ export default function ArtworksPage() {
   // Fetch search results (artists) when search query changes
   useEffect(() => {
     let isCurrent = true;
-    if (searchQuery.trim().length >= 2) {
+    if (debouncedSearch.trim().length >= 2) {
       const fetchSearchResults = async () => {
         try {
-          const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+          const response = await fetch(`/api/search?q=${encodeURIComponent(debouncedSearch)}`);
           if (response.ok && isCurrent) {
             const data: SearchResponse = await response.json();
             setSearchResults(data.users || []);
@@ -215,16 +263,16 @@ export default function ArtworksPage() {
       setSearchResults([]);
     }
     return () => { isCurrent = false; };
-  }, [searchQuery]);
+  }, [debouncedSearch]);
 
   const buildQuery = (pageNumber = 1) => {
     const params = new URLSearchParams();
     params.set('page', String(pageNumber));
     params.set('take', String(pageSize));
     if (selectedCategory) params.set('category', selectedCategory);
-    if (searchQuery) params.set('search', searchQuery);
-    if (minPrice) params.set('minPrice', minPrice);
-    if (maxPrice) params.set('maxPrice', maxPrice);
+    if (debouncedSearch) params.set('search', debouncedSearch);
+    if (debouncedMin) params.set('minPrice', debouncedMin);
+    if (debouncedMax) params.set('maxPrice', debouncedMax);
     if (sortBy) params.set('sortBy', sortBy);
     return params.toString();
   };
@@ -320,7 +368,7 @@ export default function ArtworksPage() {
           <Input
             placeholder={t('search_placeholder')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
             className="rounded-xl"
           />
 
@@ -331,7 +379,7 @@ export default function ArtworksPage() {
                 type="number"
                 placeholder={t('min_price_placeholder')}
                 value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
+                onChange={(e) => { setMinPrice(e.target.value); setPage(1); }}
                 className="rounded-xl"
               />
             </div>
@@ -341,7 +389,7 @@ export default function ArtworksPage() {
                 type="number"
                 placeholder={t('max_price_placeholder')}
                 value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
+                onChange={(e) => { setMaxPrice(e.target.value); setPage(1); }}
                 className="rounded-xl"
               />
             </div>
@@ -349,7 +397,7 @@ export default function ArtworksPage() {
               <label className="block text-xs font-medium mb-1.5 text-stone-500">{t('sort_label')}</label>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
                 className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 bg-white text-sm text-slate-700"
               >
                 <option value="newest">{t('sort_newest')}</option>
@@ -362,7 +410,7 @@ export default function ArtworksPage() {
 
           <div className="flex items-center gap-2 text-sm flex-wrap">
             <button
-              onClick={() => setSelectedCategory('')}
+              onClick={() => { setSelectedCategory(''); setPage(1); }}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${!selectedCategory ? 'bg-stone-900 text-white' : 'border border-stone-200 text-stone-600 hover:border-stone-400 hover:bg-stone-50'}`}
             >
               {t('all_categories')}
@@ -370,7 +418,7 @@ export default function ArtworksPage() {
             {categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => { setSelectedCategory(cat); setPage(1); }}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategory === cat ? 'bg-stone-900 text-white' : 'border border-stone-200 text-stone-600 hover:border-stone-400 hover:bg-stone-50'}`}
               >
                 {categoryLabels[cat] || cat}
@@ -409,6 +457,7 @@ export default function ArtworksPage() {
                   setMinPrice('');
                   setMaxPrice('');
                   setSortBy('newest');
+                  setPage(1);
                 }}
                 className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-full text-xs transition-colors"
               >
