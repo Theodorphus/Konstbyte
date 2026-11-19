@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
 import { isAdmin } from '../../../lib/admin';
+import { themeImageFor } from '@/lib/weekly-challenge';
 
 export async function GET() {
   try {
@@ -79,7 +80,7 @@ export async function GET() {
         descriptionEn: challenge.descriptionEn ?? null,
         themePrompt: challenge.themePrompt,
         themePromptEn: challenge.themePromptEn ?? null,
-        imageUrl: challenge.imageUrl ?? null,
+        imageUrl: challenge.imageUrl ?? themeImageFor(challenge.title, challenge.titleEn),
         weekNumber: challenge.weekNumber,
         year: challenge.year,
         startsAt: challenge.startsAt,

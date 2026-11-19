@@ -41,3 +41,6 @@ next-env.d.ts
 # Prisma
 prisma/migrations/*_migration.sql
 .env*
+
+# Original image uploads (converted copies live in public/images)
+public/Bilder/

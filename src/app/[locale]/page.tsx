@@ -6,6 +6,9 @@ import prisma from '@/lib/prisma';
 import { formatSek } from '@/lib/currency';
 import SafeImage from '@/components/SafeImage';
 import HomepageCommunityPreview from '@/components/HomepageCommunityPreview';
+import Image from 'next/image';
+import HowItWorksSteps from '@/components/HowItWorksSteps';
+import { themeImageFor } from '@/lib/weekly-challenge';
 
 type Artwork = {
   id: string;
@@ -61,7 +64,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       orderBy: { startsAt: 'desc' },
       select: { id: true, title: true, themePrompt: true, imageUrl: true, weekNumber: true, year: true, endsAt: true },
     });
-    if (challenge) currentChallenge = { ...challenge, isActive: challenge.endsAt > now };
+    // Challenges without their own image get the theme's illustration.
+    if (challenge) currentChallenge = { ...challenge, imageUrl: challenge.imageUrl ?? themeImageFor(challenge.title), isActive: challenge.endsAt > now };
   } catch { loadError = true; }
 
   return (
@@ -70,12 +74,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <section className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-amber-300 via-rose-300 to-sky-300 shadow-2xl shadow-rose-300/30">
         <div className="absolute -right-12 -top-12 z-10 h-64 w-64 rounded-full bg-white/30 blur-3xl pointer-events-none" />
         <div className="absolute left-1/2 bottom-0 z-10 h-32 w-80 -translate-x-1/2 rounded-full bg-white/20 blur-2xl pointer-events-none" />
-        <div className="relative z-20 flex min-h-[520px] items-center px-8 py-16 md:min-h-[640px] md:px-16 md:py-24">
+        <div className="relative z-20 grid items-center gap-10 px-8 py-14 md:px-14 md:py-16 lg:min-h-[600px] lg:grid-cols-[1.05fr_1fr] lg:gap-12 lg:px-16">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-900/20 bg-white/40 px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] text-slate-600/80 font-medium backdrop-blur-sm animate-fade-up">
               {t('badge')}
             </span>
-            <h1 className="font-display mt-7 text-5xl md:text-6xl lg:text-[4.5rem] leading-[1.05] text-slate-900 animate-fade-up-delay">
+            <h1 className="font-display mt-7 text-5xl md:text-6xl xl:text-[4.25rem] leading-[1.05] text-slate-900 animate-fade-up-delay">
               {t('hero_title')}
             </h1>
             <p className="mt-6 max-w-lg text-base md:text-lg text-slate-700/90 leading-[1.75] animate-fade-up-delay">
@@ -89,6 +93,17 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 {t('explore_art')}
               </Link>
             </div>
+          </div>
+          <div className="relative aspect-[3/2] w-full overflow-hidden rounded-[28px] shadow-2xl shadow-slate-900/25 ring-4 ring-white/60 animate-fade-up-delay">
+            <Image
+              src="/images/hero.webp"
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 45vw, 100vw"
+              className="object-cover"
+              loading="eager"
+              fetchPriority="high"
+            />
           </div>
         </div>
       </section>
@@ -187,21 +202,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </div>
             <Link href="/hur-det-fungerar" className="text-sm font-semibold text-slate-900 hover:text-slate-700">{t('read_guide')}</Link>
           </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {([
-              { step: '01', title: t('step1_title'), text: t('step1_text'), icon: <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
-              { step: '02', title: t('step2_title'), text: t('step2_text'), icon: <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
-              { step: '03', title: t('step3_title'), text: t('step3_text'), icon: <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" /></svg> },
-            ] as const).map((item) => (
-              <div key={item.step} className="rounded-2xl border border-slate-200/60 bg-amber-50/60 p-7 flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-amber-100 ring-1 ring-amber-200/70">{item.icon}</div>
-                  <span className="text-3xl font-bold tracking-[0.25em] text-slate-200">{item.step}</span>
-                </div>
-                <h3 className="text-base font-semibold text-slate-900">{item.title}</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">{item.text}</p>
-              </div>
-            ))}
+          <div className="mt-10">
+            <HowItWorksSteps locale={locale} />
           </div>
         </div>
       </section>
@@ -240,7 +242,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-300 via-rose-300 to-sky-300 p-10 md:p-14">
           <div className="absolute -right-12 -top-12 h-52 w-52 rounded-full bg-white/30 blur-3xl pointer-events-none" />
           <div className="absolute left-1/2 bottom-0 h-32 w-80 -translate-x-1/2 rounded-full bg-white/20 blur-2xl pointer-events-none" />
-          <div className="relative flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+          <div className="relative grid items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
+            <div className="space-y-8">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-slate-600/80 font-medium">{t('cta_label')}</p>
               <h2 className="font-display mt-3 text-3xl md:text-4xl lg:text-5xl text-slate-900 leading-tight">{t('cta_title')}</h2>
@@ -253,6 +256,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Link href="/hur-det-fungerar" className="inline-flex items-center justify-center rounded-full border border-slate-900/25 bg-white/50 px-7 py-3.5 text-sm font-semibold text-slate-900 hover:bg-white/75 backdrop-blur-sm transition-colors">
                 {t('cta_how')}
               </Link>
+            </div>
+            </div>
+            <div className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl shadow-xl shadow-slate-900/15 ring-4 ring-white/50">
+              <Image src="/images/cta.webp" alt="" fill sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
             </div>
           </div>
         </div>

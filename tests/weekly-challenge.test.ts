@@ -5,7 +5,9 @@ const { prisma } = vi.hoisted(() => ({
 }));
 vi.mock('@/lib/prisma', () => ({ default: prisma }));
 
-import { currentWeek, ensureWeeklyChallenge, THEMES } from '@/lib/weekly-challenge';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { currentWeek, ensureWeeklyChallenge, THEMES, THEME_IMAGES, themeImageFor } from '@/lib/weekly-challenge';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -51,10 +53,28 @@ describe('ensureWeeklyChallenge', () => {
     expect(data).toMatchObject({ weekNumber: 47, year: 2026 });
     expect(data.titleEn).toBeTruthy();
     expect(data.descriptionEn).toBeTruthy();
+    expect(data.imageUrl).toBe(themeImageFor(data.title));
   });
 
   it('does nothing if the week already has a challenge (unique week)', async () => {
     prisma.challenge.create.mockRejectedValue(Object.assign(new Error('dup'), { code: 'P2002' }));
     expect(await ensureWeeklyChallenge()).toBeNull();
+  });
+});
+
+describe('theme images', () => {
+  it('has an image file for every theme', () => {
+    expect(THEME_IMAGES).toHaveLength(THEMES.length);
+    for (const t of THEMES) {
+      const url = themeImageFor(t.sv[0]);
+      expect(url).toMatch(/^\/images\/challenges\/.+\.webp$/);
+      expect(existsSync(join(process.cwd(), 'public', url!))).toBe(true);
+    }
+  });
+
+  it('matches English titles and ignores unknown ones', () => {
+    expect(themeImageFor('Night')).toBe('/images/challenges/natt.webp');
+    expect(themeImageFor('Något eget', 'Night')).toBe('/images/challenges/natt.webp');
+    expect(themeImageFor('Admins egna tema')).toBeNull();
   });
 });

@@ -2,6 +2,7 @@ import { alternatesFor } from '@/lib/seo';
 import { Link } from '@/i18n/navigation';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import Image from 'next/image';
 
 export async function generateMetadata({
   params,
@@ -41,17 +42,18 @@ export default async function JoinPage({
       <section className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-amber-300 via-rose-300 to-sky-300 shadow-2xl shadow-rose-300/30 -mx-0">
         <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-white/30 blur-3xl pointer-events-none" />
         <div className="absolute left-1/2 bottom-0 h-32 w-80 -translate-x-1/2 rounded-full bg-white/20 blur-2xl pointer-events-none" />
-        <div className="relative px-8 py-20 md:px-16 md:py-28 text-center">
+        <div className="relative grid items-center gap-10 px-8 py-14 md:px-14 md:py-16 lg:grid-cols-[1.1fr_1fr] lg:px-16 lg:py-20">
+          <div className="text-center lg:text-left">
           <span className="inline-flex items-center gap-2 rounded-full border border-slate-900/20 bg-white/40 px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] text-slate-700 font-medium backdrop-blur-sm mb-6">
             {t('hero_badge')}
           </span>
-          <h1 className="font-display text-4xl md:text-6xl lg:text-7xl text-slate-900 leading-[1.05] mb-6">
+          <h1 className="font-display text-4xl md:text-6xl text-slate-900 leading-[1.05] mb-6">
             {t('hero_heading')}
           </h1>
-          <p className="text-lg md:text-xl text-slate-700/90 max-w-2xl mx-auto leading-relaxed mb-10">
+          <p className="text-lg md:text-xl text-slate-700/90 max-w-2xl mx-auto lg:mx-0 leading-relaxed mb-10">
             {t('hero_subtext')}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <Link
               href="/auth/register"
               className="inline-flex items-center justify-center rounded-full bg-slate-900 px-9 py-4 text-base font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] transition-all"
@@ -66,6 +68,18 @@ export default async function JoinPage({
             </Link>
           </div>
           <p className="mt-5 text-sm text-slate-600/80">{t('hero_footnote')}</p>
+          </div>
+          <div className="relative aspect-[3/2] w-full overflow-hidden rounded-[28px] shadow-2xl shadow-slate-900/25 ring-4 ring-white/60">
+            <Image
+              src="/images/join.webp"
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 45vw, 100vw"
+              className="object-cover"
+              loading="eager"
+              fetchPriority="high"
+            />
+          </div>
         </div>
       </section>
 

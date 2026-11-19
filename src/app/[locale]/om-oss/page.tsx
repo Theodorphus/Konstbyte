@@ -2,6 +2,7 @@ import { alternatesFor } from '@/lib/seo';
 import { Link } from '@/i18n/navigation';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import Image from 'next/image';
 
 export async function generateMetadata({
   params,
@@ -51,6 +52,10 @@ export default async function AboutPage({
           {t('heading')}
         </h1>
         <p className="text-base text-slate-600 leading-relaxed">{t('intro')}</p>
+      </div>
+
+      <div className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl shadow-md">
+        <Image src="/images/om-oss.webp" alt="" fill sizes="(min-width: 768px) 672px, 100vw" className="object-cover" loading="eager" />
       </div>
 
       {/* Divider */}

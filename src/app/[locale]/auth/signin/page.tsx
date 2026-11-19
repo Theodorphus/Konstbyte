@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 
 const ERROR_KEYS = [
   'OAuthSignin', 'OAuthCallback', 'OAuthCreateAccount', 'EmailCreateAccount',
@@ -43,7 +44,8 @@ function SignInContent() {
   }
 
   return (
-    <div className="max-w-md mx-auto py-12">
+    <div className="mx-auto grid max-w-5xl items-center gap-12 py-12 lg:grid-cols-2">
+      <div className="mx-auto w-full max-w-md">
       <h1 className="text-2xl font-semibold">{t('sign_in')}</h1>
       <p className="text-slate-600 mt-2">{t('signin_subtitle')}</p>
 
@@ -95,6 +97,10 @@ function SignInContent() {
           </span>
           {t('continue_with_google')}
         </Button>
+      </div>
+      </div>
+      <div className="relative hidden h-[600px] overflow-hidden rounded-3xl shadow-xl lg:block">
+        <Image src="/images/signin.webp" alt="" fill sizes="(min-width: 1024px) 480px, 1px" className="object-cover" />
       </div>
     </div>
   );

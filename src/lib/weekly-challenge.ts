@@ -59,6 +59,20 @@ export const THEMES: Theme[] = [
     en: ['Weather', 'Capture a kind of weather.', 'Storm, fog, snow or heatwave.'] },
 ];
 
+// Illustration for each theme (same order as THEMES), in public/images/challenges.
+export const THEME_IMAGES = [
+  'mitt-fonster', 'bara-tre-farger', 'svensk-natur', 'sjalvportratt', 'vardagsforemal', 'natt',
+  'rorelse', 'ett-minne', 'djur', 'staden', 'abstrakt-kansla', 'vatten',
+  'monster', 'arstiden-just-nu', 'hander', 'miniatyr', 'ljus-och-skugga', 'drommar',
+  'mat', 'aterbruk', 'musik', 'hemma', 'en-linje', 'vader',
+];
+
+/** The theme illustration for a challenge title (Swedish or English), if it is one of ours. */
+export function themeImageFor(title?: string | null, titleEn?: string | null): string | null {
+  const i = THEMES.findIndex((t) => t.sv[0] === title || t.en[0] === title || (titleEn != null && t.en[0] === titleEn));
+  return i >= 0 && THEME_IMAGES[i] ? `/images/challenges/${THEME_IMAGES[i]}.webp` : null;
+}
+
 const TZ = 'Europe/Stockholm';
 
 /** Stockholm's offset from UTC (ms) at a given instant. */
@@ -117,6 +131,7 @@ export async function ensureWeeklyChallenge(now = new Date()): Promise<string | 
       data: {
         title: theme.sv[0], description: theme.sv[1], themePrompt: theme.sv[2],
         titleEn: theme.en[0], descriptionEn: theme.en[1], themePromptEn: theme.en[2],
+        imageUrl: themeImageFor(theme.sv[0]),
         weekNumber: week, year, startsAt, endsAt,
       },
       select: { id: true },

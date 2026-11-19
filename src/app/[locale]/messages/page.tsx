@@ -57,7 +57,9 @@ export default function MessagesPage() {
         </div>
       ) : conversations.length === 0 ? (
         <div className="rounded-2xl border border-slate-100 bg-slate-50 p-10 text-center space-y-2">
-          <p className="text-2xl">💬</p>
+          <div className="relative mx-auto h-32 w-32">
+            <Image src="/images/empty-messages.webp" alt="" fill sizes="128px" className="object-contain" />
+          </div>
           <p className="font-medium text-slate-700">{t('no_conversations')}</p>
           <p className="text-sm text-slate-400">{t('no_conversations_sub')}</p>
         </div>

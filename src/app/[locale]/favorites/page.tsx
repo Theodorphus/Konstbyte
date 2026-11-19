@@ -87,7 +87,7 @@ export default function FavoritesPage() {
       </PageHeader>
       {favorites.length === 0 ? (
         <StatusCard
-          icon="❤️"
+          image="/images/empty-favorites.webp"
           title={t('no_favorites_title')}
           message={t('no_favorites_msg')}
           actions={

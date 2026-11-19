@@ -2,6 +2,7 @@ import { alternatesFor } from '@/lib/seo';
 import { Link } from '@/i18n/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 
 export async function generateMetadata({
   params,
@@ -60,6 +61,10 @@ export default async function AiPage() {
         <p className="text-base text-slate-500 max-w-xl leading-relaxed">
           {t('subtitle')}
         </p>
+      </div>
+
+      <div className="relative aspect-[21/9] w-full overflow-hidden rounded-2xl shadow-sm">
+        <Image src="/images/ai.webp" alt="" fill sizes="(min-width: 768px) 768px, 100vw" className="object-cover" loading="eager" />
       </div>
 
       {/* Tool cards */}
