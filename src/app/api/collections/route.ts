@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const mine = searchParams.get('mine') === 'true';
     const artistId = searchParams.get('artistId');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '6', 10), 50);
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '6', 10) || 6, 1), 50);
 
     if (mine) {
       // Get current user's collections

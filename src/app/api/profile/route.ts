@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
 import { isAllowedImageUrl } from '../../../lib/image-url';
+import { deleteAccount } from '@/lib/delete-account';
 
 export async function GET() {
   try {
@@ -52,5 +53,27 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+  }
+}
+
+// DELETE /api/profile — delete the signed-in user's account (see lib/delete-account).
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const body = await request.json().catch(() => ({}));
+    if (body?.confirm !== true) {
+      return NextResponse.json({ error: 'Bekräftelse saknas' }, { status: 400 });
+    }
+    const result = await deleteAccount(user.id);
+    if (!result.ok) {
+      return NextResponse.json({ error: 'open_orders', count: result.count }, { status: 409 });
+    }
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('[profile DELETE]', error);
+    return NextResponse.json({ error: 'Kunde inte radera kontot' }, { status: 500 });
   }
 }

@@ -11,6 +11,7 @@ import { formatSek } from '@/lib/currency';
 import StatusCard from '@/components/StatusCard';
 import { CollectionStrip } from '@/components/collections/CollectionStrip';
 import type { CollectionSummary } from '@/components/collections/CollectionCard';
+import ReportButton from '@/components/ReportButton';
 import { useTranslations } from 'next-intl';
 
 interface User {
@@ -218,6 +219,11 @@ export default function UserProfilePage() {
                   <Button variant="outline" asChild>
                     <Link href={`/messages/${userId}`}>{t('send_message')}</Link>
                   </Button>
+                </div>
+              )}
+              {!isOwnProfile && (
+                <div className="mt-2">
+                  <ReportButton type="user" id={userId} />
                 </div>
               )}
               {isOwnProfile && (

@@ -329,7 +329,13 @@
     "danger_zone_title": "Farlig zon",
     "delete_account_title": "Radera konto",
     "delete_account_desc": "Radera ditt konto och all tillhörande data. Detta kan inte ångras.",
-    "delete_account_not_implemented": "Kontoborttagning är inte implementerad ännu"
+    "delete_account_details": "Dina konstverk, inlägg, kommentarer, meddelanden, favoriter och utmaningsbidrag tas bort och du loggas ut. Köp- och försäljningsuppgifter sparas i 7 år enligt bokföringslagen, utan ditt namn och din e-post.",
+    "delete_account_confirm_label": "Skriv RADERA för att bekräfta",
+    "delete_account_confirm_word": "RADERA",
+    "delete_account_button": "Radera mitt konto för alltid",
+    "delete_account_deleting": "Raderar…",
+    "delete_account_open_orders": "Du har {count} pågående order. Vänta tills de är levererade och utbetalda innan du raderar kontot.",
+    "delete_account_error": "Något gick fel. Försök igen eller kontakta webbdevstudio@gmail.com."
   },
   "challenge": {
     "title": "Veckans Konstutmaning",
@@ -1242,5 +1248,17 @@
     "error_city": "Ange ort",
     "error_country": "Ange land",
     "continue_to_payment": "Fortsätt till betalning →"
+  },
+  "report": {
+    "button": "Anmäl",
+    "title": "Anmäl innehåll",
+    "intro": "Berätta kort vad som är fel, till exempel upphovsrättsintrång, olagligt innehåll, bedrägeri eller trakasserier. Anmälan går direkt till oss som driver Konstbyte.",
+    "placeholder": "Vad är problemet?",
+    "send": "Skicka anmälan",
+    "sending": "Skickar…",
+    "cancel": "Avbryt",
+    "close": "Stäng",
+    "thanks": "Tack! Vi har fått din anmälan och tittar på den så snart vi kan.",
+    "error": "Anmälan kunde inte skickas. Försök igen eller mejla webbdevstudio@gmail.com."
   }
 }

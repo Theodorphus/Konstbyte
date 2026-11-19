@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
+import { isAdmin } from '../../../../../lib/admin';
 
 export async function DELETE(
   _request: NextRequest,
@@ -17,10 +18,11 @@ export async function DELETE(
     });
 
     if (!submission) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    if (submission.artistId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    const admin = isAdmin(user.email);
+    if (submission.artistId !== user.id && !admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const now = new Date();
-    if (submission.challenge.endsAt < now) {
+    if (submission.challenge.endsAt < now && !admin) {
       return NextResponse.json({ error: 'Utmaningen är avslutad — du kan inte ta bort ditt bidrag' }, { status: 400 });
     }
 
@@ -34,7 +36,7 @@ export async function DELETE(
     // Reverse participation points (+10) and likes earned
     const pointsToRemove = 10 + likeCount;
     await prisma.challengePoints.upsert({
-      where: { userId: user.id },
+      where: { userId: submission.artistId },
       update: { points: { increment: -pointsToRemove } },
       create: { userId: user.id, points: 0 },
     });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { isAdmin } from '@/lib/admin';
 
 // DELETE /api/comments/[id] - Delete a comment
 export async function DELETE(
@@ -17,16 +18,17 @@ export async function DELETE(
 
     const comment = await prisma.comment.findUnique({
       where: { id },
+      include: { post: { select: { authorId: true } } },
     });
 
     if (!comment) {
       return NextResponse.json({ error: 'Comment not found' }, { status: 404 });
     }
 
-    // Check if user owns the comment
-    if (comment.authorId !== user.id) {
+    // The comment's author, the post's author and admins may remove it.
+    if (comment.authorId !== user.id && comment.post.authorId !== user.id && !isAdmin(user.email)) {
       return NextResponse.json(
-        { error: 'You can only delete your own comments' },
+        { error: 'Du kan bara ta bort dina egna kommentarer' },
         { status: 403 }
       );
     }

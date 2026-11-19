@@ -115,6 +115,7 @@ export default function CommunityPage() {
               post={post}
               currentUserEmail={currentUserEmail}
               currentUserId={currentUserId}
+              isAdmin={session?.user?.isAdmin ?? false}
               onDelete={handleDeletePost}
             />
           ))}

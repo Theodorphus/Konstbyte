@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { isAdmin } from '@/lib/admin';
-import { APP_URL } from '@/lib/urls';
+import { checkResend } from '@/lib/resend-health';
 import { formatSek } from '@/lib/currency';
 import ChallengeAdmin from './ChallengeAdmin';
 import ArtworksAdmin from './ArtworksAdmin';
@@ -17,7 +17,6 @@ export default async function AdminPage() {
   }
 
   const t = await getTranslations('admin');
-  const appUrl = APP_URL;
 
   const [users, artworks, challenges, resendHealth] = await Promise.all([
     prisma.user.findMany({ orderBy: { createdAt: 'desc' } }),
@@ -37,20 +36,7 @@ export default async function AdminPage() {
       orderBy: { startsAt: 'desc' },
       include: { _count: { select: { submissions: true } } },
     }),
-    fetch(`${appUrl}/api/health/resend`, { cache: 'no-store' })
-      .then(async (response) => {
-        const data = await response.json();
-        return {
-          ok: response.ok,
-          status: response.status,
-          ...data
-        };
-      })
-      .catch((error) => ({
-        ok: false,
-        status: 500,
-        message: error instanceof Error ? error.message : t('error_fetch')
-      }))
+    checkResend(),
   ]);
 
   return (

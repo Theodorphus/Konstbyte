@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
+import { isAdmin } from '../../../../lib/admin';
 
 export async function DELETE(
   request: NextRequest,
@@ -19,7 +20,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    if (post.authorId !== user.id) {
+    if (post.authorId !== user.id && !isAdmin(user.email)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

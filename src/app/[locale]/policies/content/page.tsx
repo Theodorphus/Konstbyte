@@ -80,7 +80,8 @@ export default async function ContentPolicyPage() {
 
       <PolicySection title="6. Anmälningar och åtgärder">
         <p>
-          Ser du innehåll som verkar bryta mot dessa riktlinjer? Kontakta oss på{' '}
+          Ser du innehåll som verkar bryta mot dessa riktlinjer? Klicka på <strong>Anmäl</strong> vid konstverket,
+          profilen, inlägget, kommentaren eller utmaningsbidraget. Du kan också kontakta oss på{' '}
           <a href="mailto:webbdevstudio@gmail.com" className="underline underline-offset-2">webbdevstudio@gmail.com</a>.
           Vi granskar alla anmälningar och agerar om vi bedömer att ett brott har skett.
         </p>

@@ -56,7 +56,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
 
   // Verify recipient exists
   const recipient = await prisma.user.findUnique({ where: { id: userId } });
-  if (!recipient) return NextResponse.json({ error: 'Användaren hittades inte' }, { status: 404 });
+  // A deleted account has no email left; nobody can read messages sent to it.
+  if (!recipient || !recipient.email) return NextResponse.json({ error: 'Användaren hittades inte' }, { status: 404 });
 
   const message = await prisma.message.create({
     data: { senderId: user.id, recipientId: userId, content: content.trim() },

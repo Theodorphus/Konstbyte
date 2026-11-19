@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import ReportButton from '@/components/ReportButton';
 import { Link } from '@/i18n/navigation';
 import SafeImage from '@/components/SafeImage';
 import UploadImageButton from '@/components/UploadImageButton';
@@ -441,7 +442,8 @@ export default function UtmaningPage() {
                           {s.price.toLocaleString('sv-SE')} kr
                         </span>
                       )}
-                      {current.isActive && session?.user && s.artist.id === session.user.id && (
+                      {s.artist.id !== session?.user?.id && <ReportButton type="submission" id={s.id} />}
+                      {session?.user && ((current.isActive && s.artist.id === session.user.id) || session.user.isAdmin) && (
                         <button
                           onClick={() => handleDelete(s)}
                           title={t('delete_submission')}

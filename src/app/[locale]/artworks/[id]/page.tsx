@@ -11,6 +11,7 @@ import WallPreview from '@/components/WallPreview';
 import ArtworkCheckoutButton from '@/components/ArtworkCheckoutButton';
 import ShippingOptionsCard from '@/components/shipping/ShippingOptionsCard';
 import { getTranslations } from 'next-intl/server';
+import ReportButton from '@/components/ReportButton';
 import { isAdmin } from '@/lib/admin';
 
 export async function generateMetadata({ params }: { params: Promise<{ id?: string; locale: string }> }) {
@@ -220,6 +221,12 @@ export default async function ArtworkDetail({
                 >
                   {t('ask_artist')}
                 </Link>
+              </div>
+            )}
+
+            {!isOwner && (
+              <div className="flex justify-end">
+                <ReportButton type="artwork" id={artwork.id} />
               </div>
             )}
 

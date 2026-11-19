@@ -147,7 +147,7 @@ const faqData: FAQSection[] = [
       },
       {
         question: 'Jag ser ett konstverk som verkar bryta mot reglerna — hur anmäler jag?',
-        answer: 'Skicka ett e-postmeddelande till webbdevstudio@gmail.com med en länk till konstverket och en kort beskrivning av problemet. Vi granskar alla anmälningar.',
+        answer: 'Klicka på "Anmäl" på konstverkets sida och beskriv kort vad som är fel. Du kan också mejla webbdevstudio@gmail.com med en länk till konstverket. Vi granskar alla anmälningar.',
       },
       {
         question: 'Mitt konstverk visas inte i sökresultaten — varför?',

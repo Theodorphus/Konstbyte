@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
+import ReportButton from '@/components/ReportButton';
 
 interface Author {
   id: string;
@@ -22,6 +23,8 @@ interface Props {
   postId: string;
   currentUserEmail: string | null | undefined;
   currentUserId?: string | null;
+  postAuthorId?: string;
+  isAdmin?: boolean;
 }
 
 function timeAgo(dateString: string) {
@@ -50,7 +53,7 @@ function AvatarCircle({ user }: { user: Author }) {
   );
 }
 
-export default function CommentSection({ postId, currentUserEmail, currentUserId }: Props) {
+export default function CommentSection({ postId, currentUserEmail, currentUserId, postAuthorId, isAdmin = false }: Props) {
   const [comments, setComments] = useState<Comment[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState('');
@@ -93,6 +96,7 @@ export default function CommentSection({ postId, currentUserEmail, currentUserId
     if (!confirm('Ta bort kommentaren?')) return;
     const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
     if (res.ok) setComments((prev) => (prev ?? []).filter((c) => c.id !== commentId));
+    else alert('Kunde inte ta bort kommentaren');
   }
 
   if (loading) {
@@ -149,14 +153,23 @@ export default function CommentSection({ postId, currentUserEmail, currentUserId
                   >
                     {comment.author.name ?? 'Anonym'}
                   </Link>
-                  {Boolean(currentUserId) && currentUserId === comment.author.id && (
+                  <span className="flex items-center gap-2">
+                  {Boolean(currentUserId) && (currentUserId === comment.author.id || currentUserId === postAuthorId || isAdmin) && (
                     <button
                       onClick={() => handleDeleteComment(comment.id)}
-                      className="text-xs text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      className="text-xs text-slate-300 hover:text-red-500 transition-colors sm:opacity-0 sm:group-hover:opacity-100"
                     >
                       ✕
                     </button>
                   )}
+                  {currentUserId !== comment.author.id && (
+                    <ReportButton
+                      type="comment"
+                      id={comment.id}
+                      className="text-[11px] text-slate-300 hover:text-red-500 transition-colors sm:opacity-0 sm:group-hover:opacity-100"
+                    />
+                  )}
+                  </span>
                 </div>
                 <p className="text-sm text-slate-700 whitespace-pre-wrap break-words">{comment.content}</p>
               </div>

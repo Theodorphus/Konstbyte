@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation';
 import ReactionBar from './ReactionBar';
 import CommentSection from './CommentSection';
 import ImageLightbox from './ImageLightbox';
+import ReportButton from '@/components/ReportButton';
 
 interface Author {
   id: string;
@@ -35,6 +36,7 @@ interface Props {
   post: PostData;
   currentUserEmail: string | null | undefined;
   currentUserId?: string | null;
+  isAdmin?: boolean;
   onDelete: (postId: string) => void;
 }
 
@@ -71,7 +73,7 @@ function AvatarCircle({ user, size = 'md' }: { user: Author; size?: 'sm' | 'md' 
   );
 }
 
-export default function PostCard({ post, currentUserEmail, currentUserId, onDelete }: Props) {
+export default function PostCard({ post, currentUserEmail, currentUserId, isAdmin = false, onDelete }: Props) {
   const [reactions, setReactions] = useState<ReactionCounts>(post.reactions);
   const [userReaction, setUserReaction] = useState<string | null>(post.userReaction);
   const [commentCount, setCommentCount] = useState(post.commentCount);
@@ -80,6 +82,7 @@ export default function PostCard({ post, currentUserEmail, currentUserId, onDele
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const isOwner = Boolean(currentUserId) && currentUserId === post.author.id;
+  const canDelete = isOwner || isAdmin;
 
   async function handleReact(type: 'like' | 'heart' | 'wow') {
     // Optimistic update
@@ -145,7 +148,7 @@ export default function PostCard({ post, currentUserEmail, currentUserId, onDele
             <p className="text-xs text-slate-400">{timeAgo(post.createdAt)}</p>
           </div>
         </Link>
-        {isOwner && (
+        {canDelete ? (
           <button
             onClick={handleDelete}
             disabled={deleting}
@@ -153,6 +156,8 @@ export default function PostCard({ post, currentUserEmail, currentUserId, onDele
           >
             {deleting ? '…' : 'Ta bort'}
           </button>
+        ) : (
+          <ReportButton type="post" id={post.id} />
         )}
       </div>
 
@@ -214,6 +219,8 @@ export default function PostCard({ post, currentUserEmail, currentUserId, onDele
             postId={post.id}
             currentUserEmail={currentUserEmail}
             currentUserId={currentUserId}
+            postAuthorId={post.author.id}
+            isAdmin={isAdmin}
           />
         </div>
       )}

@@ -3,6 +3,7 @@ import EmailProvider from 'next-auth/providers/email';
 import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import prisma from '../../../../lib/prisma';
+import { isAdmin } from '../../../../lib/admin';
 
 const providers: NonNullable<NextAuthOptions['providers']> = [];
 
@@ -87,7 +88,10 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     session({ session, user }) {
-      if (session.user) session.user.id = user.id;
+      if (session.user) {
+        session.user.id = user.id;
+        session.user.isAdmin = isAdmin(user.email);
+      }
       return session;
     },
   },

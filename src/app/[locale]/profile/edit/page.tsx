@@ -10,6 +10,7 @@ import { UploadButton } from '@uploadthing/react';
 import type { UploadRouter } from '@/lib/uploadthing';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import { signOut } from 'next-auth/react';
 
 interface User {
   id: string;
@@ -30,6 +31,33 @@ export default function EditProfilePage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    setDeleteError('');
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        await signOut({ callbackUrl: '/' });
+        return;
+      }
+      setDeleteError(data.error === 'open_orders'
+        ? t('delete_account_open_orders', { count: data.count ?? 1 })
+        : t('delete_account_error'));
+    } catch {
+      setDeleteError(t('delete_account_error'));
+    }
+    setIsDeleting(false);
+  };
 
   useEffect(() => {
     fetch('/api/profile')
@@ -192,10 +220,31 @@ export default function EditProfilePage() {
         <CardHeader><CardTitle className="text-red-600">{t('danger_zone_title')}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-slate-600">{t('delete_account_desc')}</p>
-          <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-50"
-            onClick={() => alert(t('delete_account_not_implemented'))}>
-            {t('delete_account_title')}
-          </Button>
+          {!showDelete ? (
+            <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-50"
+              onClick={() => setShowDelete(true)}>
+              {t('delete_account_title')}
+            </Button>
+          ) : (
+            <div className="space-y-3 rounded-xl border border-red-200 bg-red-50/50 p-4">
+              <p className="text-sm text-slate-700">{t('delete_account_details')}</p>
+              <label className="block text-sm font-medium text-slate-700">
+                {t('delete_account_confirm_label')}
+                <Input className="mt-1.5" value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} autoComplete="off" />
+              </label>
+              {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
+              <div className="flex gap-2">
+                <Button type="button" className="bg-red-600 text-white hover:bg-red-700"
+                  disabled={isDeleting || deleteConfirm.trim().toUpperCase() !== t('delete_account_confirm_word')}
+                  onClick={handleDeleteAccount}>
+                  {isDeleting ? t('delete_account_deleting') : t('delete_account_button')}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => { setShowDelete(false); setDeleteConfirm(''); setDeleteError(''); }}>
+                  {t('cancel')}
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
