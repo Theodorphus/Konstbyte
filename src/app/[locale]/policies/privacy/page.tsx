@@ -84,8 +84,11 @@ export default async function PrivacyPage() {
         <PolicyList items={[
           'Stripe — för betalningshantering (Stripes integritetspolicy gäller)',
           'UploadThing — för lagring av bilder du laddar upp',
-          'Neon (PostgreSQL) — databastjänst för Konstbyte',
+          'Supabase (PostgreSQL) — databastjänst för Konstbyte',
           'Vercel — hosting av webbapplikationen',
+          'Resend — utskick av e-post, till exempel inloggningslänkar, orderbekräftelser och aviseringar',
+          'Groq — AI-verktygen, för det du själv skickar in i dem',
+          'Sentry (lagring inom EU) — felövervakning. När något går fel skickas tekniska uppgifter om felet, men inte ditt namn, din e-post eller IP-adress. Vid ett fel sparas också en kort inspelning av sidan där all text, alla formulärfält och bilder är dolda.',
           'Google (OAuth) — vid inloggning via Google-konto',
         ]} />
         <p>
@@ -100,6 +103,7 @@ export default async function PrivacyPage() {
         <PolicyList items={[
           'Sessionscookie: nödvändig för inloggning, raderas när webbläsaren stängs',
           'CSRF-token: säkerhetscookie för att skydda formulär',
+          'Sessionslagring (sessionStorage) i webbläsaren för felövervakningen och för att komma ihåg dolda påminnelser — försvinner när fliken stängs',
           'Inga analyscookies från Google Analytics eller liknande',
         ]} />
       </PolicySection>

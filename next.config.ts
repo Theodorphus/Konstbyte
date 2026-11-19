@@ -1,5 +1,6 @@
 import { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+import { withSentryConfig } from '@sentry/nextjs/config';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
@@ -23,6 +24,8 @@ const securityHeaders = [
       "font-src 'self'",
       "connect-src 'self' https://api.stripe.com https://uploadthing.com https://*.uploadthing.com https://*.ufs.sh https://*.ingest.sentry.io",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
+      // Sentry Session Replay compresses recordings in a worker.
+      "worker-src 'self' blob:",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -76,4 +79,15 @@ const nextConfig: NextConfig = {
   }
 };
 
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+  org: 'konstbyte',
+  project: 'konstbyte',
+  // Uploads source maps so production stack traces are readable. Without the
+  // token the build still works, just with minified traces.
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  widenClientFileUpload: true,
+  // Only print upload logs in CI.
+  silent: !process.env.CI,
+  // Check-ins for the Vercel cron jobs in vercel.json (daily payout release).
+  _experimental: { vercelCronsMonitoring: true },
+});
