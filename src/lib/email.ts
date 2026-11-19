@@ -243,3 +243,28 @@ export function shipReminderEmail(opts: { artworkTitle: string; days: number; ap
     `,
   };
 }
+
+export function newMessageEmail(opts: { senderName: string; preview: string; conversationUrl: string }) {
+  const name = escapeHtml(opts.senderName);
+  const preview = escapeHtml(opts.preview).replace(/\n/g, '<br>');
+  return {
+    subject: `Nytt meddelande från ${opts.senderName.replace(/[\r\n]/g, ' ')} på Konstbyte`,
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
+        <h2 style="margin-bottom:4px">Du har fått ett meddelande 💬</h2>
+        <p style="font-size:14px;color:#475569"><strong>${name}</strong> skrev:</p>
+        <blockquote style="margin:12px 0;padding:12px 16px;background:#f8fafc;border-left:3px solid #f59e0b;font-size:14px;color:#334155">
+          ${preview}
+        </blockquote>
+        <a href="${opts.conversationUrl}"
+          style="display:inline-block;margin-top:8px;padding:10px 20px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600">
+          Svara på Konstbyte
+        </a>
+        <p style="font-size:12px;color:#94a3b8;margin-top:20px">
+          Svara via länken – svar på det här mejlet kommer inte fram till ${name}.
+          Du får högst ett sådant mejl var tredje timme per konversation.
+        </p>
+      </div>
+    `,
+  };
+}

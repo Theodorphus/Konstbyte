@@ -365,6 +365,7 @@ export default function ArtworksPage() {
         <div className="space-y-5">
           <Input
             placeholder={t('search_placeholder')}
+            aria-label={t('search_placeholder')}
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
             className="rounded-xl"
@@ -372,8 +373,9 @@ export default function ArtworksPage() {
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <label className="block text-xs font-medium mb-1.5 text-stone-500">{t('min_price_label')}</label>
+              <label htmlFor="min-price" className="block text-xs font-medium mb-1.5 text-stone-500">{t('min_price_label')}</label>
               <Input
+                id="min-price"
                 type="number"
                 placeholder={t('min_price_placeholder')}
                 value={minPrice}
@@ -382,8 +384,9 @@ export default function ArtworksPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1.5 text-stone-500">{t('max_price_label')}</label>
+              <label htmlFor="max-price" className="block text-xs font-medium mb-1.5 text-stone-500">{t('max_price_label')}</label>
               <Input
+                id="max-price"
                 type="number"
                 placeholder={t('max_price_placeholder')}
                 value={maxPrice}
@@ -392,8 +395,9 @@ export default function ArtworksPage() {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-xs font-medium mb-1.5 text-stone-500">{t('sort_label')}</label>
+              <label htmlFor="sort-by" className="block text-xs font-medium mb-1.5 text-stone-500">{t('sort_label')}</label>
               <select
+                id="sort-by"
                 value={sortBy}
                 onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
                 className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-stone-400 bg-white text-sm text-slate-700"

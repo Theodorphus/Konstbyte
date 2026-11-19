@@ -12,6 +12,7 @@ import ArtworkCheckoutButton from '@/components/ArtworkCheckoutButton';
 import ShippingOptionsCard from '@/components/shipping/ShippingOptionsCard';
 import { getTranslations } from 'next-intl/server';
 import ReportButton from '@/components/ReportButton';
+import ArtworkActions from '@/components/ArtworkActions';
 import { isAdmin } from '@/lib/admin';
 
 export async function generateMetadata({ params }: { params: Promise<{ id?: string; locale: string }> }) {
@@ -50,7 +51,7 @@ export default async function ArtworkDetail({
   const [artwork, currentUser, t] = await Promise.all([
     prisma.artwork.findUnique({
       where: { id },
-      include: { owner: true },
+      include: { owner: { select: { id: true, name: true, image: true } } },
     }),
     getCurrentUser(),
     getTranslations('artworks'),
@@ -60,6 +61,18 @@ export default async function ArtworkDetail({
   const isOwner = currentUser?.id === artwork.ownerId;
   // Hidden artworks are only visible to the artist and admins.
   if (!artwork.isPublished && !isOwner && !isAdmin(currentUser?.email)) return notFound();
+
+  const [favorite, moreByArtist] = await Promise.all([
+    currentUser
+      ? prisma.favorite.findUnique({ where: { userId_artworkId: { userId: currentUser.id, artworkId: artwork.id } }, select: { id: true } })
+      : null,
+    prisma.artwork.findMany({
+      where: { ownerId: artwork.ownerId, isPublished: true, id: { not: artwork.id } },
+      orderBy: [{ isSold: 'asc' }, { createdAt: 'desc' }],
+      take: 4,
+      select: { id: true, title: true, price: true, imageUrl: true, isSold: true },
+    }),
+  ]);
 
   const categoryMap: Record<string, string> = {
     malningar: t('paintings'),
@@ -79,7 +92,8 @@ export default async function ArtworkDetail({
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             '@context': 'https://schema.org',
-            '@type': 'VisualArtwork',
+            // Product as well, so search engines can show price and availability.
+            '@type': ['VisualArtwork', 'Product'],
             name: artwork.title,
             description: artwork.description || undefined,
             image: artwork.imageUrl,
@@ -160,6 +174,15 @@ export default async function ArtworkDetail({
                     {artwork.owner.name || 'Anonym'}
                   </Link>
                 </p>
+              </div>
+              <div className="mt-4">
+                <ArtworkActions
+                  artworkId={artwork.id}
+                  title={artwork.title}
+                  initialFavorited={Boolean(favorite)}
+                  signedIn={Boolean(currentUser)}
+                  canFavorite={!isOwner && artwork.isPublished}
+                />
               </div>
             </div>
 
@@ -298,6 +321,42 @@ export default async function ArtworkDetail({
             )}
           </div>
         </div>
+
+        {/* More by the same artist */}
+        {moreByArtist.length > 0 && (
+          <section className="border-t border-stone-200/80 pt-10">
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+              <h2 className="font-display text-2xl text-slate-900">
+                {t('more_from_artist', { name: artwork.owner.name || 'Anonym' })}
+              </h2>
+              <Link href={`/users/${artwork.ownerId}`} className="text-sm font-semibold text-slate-700 hover:text-amber-800">
+                {t('see_artist_profile')}
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              {moreByArtist.map((art) => (
+                <Link key={art.id} href={`/artworks/${art.id}`} className="group">
+                  <div className="relative aspect-square overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-stone-200/70">
+                    <SafeImage
+                      src={art.imageUrl}
+                      alt={art.title}
+                      fill
+                      sizes="(min-width: 768px) 25vw, 50vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                    />
+                    {art.isSold && (
+                      <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-red-700">
+                        {t('sold')}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-2 truncate text-sm font-semibold text-slate-900">{art.title}</p>
+                  <p className="text-sm text-slate-500">{art.price.toLocaleString('sv-SE')}&nbsp;kr</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </>
   );

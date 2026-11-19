@@ -200,6 +200,7 @@ export default function ValueArtPage() {
               <div className="text-center space-y-1 w-full max-w-xs">
                 <Input
                   type="url"
+                  aria-label={t("image_url_label")}
                   placeholder="https://exempel.com/bild.jpg"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
@@ -442,14 +443,14 @@ function FieldInput({
   placeholder: string;
 }) {
   return (
-    <div className="space-y-1.5">
-      <label className="block text-xs font-medium text-slate-600">{label}</label>
+    <label className="block space-y-1.5">
+      <span className="block text-xs font-medium text-slate-600">{label}</span>
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="bg-white border-stone-200 rounded-lg h-10 text-sm placeholder:text-slate-300"
       />
-    </div>
+    </label>
   );
 }

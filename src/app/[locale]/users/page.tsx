@@ -138,6 +138,7 @@ export default function UsersSearchPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={t('search_placeholder')}
+            aria-label={t('search_placeholder')}
             maxLength={100}
             className="flex-grow px-4 py-2.5 border border-stone-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
           />

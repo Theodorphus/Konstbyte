@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
-import { tooManyRequests, notifyOnce, since, MINUTE, DAY } from '@/lib/rate-limit';
+import { tooManyRequests, notifyOnce, since, MINUTE, HOUR, DAY } from '@/lib/rate-limit';
+import { newMessageEmail, sendEmail } from '@/lib/email';
+import { APP_URL } from '@/lib/urls';
+
+const EMAIL_EVERY = 3 * HOUR;
 
 const MAX_MESSAGES = 200;
 
@@ -68,6 +72,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
     data: { senderId: user.id, recipientId: userId, content: content.trim() },
     include: { sender: { select: { id: true, name: true, image: true } } },
   });
+
+  // Email the recipient too (buyers' questions were easy to miss), but at most
+  // once per conversation every few hours so a chat doesn't flood their inbox.
+  const recentFromSender = await prisma.message.count({
+    where: { senderId: user.id, recipientId: userId, id: { not: message.id }, createdAt: { gt: since(EMAIL_EVERY) } },
+  });
+  if (recentFromSender === 0 && recipient.email) {
+    const mail = newMessageEmail({
+      senderName: user.name || 'En användare',
+      preview: message.content.length > 300 ? `${message.content.slice(0, 300)}…` : message.content,
+      conversationUrl: `${APP_URL}/messages/${user.id}`,
+    });
+    await sendEmail({ to: recipient.email, ...mail }).catch((err) => console.error('[messages] email failed', err));
+  }
 
   // Notify the recipient — one unread notification per conversation is enough
   // (they are removed when the conversation is opened).

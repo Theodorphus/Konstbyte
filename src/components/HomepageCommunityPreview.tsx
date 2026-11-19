@@ -56,7 +56,11 @@ export default async function HomepageCommunityPreview() {
     return null;
   }
 
-  if (posts.length === 0) return null;
+  // Months-old posts make the community look abandoned; show the section only
+  // while something has happened recently.
+  const RECENT_DAYS = 60;
+  const newest = posts[0]?.createdAt;
+  if (!newest || Date.now() - new Date(newest).getTime() > RECENT_DAYS * 24 * 60 * 60 * 1000) return null;
 
   return (
     <section className="mt-28">

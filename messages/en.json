@@ -165,6 +165,12 @@
     "new_artwork_title": "Upload new artwork",
     "fill_required": "Please fill in all required fields.",
     "sign_in_to_upload": "You must be signed in to upload art.",
+    "favorite_add": "Save",
+    "favorite_saved": "Saved",
+    "share": "Share",
+    "link_copied": "Link copied",
+    "more_from_artist": "More by {name}",
+    "see_artist_profile": "View profile →",
     "artist_name_title": "What is your artist name?",
     "artist_name_desc": "Buyers see this name on your artworks and profile. It can be your real name or an artist name.",
     "artist_name_label": "Artist name",
@@ -549,6 +555,7 @@
     "error_Verification": "The sign-in link is invalid or has expired."
   },
   "ai": {
+    "image_url_label": "Image link",
     "title": "AI Tools",
     "subtitle": "Powerful tools to help you value, explore and create — right inside the platform.",
     "open": "Open",

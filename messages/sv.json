@@ -165,6 +165,12 @@
     "new_artwork_title": "Lägg upp nytt konstverk",
     "fill_required": "Fyll i alla obligatoriska fält.",
     "sign_in_to_upload": "Du måste vara inloggad för att ladda upp konst.",
+    "favorite_add": "Spara",
+    "favorite_saved": "Sparad",
+    "share": "Dela",
+    "link_copied": "Länken är kopierad",
+    "more_from_artist": "Fler verk av {name}",
+    "see_artist_profile": "Visa profil →",
     "artist_name_title": "Vad heter du som konstnär?",
     "artist_name_desc": "Köpare ser det här namnet på dina verk och din profil. Det kan vara ditt riktiga namn eller ett konstnärsnamn.",
     "artist_name_label": "Konstnärsnamn",
@@ -588,6 +594,7 @@
     "error_Verification": "Inloggningslänken är ogiltig eller har gått ut."
   },
   "ai": {
+    "image_url_label": "Länk till bild",
     "title": "AI-verktyg",
     "subtitle": "Kraftfulla verktyg som hjälper dig att värdera, utforska och skapa — direkt i plattformen.",
     "open": "Öppna",
