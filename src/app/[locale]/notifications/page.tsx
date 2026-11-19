@@ -93,7 +93,8 @@ export default function NotificationsPage() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'follow': return '👤';
-      case 'like': return '❤️';
+      case 'like':
+      case 'favorite': return '❤️';
       case 'comment': return '💬';
       case 'purchase': return '🎨';
       case 'artwork_sold': return '🎉';

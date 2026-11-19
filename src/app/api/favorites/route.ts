@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
+import { notifyOnce } from '@/lib/rate-limit';
 
 // GET /api/favorites - Get all favorites for current user
 export async function GET() {
@@ -11,7 +12,8 @@ export async function GET() {
     }
 
     const favorites = await prisma.favorite.findMany({
-      where: { userId: user.id },
+      // Hidden or removed artworks drop out of the list (their pages are 404).
+      where: { userId: user.id, artwork: { isPublished: true } },
       include: {
         artwork: {
           include: {
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
       where: { id: artworkId },
     });
 
-    if (!artwork) {
+    if (!artwork || !artwork.isPublished) {
       return NextResponse.json(
         { error: 'Artwork not found' },
         { status: 404 }
@@ -101,6 +103,16 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // Let the artist know someone saved their work (at most one per artwork a day).
+    if (artwork.ownerId !== user.id) {
+      await notifyOnce({
+        userId: artwork.ownerId,
+        type: 'favorite',
+        message: `${user.name || 'Någon'} sparade "${artwork.title}" som favorit`,
+        link: `/artworks/${artwork.id}`,
+      }).catch((err) => console.error('[favorites] notify failed', err));
+    }
 
     return NextResponse.json(favorite, { status: 201 });
   } catch (error) {

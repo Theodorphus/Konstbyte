@@ -3,6 +3,26 @@ import { NextResponse } from 'next/server';
 import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
+import { hitLimit, tooManyRequests, HOUR } from '@/lib/rate-limit';
+
+// A Stripe Checkout Session stays open this long (Stripe's minimum is 30 min).
+// While one buyer is paying, nobody else can start a checkout for the same
+// artwork — two payments would mean refunding one, and Stripe keeps its fee.
+const CHECKOUT_MINUTES = 30;
+
+const field = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+
+function cleanAddress(raw: unknown) {
+  const a = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  return {
+    fullName: field(a.fullName, 100),
+    streetAddress: field(a.streetAddress, 200),
+    postalCode: field(a.postalCode, 20),
+    city: field(a.city, 100),
+    country: field(a.country, 60) || 'Sverige',
+    phone: field(a.phone, 30),
+  };
+}
 
 // POST /api/checkout/stripe
 // Creates a Stripe Checkout Session. Konstbyte receives the full payment and holds
@@ -23,6 +43,7 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: 'Inloggning krävs' }, { status: 401 });
     }
+    if (hitLimit(`checkout:${user.id}`, 10, HOUR)) return tooManyRequests();
 
     const artwork = await prisma.artwork.findUnique({
       where: { id: artworkId },
@@ -37,6 +58,31 @@ export async function POST(request: Request) {
     }
     if (artwork.ownerId === user.id) {
       return NextResponse.json({ error: 'Du kan inte köpa ditt eget konstverk' }, { status: 400 });
+    }
+
+    // The artist needs somewhere to send the parcel (pickup is arranged directly).
+    const address = cleanAddress(shippingAddress);
+    if (artwork.shippingType !== 'pickup' && (!address.fullName || !address.streetAddress || !address.postalCode || !address.city)) {
+      return NextResponse.json({ error: 'Fyll i namn och leveransadress' }, { status: 400 });
+    }
+
+    // A little longer than the session itself lives, to cover clock skew.
+    const checkoutWindowStart = new Date(Date.now() - (CHECKOUT_MINUTES + 5) * 60 * 1000);
+    const someoneElsePaying = await prisma.order.count({
+      where: {
+        artworkId: artwork.id,
+        buyerId: { not: user.id },
+        OR: [
+          { status: 'pending', createdAt: { gt: checkoutWindowStart } },
+          { status: { in: ['payment_processing', 'awaiting_swish'] } },
+        ],
+      },
+    });
+    if (someoneElsePaying > 0) {
+      return NextResponse.json(
+        { error: `Någon annan håller på att köpa det här verket just nu. Försök igen om ${CHECKOUT_MINUTES} minuter.` },
+        { status: 409 },
+      );
     }
 
     const feePercent = Number(process.env.PLATFORM_FEE_PERCENT ?? 3) / 100;
@@ -61,12 +107,12 @@ export async function POST(request: Request) {
         shippingMethod: artwork.shippingType,
         shippingCost,
         // Buyer delivery address
-        shippingName:       shippingAddress?.fullName      ?? null,
-        shippingStreet:     shippingAddress?.streetAddress ?? null,
-        shippingPostalCode: shippingAddress?.postalCode    ?? null,
-        shippingCity:       shippingAddress?.city          ?? null,
-        shippingCountry:    shippingAddress?.country       ?? 'Sverige',
-        shippingPhone:      shippingAddress?.phone         ?? null,
+        shippingName:       address.fullName      || null,
+        shippingStreet:     address.streetAddress || null,
+        shippingPostalCode: address.postalCode    || null,
+        shippingCity:       address.city          || null,
+        shippingCountry:    address.country,
+        shippingPhone:      address.phone         || null,
       },
     });
 
@@ -102,6 +148,8 @@ export async function POST(request: Request) {
     const session = await stripe.checkout.sessions.create({
       line_items: lineItems,
       mode: 'payment',
+      // Close the session after 30 min so the artwork isn't held for 24 h.
+      expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_MINUTES * 60 + 60,
       customer_email: user.email ?? undefined,
       // Pass orderId in metadata so webhook can find the order
       metadata: { orderId: order.id, artworkId: artwork.id },
