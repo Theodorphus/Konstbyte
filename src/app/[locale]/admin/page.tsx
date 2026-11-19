@@ -67,6 +67,7 @@ export default async function AdminPage() {
           title: art.title,
           price: art.price,
           imageUrl: art.imageUrl,
+          removedByAdmin: art.removedByAdmin,
           owner: {
             name: art.owner?.name || null,
             email: art.owner?.email || 'unknown@email.com',

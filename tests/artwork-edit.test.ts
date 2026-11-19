@@ -65,3 +65,12 @@ describe('GET /api/artworks/[id]', () => {
     expect((await GET(new NextRequest('https://konstbyte.se/api/artworks/art1'), params)).status).toBe(200);
   });
 });
+
+describe('artworks removed by an admin', () => {
+  it('cannot be republished by the artist', async () => {
+    prisma.artwork.findUnique.mockResolvedValue({ ...artwork, isPublished: false, removedByAdmin: true });
+    expect((await put({ isPublished: true })).status).toBe(403);
+    // Other edits are still allowed.
+    expect((await put({ title: 'Ny titel', isPublished: false })).status).toBe(200);
+  });
+});

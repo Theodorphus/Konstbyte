@@ -12,6 +12,7 @@ interface ArtworkItem {
     email: string;
   };
   imageUrl: string | null;
+  removedByAdmin: boolean;
 }
 
 export default function ArtworksAdmin({ initial }: { initial: ArtworkItem[] }) {
@@ -32,12 +33,36 @@ export default function ArtworksAdmin({ initial }: { initial: ArtworkItem[] }) {
         method: 'DELETE',
       });
 
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.error || 'Failed to delete artwork');
       }
 
-      setArtworks(artworks.filter((art) => art.id !== id));
+      // Artworks with orders are hidden (kept for the order history), not deleted.
+      setArtworks((prev) =>
+        data.unpublished
+          ? prev.map((art) => (art.id === id ? { ...art, removedByAdmin: true } : art))
+          : prev.filter((art) => art.id !== id),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    setDeleting(id);
+    setError(null);
+    try {
+      const response = await fetch(`/api/admin/artworks/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'restore' }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Kunde inte återställa');
+      setArtworks((prev) => prev.map((art) => (art.id === id ? { ...art, removedByAdmin: false } : art)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -68,8 +93,18 @@ export default function ArtworksAdmin({ initial }: { initial: ArtworkItem[] }) {
                 <p className="text-sm font-medium truncate">{art.title}</p>
                 <p className="text-xs text-slate-600">
                   {art.owner.name || art.owner.email} · {formatSek(art.price)}
+                  {art.removedByAdmin && <span className="ml-2 font-medium text-red-600">Borttaget av admin</span>}
                 </p>
               </div>
+              {art.removedByAdmin ? (
+                <button
+                  onClick={() => handleRestore(art.id)}
+                  disabled={deleting === art.id}
+                  className="ml-3 px-3 py-1 text-sm font-medium text-emerald-700 hover:bg-emerald-50 rounded border border-emerald-200 disabled:opacity-50 whitespace-nowrap"
+                >
+                  {deleting === art.id ? 'Återställer...' : 'Återställ'}
+                </button>
+              ) : (
               <button
                 onClick={() => handleDelete(art.id)}
                 disabled={deleting === art.id}
@@ -77,6 +112,7 @@ export default function ArtworksAdmin({ initial }: { initial: ArtworkItem[] }) {
               >
                 {deleting === art.id ? 'Tar bort...' : 'Ta bort'}
               </button>
+              )}
             </div>
           ))}
         </div>

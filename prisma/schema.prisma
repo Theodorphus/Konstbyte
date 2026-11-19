@@ -82,6 +82,8 @@ model Artwork {
   category        String     @default("malningar")
   isPublished     Boolean    @default(true)
   isSold          Boolean    @default(false)
+  // Hidden by an admin (moderation); the artist cannot publish it again.
+  removedByAdmin  Boolean    @default(false)
   soldAt          DateTime?
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt

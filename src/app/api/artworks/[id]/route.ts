@@ -88,6 +88,12 @@ export async function PUT(
     if (body.title !== undefined && !String(body.title).trim()) {
       return NextResponse.json({ error: 'Titel krävs' }, { status: 400 });
     }
+    if (body.isPublished === true && existingArtwork.removedByAdmin && !isAdmin(user.email)) {
+      return NextResponse.json(
+        { error: 'Konstverket har tagits bort av Konstbyte och kan inte publiceras igen. Kontakta webbdevstudio@gmail.com om du tror att det är fel.' },
+        { status: 403 },
+      );
+    }
     if (body.category !== undefined && !CATEGORIES.includes(body.category)) {
       return NextResponse.json({ error: 'Ogiltig kategori' }, { status: 400 });
     }
