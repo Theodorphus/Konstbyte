@@ -61,6 +61,8 @@ export async function createMultipleArtworks(
 ): Promise<CreateMultipleArtworksResult> {
   const user = await getCurrentUser();
   if (!user) return { success: false, error: 'Du måste vara inloggad.' };
+  // Buyers should see who made the work, not "Anonym".
+  if (!user.name?.trim()) return { success: false, error: 'Ange ditt konstnärsnamn i profilen innan du lägger upp konst.' };
 
   const slots = Array.isArray(input?.slots) ? input.slots : [];
   if (slots.length === 0) return { success: false, error: 'Lägg till minst ett konstverk.' };

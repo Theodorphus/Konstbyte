@@ -32,7 +32,7 @@ function upload(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  getCurrentUser.mockResolvedValue({ id: 'artist_1' });
+  getCurrentUser.mockResolvedValue({ id: 'artist_1', name: 'Anna Lind' });
   tx.artwork.create.mockResolvedValue({ id: 'art_1' });
 });
 
@@ -78,5 +78,12 @@ describe('createMultipleArtworks', () => {
   it('requires a signed-in user', async () => {
     getCurrentUser.mockResolvedValue(null);
     expect((await upload()).success).toBe(false);
+  });
+
+  it('requires an artist name so buyers never see "Anonym"', async () => {
+    getCurrentUser.mockResolvedValue({ id: 'artist_1', name: '   ' });
+    const result = await upload();
+    expect(result).toEqual({ success: false, error: expect.stringContaining('konstnärsnamn') });
+    expect(tx.artwork.create).not.toHaveBeenCalled();
   });
 });

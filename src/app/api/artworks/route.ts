@@ -13,6 +13,9 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: 'Du måste vara inloggad' }, { status: 401 });
     }
+    if (!user.name?.trim()) {
+      return NextResponse.json({ error: 'Ange ditt konstnärsnamn i profilen innan du lägger upp konst.' }, { status: 400 });
+    }
 
     const body = await request.json();
     const { title, description, price, imageUrl, category,

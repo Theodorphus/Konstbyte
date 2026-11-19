@@ -36,6 +36,11 @@ export default function NewArtworkPage() {
   // Auth check
   const [ownerId, setOwnerId] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  // Sellers need a display name before their first upload.
+  const [hasName, setHasName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+  const [nameSaving, setNameSaving] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
@@ -52,6 +57,7 @@ export default function NewArtworkPage() {
         if (response.ok) {
           const data = await response.json();
           setOwnerId(data?.user?.id || null);
+          setHasName(Boolean(data?.user?.name?.trim()));
         } else {
           setOwnerId(null);
         }
@@ -65,6 +71,30 @@ export default function NewArtworkPage() {
 
     checkAuth();
   }, []);
+
+  const saveName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = nameInput.trim();
+    if (name.length < 2) {
+      setNameError(t('artist_name_too_short'));
+      return;
+    }
+    setNameSaving(true);
+    setNameError(null);
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      if (res.ok) setHasName(true);
+      else setNameError(t('artist_name_error'));
+    } catch {
+      setNameError(t('artist_name_error'));
+    } finally {
+      setNameSaving(false);
+    }
+  };
 
   const handleStep1Next = () => {
     if (artworkSlots.length === 0) {
@@ -123,7 +153,7 @@ export default function NewArtworkPage() {
         setIsSubmitting(false);
         return;
       }
-      router.push(`/artworks?ownerId=${ownerId}`);
+      router.push('/my-artworks');
     } catch (err) {
       console.error('Error creating artworks:', err);
       setError(
@@ -159,6 +189,45 @@ export default function NewArtworkPage() {
                 Registrera dig
               </Link>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Signed in but no display name yet: ask for it before the upload wizard.
+  if (!hasName) {
+    return (
+      <div className="max-w-md mx-auto">
+        <Card>
+          <CardContent className="p-6 sm:p-8">
+            <form onSubmit={saveName} className="space-y-4">
+              <div className="space-y-2">
+                <h1 className="text-xl font-semibold text-slate-900">{t('artist_name_title')}</h1>
+                <p className="text-sm text-slate-600 leading-relaxed">{t('artist_name_desc')}</p>
+              </div>
+              <label className="block space-y-1.5">
+                <span className="text-sm font-medium text-slate-700">{t('artist_name_label')}</span>
+                <input
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder={t('artist_name_placeholder')}
+                  maxLength={80}
+                  autoFocus
+                  autoComplete="name"
+                  className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+                />
+              </label>
+              {nameError && <p className="text-sm text-red-600">{nameError}</p>}
+              <button
+                type="submit"
+                disabled={nameSaving || nameInput.trim().length < 2}
+                className="w-full px-4 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50"
+              >
+                {nameSaving ? t('artist_name_saving') : t('artist_name_save')}
+              </button>
+              <p className="text-xs text-slate-400">{t('artist_name_hint')}</p>
+            </form>
           </CardContent>
         </Card>
       </div>
