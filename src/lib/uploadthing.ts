@@ -12,7 +12,7 @@ export const uploadRouter = {
       return { userId: user.id };
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.url };
+      return { url: file.ufsUrl };
     }),
 
   artworkImage: f({ image: { maxFileSize: '8MB', maxFileCount: 10 } })
@@ -22,7 +22,7 @@ export const uploadRouter = {
       return { userId: user.id };
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.url };
+      return { url: file.ufsUrl };
     }),
 
   profileImage: f({ image: { maxFileSize: '4MB', maxFileCount: 1 } })
@@ -32,7 +32,7 @@ export const uploadRouter = {
       return { userId: user.id };
     })
     .onUploadComplete(async ({ file }) => {
-      return { url: file.url };
+      return { url: file.ufsUrl };
     }),
 } satisfies FileRouter;
 

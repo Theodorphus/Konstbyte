@@ -23,7 +23,7 @@ export default function PostComposer({ currentUserEmail, currentUserName, curren
   const { startUpload } = useUploadThing('postImage', {
     onUploadBegin: () => setUploading(true),
     onClientUploadComplete: (res) => {
-      const url = res?.[0]?.url;
+      const url = res?.[0]?.ufsUrl;
       if (url) setUploadedUrl(url);
       setUploading(false);
     },

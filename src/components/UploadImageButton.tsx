@@ -48,7 +48,7 @@ export default function UploadImageButton({ onUploaded }: Props) {
           button: '!bg-blue-600 hover:!bg-blue-700 !text-white !rounded-lg !w-full !justify-center !relative',
         }}
         onClientUploadComplete={(res) => {
-          const url = res?.[0]?.url;
+          const url = res?.[0]?.ufsUrl;
           if (url) onUploaded(url);
         }}
         onUploadError={(error) => alert(error.message)}

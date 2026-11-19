@@ -149,7 +149,7 @@ export default function EditProfilePage() {
                 allowedContent({ isUploading }) { return isUploading ? t('uploading') : t('image_hint'); },
               }}
               appearance={{ button: '!bg-slate-800 hover:!bg-slate-700 !text-white !rounded-lg' }}
-              onClientUploadComplete={(res) => { const url = res?.[0]?.url; if (url) handleImageUploaded(url); }}
+              onClientUploadComplete={(res) => { const url = res?.[0]?.ufsUrl; if (url) handleImageUploaded(url); }}
               onUploadError={(error) => alert(error.message)}
             />
             {imageUrl && (

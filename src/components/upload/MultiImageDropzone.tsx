@@ -27,7 +27,7 @@ export function MultiImageDropzone({
     onClientUploadComplete: (res) => {
       if (res) {
         const newImages = res.map((file, idx) => ({
-          url: file.url,
+          url: file.ufsUrl,
           isMain: images.length === 0 && idx === 0, // First image is main if no images yet
           sortOrder: images.length + idx,
         }));
