@@ -458,6 +458,7 @@
     "new_message": "Nytt meddelande",
     "send": "Skicka",
     "write_message": "Skriv ett meddelande…",
+    "send_failed": "Meddelandet kunde inte skickas. Försök igen.",
     "no_conversations": "Inga konversationer än",
     "online": "Online",
     "conversations_desc": "Dina konversationer med konstnärer och köpare",

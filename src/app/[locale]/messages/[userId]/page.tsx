@@ -40,6 +40,7 @@ export default function ConversationPage() {
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [sendError, setSendError] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,14 +55,29 @@ export default function ConversationPage() {
     loadMessages();
   }, [userId]);
 
+  // Check for new messages every 10 s while the tab is visible.
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') loadMessages();
+    }, 10_000);
+    return () => clearInterval(id);
+  }, [userId]);
+
+  const lastId = messages[messages.length - 1]?.id;
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [lastId]);
 
   const loadMessages = async () => {
     try {
       const res = await fetch(`/api/messages/${userId}`);
-      if (res.ok) setMessages(await res.json());
+      if (res.ok) {
+        const next: Message[] = await res.json();
+        // Only re-render (and scroll) when something actually changed.
+        setMessages((prev) =>
+          prev.length === next.length && prev[prev.length - 1]?.id === next[next.length - 1]?.id ? prev : next,
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -71,6 +87,7 @@ export default function ConversationPage() {
     e.preventDefault();
     if (!text.trim() || isSending) return;
     setIsSending(true);
+    setSendError('');
     try {
       const res = await fetch(`/api/messages/${userId}`, {
         method: 'POST',
@@ -81,7 +98,12 @@ export default function ConversationPage() {
         const msg = await res.json();
         setMessages((prev) => [...prev, msg]);
         setText('');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSendError(typeof data.error === 'string' ? data.error : t('send_failed'));
       }
+    } catch {
+      setSendError(t('send_failed'));
     } finally {
       setIsSending(false);
     }
@@ -130,7 +152,7 @@ export default function ConversationPage() {
               <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-xs lg:max-w-sm space-y-1 ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
                   <div
-                    className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                    className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
                       isOwn
                         ? 'bg-slate-900 text-white rounded-br-sm'
                         : 'bg-slate-100 text-slate-800 rounded-bl-sm'
@@ -149,6 +171,8 @@ export default function ConversationPage() {
         <div ref={bottomRef} />
       </div>
 
+      {sendError && <p className="pt-3 text-sm text-red-600">{sendError}</p>}
+
       {/* Input */}
       <form onSubmit={sendMessage} className="flex gap-2 pt-4 border-t border-slate-100 mt-4">
         <input
@@ -156,6 +180,7 @@ export default function ConversationPage() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t('write_message')}
+          maxLength={5000}
           className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 placeholder:text-slate-400"
         />
         <button

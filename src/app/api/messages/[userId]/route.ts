@@ -3,24 +3,29 @@ import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
 import { tooManyRequests, notifyOnce, since, MINUTE, DAY } from '@/lib/rate-limit';
 
+const MAX_MESSAGES = 200;
+
 // GET /api/messages/[userId] — get conversation between current user and userId
 export async function GET(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   const { userId } = await params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const messages = await prisma.message.findMany({
+  // The newest messages only, so a long conversation stays fast; shown oldest first.
+  const newestFirst = await prisma.message.findMany({
     where: {
       OR: [
         { senderId: user.id, recipientId: userId },
         { senderId: userId, recipientId: user.id },
       ],
     },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: 'desc' },
+    take: MAX_MESSAGES,
     include: {
       sender: { select: { id: true, name: true, image: true } },
     },
   });
+  const messages = newestFirst.reverse();
 
   // Mark incoming messages as read
   await prisma.message.updateMany({

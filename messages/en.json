@@ -419,6 +419,7 @@
     "new_message": "New message",
     "send": "Send",
     "write_message": "Write a message…",
+    "send_failed": "The message could not be sent. Please try again.",
     "no_conversations": "No conversations yet",
     "online": "Online",
     "conversations_desc": "Your conversations with artists and buyers",

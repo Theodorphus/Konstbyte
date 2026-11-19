@@ -13,6 +13,8 @@ export async function GET() {
       prisma.message.findMany({
         where: { OR: [{ senderId: user.id }, { recipientId: user.id }] },
         orderBy: { createdAt: 'desc' },
+        // Enough to find every recent conversation without loading years of history.
+        take: 1000,
         include: {
           sender:    { select: { id: true, name: true, image: true } },
           recipient: { select: { id: true, name: true, image: true } },
