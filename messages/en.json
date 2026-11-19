@@ -24,6 +24,7 @@
   "footer": {
     "brand_tagline": "A community where creators grow together. Buy and sell unique works directly from artists.",
     "location": "Gothenburg, Sweden",
+    "operated_by": "Operated by {name}, reg. no. {orgNr}",
     "marketplace": "Marketplace",
     "all_artworks": "All artworks",
     "paintings": "Paintings",
@@ -962,6 +963,7 @@
     "sent": "Message sent!",
     "contact_us": "Contact us",
     "email_info": "Email: webbdevstudio@gmail.com",
+    "company_heading": "Company details",
     "location": "Konstbyte is run from Gothenburg, Sweden.",
     "meta_description": "Contact Konstbyte by email. Questions about buying, selling, fees or your account.",
     "intro": "Questions about a purchase, your sales or your account? Email us and we will help.",

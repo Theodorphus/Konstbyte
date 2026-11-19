@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { COMPANY, COMPANY_LINE } from '@/lib/company';
 
 export const metadata = { title: 'Användarvillkor' };
 
@@ -18,6 +19,9 @@ export default async function AnvandarvillkorPage() {
         <h2 className="text-xl font-semibold">1. Om Konstbyte</h2>
         <p>
           Konstbyte är en digital marknadsplats för köp och försäljning av konstverk. Plattformen riktar sig till konstnärer som vill sälja sina verk och till privatpersoner och företag som vill köpa konst.
+        </p>
+        <p>
+          Konstbyte drivs av {COMPANY_LINE}, e-post {COMPANY.email}.
         </p>
       </section>
 

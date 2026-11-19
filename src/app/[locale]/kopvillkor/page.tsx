@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { COMPANY_LINE } from '@/lib/company';
 
 export const metadata = { title: 'Köpvillkor' };
 
@@ -20,7 +21,7 @@ export default async function KopvillkorPage() {
           Konstbyte är en digital marknadsplats som förmedlar kontakt mellan köpare och konstnärer. Konstbyte är <strong>inte</strong> säljare av konstverken. Varje konstverk säljs av den konstnär som har lagt upp det, och konstnären är den juridiska säljaren i varje transaktion.
         </p>
         <p>
-          Konstbyte tillhandahåller teknisk plattform och betalningshantering via Stripe. Pengarna hanteras av Konstbyte och betalas ut till konstnären först när du har bekräftat att verket har kommit fram, eller automatiskt 14 dagar efter att det skickades.
+          Konstbyte drivs av {COMPANY_LINE}. Konstbyte tillhandahåller teknisk plattform och betalningshantering via Stripe. Pengarna hanteras av Konstbyte och betalas ut till konstnären först när du har bekräftat att verket har kommit fram, eller automatiskt 14 dagar efter att det skickades.
         </p>
       </section>
 

@@ -1,5 +1,6 @@
 import PolicyLayout, { PolicySection, PolicyList, PolicyNote } from '../PolicyLayout';
 import { getTranslations } from 'next-intl/server';
+import { COMPANY_LINE } from '@/lib/company';
 
 export const metadata = {
   title: 'Användarvillkor',
@@ -24,7 +25,7 @@ export default async function TermsPage() {
           Konstbyte är en digital marknadsplats där privatpersoner och konstnärer kan lista, köpa och sälja konst. Vi tillhandahåller infrastrukturen och tekniken — men är inte säljare, köpare, mellanhand eller ombud i någon transaktion.
         </p>
         <p>
-          Konstbyte.se ägs och drivs av Konstbyte. Alla frågor kan riktas till{' '}
+          Konstbyte.se ägs och drivs av {COMPANY_LINE}. Alla frågor kan riktas till{' '}
           <a href="mailto:webbdevstudio@gmail.com" className="underline underline-offset-2">webbdevstudio@gmail.com</a>.
         </p>
       </PolicySection>

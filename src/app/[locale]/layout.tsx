@@ -6,6 +6,7 @@ import { getMessages, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '../../i18n/routing';
 import ClientLayout from '../ClientLayout';
+import { COMPANY } from '@/lib/company';
 
 const currentYear = new Date().getFullYear();
 
@@ -89,7 +90,8 @@ async function FooterContent({ locale, currentYear }: { locale: string; currentY
           </p>
           <div className="space-y-1 text-slate-500 text-xs">
             <p><span aria-hidden="true">📧</span> <a href="mailto:webbdevstudio@gmail.com" className="hover:text-slate-700 transition-colors">webbdevstudio@gmail.com</a></p>
-            <p><span aria-hidden="true">📍</span> {t('location')}</p>
+            <p><span aria-hidden="true">📍</span> {COMPANY.address}</p>
+            <p>{t('operated_by', { name: COMPANY.name, orgNr: COMPANY.orgNr })}</p>
           </div>
         </div>
 

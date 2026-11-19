@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { alternatesFor } from '@/lib/seo';
+import { COMPANY } from '@/lib/company';
 
-const EMAIL = 'webbdevstudio@gmail.com';
+const EMAIL = COMPANY.email;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -47,7 +48,12 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
         >
           {t('write_email')}
         </a>
-        <p className="text-sm text-slate-500">{t('location')}</p>
+        <div className="border-t border-stone-100 pt-4 text-sm text-slate-500 space-y-0.5">
+          <p className="font-medium text-slate-700">{t('company_heading')}</p>
+          <p>{COMPANY.name}</p>
+          <p>Org.nr {COMPANY.orgNr}</p>
+          <p>{COMPANY.address}</p>
+        </div>
       </div>
 
       <div className="space-y-3">

@@ -24,6 +24,7 @@
   "footer": {
     "brand_tagline": "Ett svenskt community där kreatörer växer tillsammans. Köp och sälj unika verk direkt från konstnärer.",
     "location": "Göteborg, Sverige",
+    "operated_by": "Drivs av {name}, org.nr {orgNr}",
     "marketplace": "Marknadsplats",
     "all_artworks": "Alla konstverk",
     "paintings": "Målningar",
@@ -930,6 +931,7 @@
     "sent": "Meddelande skickat!",
     "contact_us": "Kontakta oss",
     "email_info": "E‑post: webbdevstudio@gmail.com",
+    "company_heading": "Företagsuppgifter",
     "location": "Konstbyte drivs från Göteborg, Sverige.",
     "meta_description": "Kontakta Konstbyte via e-post. Frågor om köp, försäljning, avgifter eller ditt konto.",
     "intro": "Har du frågor om ett köp, din försäljning eller ditt konto? Mejla oss så hjälper vi dig.",

@@ -1,5 +1,6 @@
 import PolicyLayout, { PolicySection, PolicyList, PolicyNote } from '../PolicyLayout';
 import { getTranslations } from 'next-intl/server';
+import { COMPANY_LINE } from '@/lib/company';
 
 export const metadata = {
   title: 'Integritetspolicy',
@@ -21,7 +22,7 @@ export default async function PrivacyPage() {
 
       <PolicySection title="1. Personuppgiftsansvarig">
         <p>
-          Konstbyte är personuppgiftsansvarig för behandlingen av dina personuppgifter. Kontakta oss vid frågor:{' '}
+          Personuppgiftsansvarig för behandlingen av dina personuppgifter är {COMPANY_LINE}, som driver Konstbyte. Kontakta oss vid frågor:{' '}
           <a href="mailto:webbdevstudio@gmail.com" className="underline underline-offset-2">webbdevstudio@gmail.com</a>
         </p>
       </PolicySection>
