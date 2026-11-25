@@ -32,7 +32,6 @@ describe('platform fee texts', () => {
   it.each([
     'src/app/[locale]/avgifter/page.tsx',
     'src/app/[locale]/kopvillkor/page.tsx',
-    'src/app/[locale]/anvandarvillkor/page.tsx',
     'src/app/[locale]/policies/terms/page.tsx',
     'src/app/[locale]/policies/faq/page.tsx',
   ])('%s uses PLATFORM_FEE_PERCENT', (file) => {

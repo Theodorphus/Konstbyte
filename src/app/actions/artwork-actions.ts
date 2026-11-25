@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { isSellerType, SELLER_TYPE_REQUIRED } from '@/lib/seller';
 import { revalidatePath } from 'next/cache';
 import { isAllowedImageUrl } from '@/lib/image-url';
 import { SHIPPING_OPTIONS } from '@/lib/shipping';
@@ -63,6 +64,8 @@ export async function createMultipleArtworks(
   if (!user) return { success: false, error: 'Du måste vara inloggad.' };
   // Buyers should see who made the work, not "Anonym".
   if (!user.name?.trim()) return { success: false, error: 'Ange ditt konstnärsnamn i profilen innan du lägger upp konst.' };
+  // Buyers must be told whether they buy from a private person or a business.
+  if (!isSellerType(user.sellerType)) return { success: false, error: SELLER_TYPE_REQUIRED };
 
   const slots = Array.isArray(input?.slots) ? input.slots : [];
   if (slots.length === 0) return { success: false, error: 'Lägg till minst ett konstverk.' };

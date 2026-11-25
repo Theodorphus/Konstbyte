@@ -17,6 +17,11 @@ model User {
   createdAt               DateTime          @default(now())
   stripeAccountId         String?
   stripeOnboardingDone    Boolean           @default(false)
+  // Declared by the seller before their first upload: "private" | "business".
+  // Buyers are shown it, since their rights depend on it (lagen om distansavtal).
+  sellerType              String?
+  businessName            String?
+  businessOrgNr           String?
   accounts         Account[]
   sessions         Session[]
   artworks         Artwork[]         @relation("ArtworkOwner")
@@ -115,6 +120,8 @@ model Order {
   amount    Float
   status               String       @default("pending")
   paymentMethod        String       @default("stripe")  // "stripe" | "swish"
+  // What the buyer was told at purchase: "private" | "business" (seller's declaration).
+  sellerType           String?
   feeAmount            Float?
   stripeSessionId      String?
   swishPaymentId       String?

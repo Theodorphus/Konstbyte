@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAllowedImageUrl } from '@/lib/image-url';
 import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
+import { isSellerType, SELLER_TYPE_REQUIRED } from '@/lib/seller';
 import { Prisma } from '@prisma/client';
 
 const MAX_TAKE = 100;
@@ -15,6 +16,9 @@ export async function POST(request: Request) {
     }
     if (!user.name?.trim()) {
       return NextResponse.json({ error: 'Ange ditt konstnärsnamn i profilen innan du lägger upp konst.' }, { status: 400 });
+    }
+    if (!isSellerType(user.sellerType)) {
+      return NextResponse.json({ error: SELLER_TYPE_REQUIRED }, { status: 400 });
     }
 
     const body = await request.json();

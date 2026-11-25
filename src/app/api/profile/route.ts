@@ -3,6 +3,7 @@ import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
 import { isAllowedImageUrl } from '../../../lib/image-url';
 import { deleteAccount } from '@/lib/delete-account';
+import { parseSellerDetails, SELLER_DETAILS_ERRORS } from '@/lib/seller';
 
 export async function GET() {
   try {
@@ -12,7 +13,10 @@ export async function GET() {
     }
     const full = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { id: true, name: true, email: true, image: true, bio: true, instagram: true },
+      select: {
+        id: true, name: true, email: true, image: true, bio: true, instagram: true,
+        sellerType: true, businessName: true, businessOrgNr: true,
+      },
     });
     return NextResponse.json(full);
   } catch (error) {
@@ -26,13 +30,23 @@ export async function PUT(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { name, image, bio, instagram } = await request.json();
+    const body = await request.json();
+    const { name, image, bio, instagram } = body;
     if (image && image !== user.image && !isAllowedImageUrl(image)) {
       return NextResponse.json({ error: 'Ogiltig bildlänk' }, { status: 400 });
     }
     const handle = instagram ? String(instagram).trim().replace(/^@/, '') : '';
     if (handle && !/^[A-Za-z0-9._]{1,30}$/.test(handle)) {
       return NextResponse.json({ error: 'Ogiltigt Instagram-namn' }, { status: 400 });
+    }
+    // Private person or business, sent together with the business details.
+    let seller = {};
+    if (body.sellerType !== undefined) {
+      const parsed = parseSellerDetails(body);
+      if (!parsed.ok) {
+        return NextResponse.json({ error: SELLER_DETAILS_ERRORS[parsed.error], code: parsed.error }, { status: 400 });
+      }
+      seller = parsed.data;
     }
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
@@ -41,6 +55,7 @@ export async function PUT(request: NextRequest) {
         ...(image !== undefined ? { image: image || null } : {}),
         ...(bio !== undefined ? { bio: bio ? String(bio).slice(0, 1000) : null } : {}),
         ...(instagram !== undefined ? { instagram: handle || null } : {}),
+        ...seller,
       },
     });
     return NextResponse.json({
@@ -50,6 +65,9 @@ export async function PUT(request: NextRequest) {
       image: updatedUser.image,
       bio: updatedUser.bio,
       instagram: updatedUser.instagram,
+      sellerType: updatedUser.sellerType,
+      businessName: updatedUser.businessName,
+      businessOrgNr: updatedUser.businessOrgNr,
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });

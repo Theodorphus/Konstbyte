@@ -104,7 +104,8 @@ export default function NotificationsPage() {
       case 'order_delivered':
       case 'order_auto_delivered':
       case 'payout_sent': return '💰';
-      case 'order_refunded': return '↩️';
+      case 'order_refunded':
+      case 'payout_reclaimed': return '↩️';
       case 'payout_waiting': return '💳';
       case 'artwork_removed': return '🚫';
       case 'artwork_restored': return '✅';

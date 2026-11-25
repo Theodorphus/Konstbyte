@@ -5,6 +5,7 @@ import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
 import { tooManyRequests, since, HOUR } from '@/lib/rate-limit';
 import { defaultCommissionRate } from '@/lib/payout';
+import { isSellerType } from '@/lib/seller';
 
 const MAX_CHECKOUTS_PER_HOUR = 10;
 
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
 
     const artwork = await prisma.artwork.findUnique({
       where: { id: artworkId },
-      include: { owner: { select: { id: true, name: true } } },
+      include: { owner: { select: { id: true, name: true, sellerType: true } } },
     });
 
     if (!artwork || !artwork.isPublished) {
@@ -67,6 +68,14 @@ export async function POST(request: Request) {
     }
     if (artwork.ownerId === user.id) {
       return NextResponse.json({ error: 'Du kan inte köpa ditt eget konstverk' }, { status: 400 });
+    }
+    // The buyer must be told whether the seller is a private person or a business.
+    const sellerType = artwork.owner.sellerType;
+    if (!isSellerType(sellerType)) {
+      return NextResponse.json(
+        { error: 'Säljaren har inte angett om hen säljer som privatperson eller företag, så verket kan inte köpas än.' },
+        { status: 409 },
+      );
     }
 
     // The artist needs somewhere to send the parcel (pickup is arranged directly).
@@ -110,6 +119,8 @@ export async function POST(request: Request) {
         amount: totalAmount,
         feeAmount: Math.round(artwork.price * feePercent * 100) / 100,
         paymentMethod: 'stripe',
+        // What the buyer was told about the seller at purchase.
+        sellerType,
         status: 'pending',
         sellerPayoutStatus: 'unpaid',
         // Snapshot shipping info at time of purchase

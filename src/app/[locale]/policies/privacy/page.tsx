@@ -14,7 +14,7 @@ export default async function PrivacyPage() {
       title={t('privacy_title')}
       icon="🔒"
       subtitle={t('privacy_subtitle')}
-      lastUpdated="mars 2025"
+      lastUpdated="november 2026"
     >
       <PolicyNote>
         Denna policy gäller för alla tjänster som tillhandahålls av Konstbyte och är utformad i enlighet med EU:s dataskyddsförordning (GDPR).
@@ -33,6 +33,12 @@ export default async function PrivacyPage() {
           'Namn och e-postadress vid registrering',
           'Profilbild (om du väljer att ladda upp en)',
           'Inloggningsuppgifter via Google OAuth (vi lagrar aldrig lösenord)',
+        ]} />
+
+        <p className="pt-1"><strong className="text-slate-800">Säljaruppgifter</strong></p>
+        <PolicyList items={[
+          'Om du säljer som privatperson eller företag. Det visas för köpare, eftersom deras rättigheter beror på det.',
+          'Företagsnamn och organisationsnummer om du säljer som företag. För enskild firma är organisationsnumret ditt personnummer. Namnet visas i dina annonser, och numret visas bara för den som har köpt av dig.',
         ]} />
 
         <p className="pt-1"><strong className="text-slate-800">Transaktionsdata</strong></p>
@@ -63,6 +69,7 @@ export default async function PrivacyPage() {
           'Tillhandahålla och förbättra Konstbyte-tjänsten (berättigat intresse / avtal)',
           'Hantera ditt konto och inloggning (avtal)',
           'Möjliggöra transaktioner och kommunikation mellan användare (avtal)',
+          'Visa köpare om säljaren är privatperson eller företag, och vem säljaren är (rättslig förpliktelse enligt lagen om distansavtal)',
           'Förebygga bedrägeri och säkerställa plattformens säkerhet (berättigat intresse)',
           'Skicka viktig information om din kontosäkerhet (berättigat intresse)',
           'Följa tillämpliga lagar och regler (rättslig förpliktelse)',

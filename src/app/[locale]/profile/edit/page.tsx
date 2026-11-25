@@ -10,6 +10,12 @@ import type { UploadRouter } from '@/lib/uploadthing';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { signOut, useSession } from 'next-auth/react';
+import SellerTypeFields, {
+  emptySellerForm,
+  sellerFormError,
+  type SellerFormValues,
+} from '@/components/seller/SellerTypeFields';
+import { isSellerType, type SellerDetailsError } from '@/lib/seller';
 
 interface User {
   id: string;
@@ -18,6 +24,9 @@ interface User {
   image: string | null;
   bio: string | null;
   instagram: string | null;
+  sellerType: string | null;
+  businessName: string | null;
+  businessOrgNr: string | null;
 }
 
 export default function EditProfilePage() {
@@ -35,6 +44,42 @@ export default function EditProfilePage() {
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const tSeller = useTranslations('seller');
+  const [sellerForm, setSellerForm] = useState<SellerFormValues>(emptySellerForm);
+  const [sellerError, setSellerError] = useState<SellerDetailsError | 'generic' | null>(null);
+  const [sellerSaving, setSellerSaving] = useState(false);
+  const [sellerSaved, setSellerSaved] = useState(false);
+
+  const handleSellerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSellerSaved(false);
+    const formError = sellerFormError(sellerForm);
+    setSellerError(formError);
+    if (formError) return;
+    setSellerSaving(true);
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sellerForm),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setSellerForm({
+          sellerType: isSellerType(data.sellerType) ? data.sellerType : null,
+          businessName: data.businessName ?? '',
+          businessOrgNr: data.businessOrgNr ?? '',
+        });
+        setSellerSaved(true);
+      } else {
+        setSellerError(data?.code ?? 'generic');
+      }
+    } catch {
+      setSellerError('generic');
+    } finally {
+      setSellerSaving(false);
+    }
+  };
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
@@ -68,6 +113,11 @@ export default function EditProfilePage() {
         setBio(data.bio || '');
         setInstagram(data.instagram || '');
         setImageUrl(data.image || null);
+        setSellerForm({
+          sellerType: isSellerType(data.sellerType) ? data.sellerType : null,
+          businessName: data.businessName ?? '',
+          businessOrgNr: data.businessOrgNr ?? '',
+        });
       })
       .catch(status => { if (status === 401) router.push('/auth/signin'); })
       .finally(() => setIsLoading(false));
@@ -213,6 +263,26 @@ export default function EditProfilePage() {
               <Button type="button" variant="outline" asChild>
                 <Link href="/profile">{t('cancel')}</Link>
               </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Seller details: private person or business */}
+      <Card id="seller">
+        <CardHeader><CardTitle>{tSeller('profile_title')}</CardTitle></CardHeader>
+        <CardContent>
+          <form onSubmit={handleSellerSubmit} className="space-y-4">
+            <SellerTypeFields
+              values={sellerForm}
+              onChange={(v) => { setSellerForm(v); setSellerSaved(false); }}
+              error={sellerError}
+            />
+            <div className="flex items-center gap-3">
+              <Button type="submit" disabled={sellerSaving}>
+                {sellerSaving ? tSeller('saving') : tSeller('save')}
+              </Button>
+              {sellerSaved && <span role="status" className="text-sm text-emerald-700">{tSeller('saved')}</span>}
             </div>
           </form>
         </CardContent>

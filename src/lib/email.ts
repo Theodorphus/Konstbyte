@@ -45,11 +45,21 @@ export function buyerConfirmationEmail(opts: {
   amountSek: number;
   shippingCost: number;
   appUrl: string;
+  /** Who sold it, e.g. "Anna Lind (privatperson)" (lib/seller sellerLine). */
+  seller?: string;
+  /** What the buyer was told at purchase: "private" | "business". */
+  sellerType?: string | null;
 }) {
   const { orderId, amountSek, shippingCost, appUrl } = opts;
   const artworkTitle = escapeHtml(opts.artworkTitle);
   const artistName = escapeHtml(opts.artistName);
   const imageUrl = escapeHtml(opts.imageUrl);
+  const rights =
+    opts.sellerType === 'business'
+      ? 'Köpt av ett företag: du har 14 dagars ångerrätt och rätt att reklamera fel gentemot säljaren.'
+      : opts.sellerType === 'private'
+        ? 'Köpt av en privatperson: ingen lagstadgad ångerrätt.'
+        : 'Frågor om verket, returer och reklamationer tar du med säljaren.';
   return {
     subject: `Orderbekräftelse – ${opts.artworkTitle}`,
     html: `
@@ -63,6 +73,7 @@ export function buyerConfirmationEmail(opts: {
         <table style="width:100%;border-collapse:collapse;font-size:14px">
           <tr><td style="padding:6px 0;color:#64748b">Konstverk</td><td style="padding:6px 0;font-weight:600">${artworkTitle}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Konstnär</td><td style="padding:6px 0">${artistName}</td></tr>
+          ${opts.seller ? `<tr><td style="padding:6px 0;color:#64748b">Säljare</td><td style="padding:6px 0">${escapeHtml(opts.seller)}</td></tr>` : ''}
           <tr><td style="padding:6px 0;color:#64748b">Frakt</td><td style="padding:6px 0">${shippingCost > 0 ? `${Math.round(shippingCost).toLocaleString('sv-SE')} kr` : 'Ingår'}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Totalt betalt</td><td style="padding:6px 0;font-weight:700">${amountSek.toLocaleString('sv-SE')} kr</td></tr>
           <tr><td style="padding:6px 0;color:#64748b">Leverans</td><td style="padding:6px 0">3–5 arbetsdagar</td></tr>
@@ -79,8 +90,13 @@ export function buyerConfirmationEmail(opts: {
           Visa order
         </a>
 
-        <p style="margin-top:32px;font-size:12px;color:#94a3b8">
-          Konstbyte · 14 dagars ångerrätt enligt lag · Säker betalning via Stripe ·
+        <p style="margin-top:20px;font-size:13px;color:#475569">
+          ${rights} Konstbyte är inte säljare och inte part i köpet, men håller betalningen tills du har
+          bekräftat att verket har kommit fram.
+        </p>
+
+        <p style="margin-top:24px;font-size:12px;color:#94a3b8">
+          Konstbyte · Säker betalning via Stripe ·
           <a href="${appUrl}/kopvillkor" style="color:#94a3b8">Köpvillkor</a>
         </p>
       </div>

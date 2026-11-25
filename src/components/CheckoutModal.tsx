@@ -13,6 +13,9 @@ interface Props {
   imageUrl: string;
   price: number;
   ownerName: string;
+  /** Whether the seller sells as a private person or a business (their own declaration). */
+  sellerType: 'private' | 'business';
+  businessName?: string;
   shippingType?: string;
   shippingCost?: number;
   shippingArea?: string;
@@ -65,6 +68,8 @@ function OrderSummary({
   imageUrl,
   price,
   ownerName,
+  sellerType,
+  businessName,
   shippingType,
   shippingCost,
   shippingArea,
@@ -74,6 +79,10 @@ function OrderSummary({
   const formatSek = useFormatSek();
   const isFixed = shippingType === 'fixed' && shippingCost > 0;
   const total = price + (isFixed ? shippingCost : 0);
+  const sellerNote =
+    sellerType === 'business'
+      ? t('seller_business', { name: businessName || ownerName })
+      : t('seller_private');
 
   return (
     <div className="rounded-xl bg-stone-50 border border-stone-200 overflow-hidden">
@@ -85,6 +94,7 @@ function OrderSummary({
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-slate-900 truncate">{title}</p>
           <p className="text-xs text-stone-500 mt-0.5">{t('by_artist', { name: ownerName })}</p>
+          <p className="text-xs text-stone-500 mt-0.5">{sellerNote}</p>
         </div>
         <div className="flex-shrink-0 text-right">
           <p className="text-sm font-semibold text-slate-900">{formatSek(price)}</p>
@@ -118,6 +128,8 @@ function OrderSummary({
 
 export default function CheckoutModal({
   artworkId, title, imageUrl, price, ownerName,
+  sellerType,
+  businessName = '',
   shippingType = 'overenskommes',
   shippingCost = 0,
   shippingArea = '',
@@ -231,6 +243,8 @@ export default function CheckoutModal({
               imageUrl={imageUrl}
               price={price}
               ownerName={ownerName}
+              sellerType={sellerType}
+              businessName={businessName}
               shippingType={shippingType}
               shippingCost={shippingCost}
               shippingArea={shippingArea}

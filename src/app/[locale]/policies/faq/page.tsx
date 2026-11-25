@@ -32,11 +32,15 @@ const faqData: FAQSection[] = [
       },
       {
         question: 'Vad händer om jag inte får mitt konstverk?',
-        answer: 'Konstbyte är en plattform och är inte part i transaktioner. Vid problem bör du först kontakta säljaren via meddelanden. Om problemet kvarstår kan du kontakta Konsumentverket eller din bank för att bestrida betalningen.',
+        answer: 'Kontakta säljaren via meddelanden, och meddela oss på webbdevstudio@gmail.com innan du bekräftar mottagandet. Så länge betalningen hålls kvar kan vi stoppa utbetalningen och betala tillbaka till dig. Konstbyte är inte part i köpet och betalar aldrig tillbaka mer än det som hålls kvar.',
       },
       {
         question: 'Kan jag returnera ett köpt konstverk?',
-        answer: 'Ja. Du har 14 dagars ångerrätt från den dag du tar emot konstverket. Kontakta oss på webbdevstudio@gmail.com så hjälper vi dig med returen. Verket ska skickas tillbaka i ursprungligt skick, och returfrakten betalas normalt av köparen.',
+        answer: 'Det beror på vem du köper av, och det står i annonsen. Köper du av ett företag har du 14 dagars ångerrätt från den dag du tar emot verket. Du kontaktar då säljaren, som ansvarar för returen och återbetalningen, och du betalar normalt returfrakten. Köper du av en privatperson finns ingen lagstadgad ångerrätt.',
+      },
+      {
+        question: 'Vem ansvarar om något är fel på verket?',
+        answer: 'Säljaren. Konstbyte är en marknadsplats och inte part i köpet. Kontrollera verket när det kommer och meddela säljaren och oss innan du bekräftar mottagandet. Efter att du har bekräftat riktar du krav direkt till säljaren.',
       },
       {
         question: 'Vad kostar det att köpa?',
@@ -59,6 +63,14 @@ const faqData: FAQSection[] = [
       {
         question: 'Vad kostar det att sälja?',
         answer: `Det kostar ingenting att lägga upp konstverk. Konstbyte tar en plattformsavgift på ${PLATFORM_FEE_PERCENT} % av försäljningspriset vid genomförda köp. Stripe tar ut en separat transaktionsavgift.`,
+      },
+      {
+        question: 'Måste jag ange om jag säljer som privatperson eller företag?',
+        answer: 'Ja. Köpare har olika rättigheter beroende på vem de köper av, så det visas i dina annonser, och dina verk kan inte köpas förrän du har angett det. Säljer du i en verksamhet, till exempel med enskild firma, väljer du företag. Då ansvarar du för köparens ångerrätt och reklamationer. Du ansvarar för att uppgiften stämmer.',
+      },
+      {
+        question: 'Vad händer om köparen får pengarna tillbaka?',
+        answer: 'Återbetalningar och kortbestridanden belastar dig som säljare. Har du redan fått betalt dras beloppet tillbaka från ditt Stripe-konto. Vinner Konstbyte ett bestridande får du tillbaka pengarna.',
       },
       {
         question: 'Hur och när får jag betalt?',
@@ -118,7 +130,7 @@ const faqData: FAQSection[] = [
       },
       {
         question: 'Hur raderar jag mitt konto?',
-        answer: 'Kontakta oss på webbdevstudio@gmail.com med en radering förfrågan. Vi raderar ditt konto och dina personuppgifter inom 30 dagar, med undantag för transaktionsdata.',
+        answer: 'Gå till Redigera profil och välj Radera konto. Uppgifter om genomförda köp sparas så länge bokföringslagen kräver det.',
       },
       {
         question: 'Är mina meddelanden privata?',

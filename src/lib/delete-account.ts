@@ -86,6 +86,9 @@ export async function deleteAccount(userId: string): Promise<DeleteAccountResult
         instagram: null,
         stripeAccountId: null,
         stripeOnboardingDone: false,
+        // A sole trader's organisation number is their personal identity number.
+        businessName: null,
+        businessOrgNr: null,
       },
     }),
   ]);

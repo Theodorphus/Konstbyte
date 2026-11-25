@@ -17,9 +17,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [user, t] = await Promise.all([
+  const [user, t, tSeller] = await Promise.all([
     getCurrentUser(),
     getTranslations('orders'),
+    getTranslations('seller'),
   ]);
   if (!user) redirect('/auth/signin');
 
@@ -29,7 +30,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       items: true,
       events: { orderBy: { createdAt: 'asc' } },
       buyer: { select: { id: true, name: true, email: true } },
-      seller: { select: { id: true, name: true } },
+      seller: { select: { id: true, name: true, businessName: true, businessOrgNr: true } },
       artwork: true,
     },
   });
@@ -184,6 +185,31 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           {payoutState === 'awaiting_stripe' && <p className="mt-2 font-medium">{t('payout_awaiting_stripe')}</p>}
           {payoutState === 'on_hold' && <p className="mt-2 text-red-700 font-medium">{t('payout_on_hold')}</p>}
           {payoutState === 'cancelled' && <p className="mt-2 text-red-700 font-medium">{t('payout_cancelled')}</p>}
+        </div>
+      )}
+
+      {/* Who the buyer bought from, and where their rights lie — buyer only */}
+      {isBuyer && order.seller && (
+        <div className="rounded-2xl border border-stone-200 bg-white p-4 space-y-1 text-sm">
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-400 mb-2">{tSeller('seller_label')}</p>
+          <p className="text-slate-800">
+            {order.sellerType === 'business'
+              ? tSeller('seller_business', {
+                  company: order.seller.businessName || order.seller.name || '',
+                  orgNr: order.seller.businessOrgNr || '–',
+                })
+              : order.sellerType === 'private'
+                ? tSeller('seller_private', { name: order.seller.name || '' })
+                : order.seller.name}
+          </p>
+          {order.sellerType && (
+            <p className="text-slate-600">
+              {tSeller(order.sellerType === 'business' ? 'order_rights_business' : 'order_rights_private')}
+            </p>
+          )}
+          <Link href={`/messages/${order.seller.id}`} className="inline-block pt-1 text-slate-700 underline underline-offset-2 hover:text-slate-900">
+            {t('message_seller')}
+          </Link>
         </div>
       )}
 

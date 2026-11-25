@@ -28,7 +28,7 @@ beforeEach(() => {
   getCurrentUser.mockResolvedValue({ id: `buyer_${++buyer}`, email: 'b@example.com' });
   prisma.artwork.findUnique.mockResolvedValue({
     id: 'art1', ownerId: 'artist', isPublished: true, isSold: false, price: 1000, title: 'Hav',
-    description: null, imageUrl: 'https://x/y.jpg', shippingType: 'postnord', shippingCost: null, owner: { id: 'artist', name: 'Anna' },
+    description: null, imageUrl: 'https://x/y.jpg', shippingType: 'postnord', shippingCost: null, owner: { id: 'artist', name: 'Anna', sellerType: 'private' },
   });
   prisma.order.count.mockImplementation(({ where }: { where: { artworkId?: string } }) =>
     Promise.resolve(where.artworkId ? othersPaying : recentAttempts),
@@ -46,6 +46,20 @@ describe('POST /api/checkout/stripe', () => {
     const minutes = (expiresAt * 1000 - Date.now()) / 60000;
     expect(minutes).toBeGreaterThan(30);
     expect(minutes).toBeLessThan(35);
+  });
+
+  it('records what the buyer was told about the seller', async () => {
+    await checkout({ artworkId: 'art1', shippingAddress: address });
+    expect(prisma.order.create.mock.calls[0][0].data).toMatchObject({ sellerType: 'private' });
+  });
+
+  it('cannot sell until the seller has said whether they are a private person or a business', async () => {
+    const art = await prisma.artwork.findUnique();
+    prisma.artwork.findUnique.mockResolvedValue({ ...art, owner: { id: 'artist', name: 'Anna', sellerType: null } });
+    const res = await checkout({ artworkId: 'art1', shippingAddress: address });
+    expect(res.status).toBe(409);
+    expect(prisma.order.create).not.toHaveBeenCalled();
+    expect(stripe.checkout.sessions.create).not.toHaveBeenCalled();
   });
 
   it('requires a delivery address unless it is a pickup', async () => {

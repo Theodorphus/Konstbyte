@@ -9,11 +9,16 @@ import SafeImage from '@/components/SafeImage';
 import DeleteArtworkButton from '@/components/DeleteArtworkButton';
 import { formatSek } from '@/lib/currency';
 import { getTranslations } from 'next-intl/server';
+import { isSellerType } from '@/lib/seller';
 
 export const dynamic = 'force-dynamic';
 
 export default async function MyArtworksPage() {
-  const [user, t] = await Promise.all([getCurrentUser(), getTranslations('my_artworks')]);
+  const [user, t, tSeller] = await Promise.all([
+    getCurrentUser(),
+    getTranslations('my_artworks'),
+    getTranslations('seller'),
+  ]);
 
   if (!user) {
     return (
@@ -62,6 +67,17 @@ export default async function MyArtworksPage() {
           </Button>
         </div>
       </PageHeader>
+
+      {/* Buyers can't check out until the seller has said who they sell as. */}
+      {artworks.length > 0 && !isSellerType(user.sellerType) && (
+        <div role="status" className="rounded-2xl border border-amber-300 bg-amber-50 p-4 sm:p-5 space-y-2">
+          <p className="font-semibold text-amber-950">{tSeller('missing_title')}</p>
+          <p className="text-sm text-amber-900">{tSeller('missing_desc')}</p>
+          <Button asChild size="sm">
+            <Link href="/profile/edit#seller">{tSeller('missing_cta')}</Link>
+          </Button>
+        </div>
+      )}
 
       {artworks.length === 0 ? (
         <StatusCard

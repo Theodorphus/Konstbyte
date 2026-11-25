@@ -11,6 +11,8 @@ interface Props {
   imageUrl: string;
   price: number;
   ownerName: string;
+  sellerType: 'private' | 'business';
+  businessName?: string;
   shippingType?: string;
   shippingCost?: number;
   shippingArea?: string;

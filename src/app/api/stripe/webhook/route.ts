@@ -4,6 +4,7 @@ import type Stripe from 'stripe';
 import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
 import { sendEmail, buyerConfirmationEmail, sellerNotificationEmail } from '../../../../lib/email';
+import { sellerLine } from '@/lib/seller';
 import { calculatePayout, defaultCommissionRate } from '../../../../lib/payout';
 import { stripeFeeForPaymentIntent } from '../../../../lib/stripe-fee';
 import { handleChargeRefunded, handleDisputeCreated, handleDisputeClosed } from '../../../../lib/refunds';
@@ -116,7 +117,12 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
     include: {
       artwork: true,
       buyer: { select: { name: true, email: true } },
-      seller: { select: { name: true, email: true, stripeAccountId: true, stripeOnboardingDone: true } },
+      seller: {
+        select: {
+          name: true, email: true, stripeAccountId: true, stripeOnboardingDone: true,
+          businessName: true, businessOrgNr: true,
+        },
+      },
     },
   });
   if (!order) throw new Error(`Order ${orderId} not found`);
@@ -243,6 +249,13 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
       amountSek,
       shippingCost: order.shippingCost,
       appUrl: APP_URL,
+      seller: sellerLine({
+        name: order.seller?.name || 'Konstnären',
+        sellerType: order.sellerType,
+        businessName: order.seller?.businessName,
+        businessOrgNr: order.seller?.businessOrgNr,
+      }),
+      sellerType: order.sellerType,
     });
     emails.push(sendEmail({ to: order.buyer.email, ...mail }));
   }

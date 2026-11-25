@@ -1,8 +1,15 @@
 import { getTranslations } from 'next-intl/server';
-import { COMPANY_LINE } from '@/lib/company';
+import { Link } from '@/i18n/navigation';
+import { COMPANY, COMPANY_LINE } from '@/lib/company';
 import { PLATFORM_FEE_PERCENT } from '@/lib/payout';
 
 export const metadata = { title: 'Köpvillkor' };
+
+const mail = (
+  <a href={`mailto:${COMPANY.email}`} className="underline text-blue-600">
+    {COMPANY.email}
+  </a>
+);
 
 export default async function KopvillkorPage() {
   const t = await getTranslations('policies');
@@ -12,90 +19,142 @@ export default async function KopvillkorPage() {
         <p className="text-sm text-slate-500 mb-1">{t('last_updated')} november 2026</p>
         <h1 className="text-3xl font-bold">{t('kopvillkor_title')}</h1>
         <p className="mt-3 text-slate-600">
-          Dessa köpvillkor gäller för alla köp som genomförs via Konstbyte. Genom att slutföra ett köp godkänner du villkoren nedan.
+          Dessa köpvillkor gäller när du köper ett konstverk via Konstbyte. Läs dem innan du betalar. Genom att gå vidare till betalning godkänner du villkoren.
         </p>
       </div>
 
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold">1. Konstbytes roll</h2>
-        <p>
-          Konstbyte är en digital marknadsplats som förmedlar kontakt mellan köpare och konstnärer. Konstbyte är <strong>inte</strong> säljare av konstverken. Varje konstverk säljs av den konstnär som har lagt upp det, och konstnären är den juridiska säljaren i varje transaktion.
-        </p>
-        <p>
-          Konstbyte drivs av {COMPANY_LINE}. Konstbyte tillhandahåller teknisk plattform och betalningshantering via Stripe. Pengarna hanteras av Konstbyte och betalas ut till konstnären först när du har bekräftat att verket har kommit fram, eller automatiskt 14 dagar efter att det skickades.
+      <section className="rounded-lg border border-slate-200 bg-slate-50 p-6 space-y-2">
+        <h2 className="text-lg font-bold text-slate-900">Du köper av konstnären, inte av Konstbyte</h2>
+        <p className="text-slate-700">
+          Köpeavtalet ingås mellan dig och konstnären som säljer verket. Konstbyte är inte säljare och inte part i köpet. Konstbyte tillhandahåller marknadsplatsen och tar emot betalningen för säljarens räkning.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">2. Priser och avgifter</h2>
+        <h2 className="text-xl font-semibold">1. Vem du köper av</h2>
         <p>
-          Priserna på konstverken sätts av respektive konstnär och anges i svenska kronor (SEK) inklusive moms, om inget annat anges. Konstbyte tar en plattformsavgift om {PLATFORM_FEE_PERCENT} % av försäljningspriset, vilket redan är inräknat i det pris du ser som köpare.
+          Säljaren är konstnären som har lagt upp verket. Säljaren ansvarar för verket, för att beskrivningen stämmer och för att verket skickas till dig.
         </p>
         <p>
-          Eventuell frakt visas i kassan innan du betalar. Har konstnären valt att frakten ska överenskommas bestäms den efter köpet.
-        </p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold">3. Betalning</h2>
-        <p>
-          Betalning sker via Stripe Checkout. Du kan betala med kort, Klarna, Apple Pay, Google Pay och de andra betalsätt som visas i kassan. Kortbetalningar dras direkt vid köptillfället.
+          Konstbyte drivs av {COMPANY_LINE}, e-post {mail}. Konstbyte tar emot betalningen för säljarens räkning via Stripe och betalar ut den till säljaren enligt punkt 4.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">4. Leverans</h2>
+        <h2 className="text-xl font-semibold">2. Privatperson eller företag</h2>
         <p>
-          Leveransen sköts av konstnären. Uppskattad leveranstid är 3–5 arbetsdagar inom Sverige efter att konstnären skickat verket. Konstbyte ansvarar inte för förseningar, skador eller förluster som uppstår under transport, men kan bistå med att medla vid problem.
+          I annonsen och i kassan står det om säljaren säljer som privatperson eller som företag. Uppgiften kommer från säljaren, och säljaren ansvarar för att den stämmer. Det avgör vilka rättigheter du har:
+        </p>
+        <ul className="list-disc list-inside space-y-1 text-slate-700">
+          <li>
+            <strong>Köp från en privatperson:</strong> köplagen gäller. Konsumentlagarna, till exempel ångerrätten, gäller inte.
+          </li>
+          <li>
+            <strong>Köp från ett företag:</strong> konsumentköplagen och lagen om distansavtal och avtal utanför affärslokaler gäller. Rättigheterna har du gentemot säljaren. Företagets namn och organisationsnummer finns i orderbekräftelsen och på ordersidan.
+          </li>
+        </ul>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold">3. Priser och avgifter</h2>
+        <p>
+          Säljaren sätter priset. Priset anges i svenska kronor och är det du betalar för verket, inklusive eventuell moms. Frakten visas i kassan innan du betalar. Har säljaren valt att frakten ska överenskommas bestämmer ni den direkt med varandra.
         </p>
         <p>
-          Konstnären ansvarar för att paketera verket omsorgsfullt. Vid skada under frakt ska du kontakta konstnären i första hand och Konstbyte för stöd.
+          Du betalar inga avgifter till Konstbyte. Konstbytes avgift på {PLATFORM_FEE_PERCENT} % betalas av säljaren.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">5. Ångerrätt</h2>
+        <h2 className="text-xl font-semibold">4. Betalning</h2>
         <p>
-          Du har rätt att ångra ditt köp inom <strong>14 dagar</strong> från det att du tagit emot varan, i enlighet med distans- och hemförsäljningslagen (2005:59). Ångerrätten gäller under förutsättning att varan återlämnas i ursprungligt skick.
-        </p>
-        <p>
-          För att utöva din ångerrätt kontaktar du Konstbyte på webbdevstudio@gmail.com inom 14 dagar. Returfrakten bekostas normalt av köparen, om inte annat avtalats.
-        </p>
-        <p>
-          Observera att ångerrätten inte gäller för konstverk som är specialtillverkade eller tydligt personliga.
+          Du betalar via Stripe med kort, Klarna, Apple Pay, Google Pay eller de andra betalsätt som visas i kassan. Konstbyte håller betalningen tills du har bekräftat att verket har kommit fram, eller automatiskt 14 dagar efter att säljaren har markerat verket som skickat. Då betalas pengarna ut till säljaren.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">6. Reklamation</h2>
+        <h2 className="text-xl font-semibold">5. Leverans</h2>
         <p>
-          Om du anser att ett konstverk är felaktigt levererat, skadat eller inte stämmer överens med beskrivningen ska du i första hand kontakta konstnären. Konstbyte kan på begäran medla i tvisten, men är inte skyldig att ersätta köparen för konstnärens åtaganden.
+          Säljaren packar och skickar verket och ansvarar för leveranstiden. Konstbyte hanterar inte verket och är inte part i avtalet med fraktbolaget.
         </p>
         <p>
-          Reklamation ska göras inom skälig tid efter att felet upptäckts, dock senast tre år från köpet.
+          Köper du av ett företag står säljaren för risken för verket tills du har tagit emot det. Köper du av en privatperson gäller köplagen: skickas verket går risken som huvudregel över till dig när säljaren har lämnat det till fraktbolaget, om ni inte har kommit överens om något annat.
         </p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold">7. Ansvarsbegränsning</h2>
         <p>
-          Konstbyte ansvarar inte för konstverkets kvalitet, äkthet, konstnärens leveransförmåga eller skador som uppstår under transport. Konstbytes maximala ansvar gentemot köparen är begränsat till det belopp som betalats för det aktuella köpet.
-        </p>
-        <p className="text-slate-600">Begränsningarna gäller inte om Konstbyte har orsakat skadan med uppsåt eller genom grov vårdslöshet, och de inskränker inte de rättigheter du har enligt tvingande lag, till exempel konsumentköplagen eller lagen om distansavtal.</p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold">8. Tillämplig lag</h2>
-        <p>
-          Dessa köpvillkor lyder under svensk lag. Tvister ska i första hand lösas i godo, i andra hand prövas av Allmänna reklamationsnämnden (ARN) eller av allmän domstol.
+          Försenade, skadade eller borttappade paket tar du i första hand upp med säljaren.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">9. Kontakt</h2>
+        <h2 className="text-xl font-semibold">6. Kontrollera verket när det kommer</h2>
         <p>
-          Frågor om ett köp riktas i första hand till konstnären. Kan du inte lösa ärendet kontaktar du Konstbyte på{' '}
-          <a href="mailto:webbdevstudio@gmail.com" className="underline text-blue-600">webbdevstudio@gmail.com</a>.
+          Öppna paketet och kontrollera verket så snart du har fått det, innan du bekräftar mottagandet på ordersidan. Är verket skadat eller fel, eller kommer det inte fram, kontaktar du säljaren och meddelar Konstbyte på {mail} innan du bekräftar.
+        </p>
+        <p>
+          Så länge betalningen hålls kvar kan Konstbyte efter eget beslut stoppa utbetalningen och betala tillbaka till dig, till exempel om säljaren inte skickar verket. Konstbyte betalar aldrig tillbaka mer än det som hålls kvar för köpet och ersätter dig inte för säljarens åtaganden.
+        </p>
+        <p>
+          När du har bekräftat mottagandet, eller 14 dagar efter att verket skickades, betalas pengarna ut och kan inte längre stoppas. Krav på grund av fel riktar du då direkt till säljaren.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold">7. Ångerrätt</h2>
+        <p>
+          <strong>Köp från ett företag:</strong> du har 14 dagars ångerrätt från den dag du tog emot verket. Meddela säljaren inom fristen, till exempel via meddelandefunktionen. Du kan använda Konsumentverkets standardblankett för ångerrätt. Skicka sedan tillbaka verket inom 14 dagar. Du betalar returfrakten om säljaren inte erbjuder något annat, och verket ska vara väl förpackat. Säljaren ansvarar för att du får tillbaka pengarna. Återbetalningen görs via Konstbyte till samma betalsätt och belastar säljaren.
+        </p>
+        <p>
+          Ångerrätten gäller inte verk som har tillverkats efter dina anvisningar eller fått en tydlig personlig prägel, till exempel beställda porträtt.
+        </p>
+        <p>
+          <strong>Köp från en privatperson:</strong> det finns ingen lagstadgad ångerrätt. Säljaren kan erbjuda det frivilligt, och det är då en överenskommelse mellan er.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold">8. Fel på verket</h2>
+        <p>
+          Stämmer verket inte med beskrivningen, eller har det ett fel, vänder du dig till säljaren. Gör det inom skälig tid efter att du upptäckte felet.
+        </p>
+        <ul className="list-disc list-inside space-y-1 text-slate-700">
+          <li>
+            <strong>Köp från ett företag:</strong> konsumentköplagen gäller. Du kan reklamera i upp till tre år, och en reklamation inom två månader från att du upptäckte felet räknas alltid som i rätt tid.
+          </li>
+          <li>
+            <strong>Köp från en privatperson:</strong> köplagen gäller. Reklamera inom skälig tid, och senast två år efter att du tog emot verket.
+          </li>
+        </ul>
+        <p>Konstbyte garanterar inte verkets äkthet, skick eller värde.</p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold">9. Konstbytes ansvar</h2>
+        <p>
+          Konstbyte ansvarar för att marknadsplatsen och betalningshanteringen sköts med omsorg. Konstbyte ansvarar inte för verket, säljarens uppgifter, leveransen eller något annat som säljaren har åtagit sig.
+        </p>
+        <p>
+          Konstbytes sammanlagda ansvar mot dig är begränsat till den avgift som Konstbyte har fått för det köp som kravet gäller.
+        </p>
+        <p className="text-slate-600">
+          Begränsningarna gäller inte om Konstbyte har orsakat skadan med uppsåt eller genom grov vårdslöshet, och de inskränker inte de rättigheter du har enligt tvingande lag.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold">10. Tvister</h2>
+        <p>
+          Tvister om verket löser du med säljaren. Har du köpt av ett företag kan du vända dig till Allmänna reklamationsnämnden (ARN). Konstbyte kan förmedla kontakt, men är inte part i tvisten och avgör den inte, utöver det som står i punkt 6.
+        </p>
+        <p>
+          Dessa villkor lyder under svensk lag. Tvister med Konstbyte om Konstbytes egen tjänst kan prövas av ARN eller allmän domstol.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold">11. Kontakt</h2>
+        <p>
+          Frågor om verket ställer du till säljaren via meddelandefunktionen. Frågor om betalningen eller om Konstbyte skickar du till {mail}. Se även{' '}
+          <Link href="/policies/terms" className="underline text-blue-600">användarvillkoren</Link>.
         </p>
       </section>
     </div>

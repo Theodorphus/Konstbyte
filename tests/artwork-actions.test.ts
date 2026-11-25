@@ -32,7 +32,7 @@ function upload(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  getCurrentUser.mockResolvedValue({ id: 'artist_1', name: 'Anna Lind' });
+  getCurrentUser.mockResolvedValue({ id: 'artist_1', name: 'Anna Lind', sellerType: 'private' });
   tx.artwork.create.mockResolvedValue({ id: 'art_1' });
 });
 
@@ -84,6 +84,13 @@ describe('createMultipleArtworks', () => {
     getCurrentUser.mockResolvedValue({ id: 'artist_1', name: '   ' });
     const result = await upload();
     expect(result).toEqual({ success: false, error: expect.stringContaining('konstnärsnamn') });
+    expect(tx.artwork.create).not.toHaveBeenCalled();
+  });
+
+  it('requires the seller to say whether they sell as a private person or a business', async () => {
+    getCurrentUser.mockResolvedValue({ id: 'artist_1', name: 'Anna Lind', sellerType: null });
+    const result = await upload();
+    expect(result).toEqual({ success: false, error: expect.stringContaining('privatperson eller företag') });
     expect(tx.artwork.create).not.toHaveBeenCalled();
   });
 });

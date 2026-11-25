@@ -112,7 +112,9 @@ async function SuccessContent({ orderId }: { orderId: string }) {
       </div>
 
       {/* Legal */}
-      <p className="text-xs text-slate-400 text-center leading-relaxed">{t('legal')}</p>
+      <p className="text-xs text-slate-400 text-center leading-relaxed">
+        {t(order.sellerType === 'business' ? 'legal_business' : order.sellerType === 'private' ? 'legal_private' : 'legal_unknown')}
+      </p>
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">

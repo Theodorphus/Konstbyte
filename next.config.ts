@@ -37,13 +37,28 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false
   },
-  // The business-website service moved to its own site.
   async redirects() {
-    return ['/hemsidor', '/sv/hemsidor', '/en/hemsidor'].map((source) => ({
+    // The business-website service moved to its own site.
+    const hemsidor = ['/hemsidor', '/sv/hemsidor', '/en/hemsidor'].map((source) => ({
       source,
       destination: 'https://www.webbdev.se/',
       permanent: true,
     }));
+    // Old duplicate terms and privacy pages: one page per topic, so they can't
+    // contradict each other.
+    const merged: Record<string, string> = {
+      '/villkor': '/policies/terms',
+      '/anvandarvillkor': '/policies/terms',
+      '/ansvar': '/policies/terms',
+      '/integritet': '/policies/privacy',
+      '/cookies': '/policies/privacy',
+    };
+    const policies = Object.entries(merged).flatMap(([from, to]) => [
+      { source: from, destination: to, permanent: true },
+      { source: `/sv${from}`, destination: to, permanent: true },
+      { source: `/en${from}`, destination: `/en${to}`, permanent: true },
+    ]);
+    return [...hemsidor, ...policies];
   },
   async headers() {
     return [

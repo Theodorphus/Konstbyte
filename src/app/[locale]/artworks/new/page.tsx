@@ -14,6 +14,12 @@ import {
 } from '@/app/actions/artwork-actions';
 import { useTranslations } from 'next-intl';
 import { AlertCircle } from 'lucide-react';
+import SellerTypeFields, {
+  emptySellerForm,
+  sellerFormError,
+  type SellerFormValues,
+} from '@/components/seller/SellerTypeFields';
+import { isSellerType, type SellerDetailsError } from '@/lib/seller';
 
 interface ArtworkSlot {
   url: string;
@@ -35,9 +41,13 @@ export default function NewArtworkPage() {
   // Auth check
   const [ownerId, setOwnerId] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  // Sellers need a display name before their first upload.
+  // Sellers need a display name, and must say whether they sell as a private
+  // person or a business, before their first upload.
   const [hasName, setHasName] = useState(false);
+  const [hasSellerType, setHasSellerType] = useState(false);
   const [nameInput, setNameInput] = useState('');
+  const [sellerForm, setSellerForm] = useState<SellerFormValues>(emptySellerForm);
+  const [sellerError, setSellerError] = useState<SellerDetailsError | 'generic' | null>(null);
   const [nameSaving, setNameSaving] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
 
@@ -57,6 +67,7 @@ export default function NewArtworkPage() {
           const data = await response.json();
           setOwnerId(data?.user?.id || null);
           setHasName(Boolean(data?.user?.name?.trim()));
+          setHasSellerType(isSellerType(data?.user?.sellerType));
         } else {
           setOwnerId(null);
         }
@@ -71,25 +82,42 @@ export default function NewArtworkPage() {
     checkAuth();
   }, []);
 
-  const saveName = async (e: React.FormEvent) => {
+  const saveSellerDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     const name = nameInput.trim();
-    if (name.length < 2) {
+    if (!hasName && name.length < 2) {
       setNameError(t('artist_name_too_short'));
       return;
     }
-    setNameSaving(true);
+    const formError = hasSellerType ? null : sellerFormError(sellerForm);
     setNameError(null);
+    setSellerError(formError);
+    if (formError) return;
+
+    setNameSaving(true);
     try {
       const res = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({
+          ...(hasName ? {} : { name }),
+          ...(hasSellerType ? {} : sellerForm),
+        }),
       });
-      if (res.ok) setHasName(true);
-      else setNameError(t('artist_name_error'));
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setHasName(true);
+        setHasSellerType(true);
+      } else if (data?.code) {
+        setSellerError(data.code);
+      } else if (!hasName) {
+        setNameError(t('artist_name_error'));
+      } else {
+        setSellerError('generic');
+      }
     } catch {
-      setNameError(t('artist_name_error'));
+      if (!hasName) setNameError(t('artist_name_error'));
+      else setSellerError('generic');
     } finally {
       setNameSaving(false);
     }
@@ -194,33 +222,40 @@ export default function NewArtworkPage() {
     );
   }
 
-  // Signed in but no display name yet: ask for it before the upload wizard.
-  if (!hasName) {
+  // Signed in but no display name or seller type yet: ask before the upload wizard.
+  if (!hasName || !hasSellerType) {
     return (
       <div className="max-w-md mx-auto">
         <Card>
           <CardContent className="p-6 sm:p-8">
-            <form onSubmit={saveName} className="space-y-4">
-              <div className="space-y-2">
-                <h1 className="text-xl font-semibold text-slate-900">{t('artist_name_title')}</h1>
-                <p className="text-sm text-slate-600 leading-relaxed">{t('artist_name_desc')}</p>
-              </div>
-              <label className="block space-y-1.5">
-                <span className="text-sm font-medium text-slate-700">{t('artist_name_label')}</span>
-                <input
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  placeholder={t('artist_name_placeholder')}
-                  maxLength={80}
-                  autoFocus
-                  autoComplete="name"
-                  className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/50"
-                />
-              </label>
-              {nameError && <p className="text-sm text-red-600">{nameError}</p>}
+            <form onSubmit={saveSellerDetails} className="space-y-6">
+              {!hasName && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h1 className="text-xl font-semibold text-slate-900">{t('artist_name_title')}</h1>
+                    <p className="text-sm text-slate-600 leading-relaxed">{t('artist_name_desc')}</p>
+                  </div>
+                  <label className="block space-y-1.5">
+                    <span className="text-sm font-medium text-slate-700">{t('artist_name_label')}</span>
+                    <input
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      placeholder={t('artist_name_placeholder')}
+                      maxLength={80}
+                      autoFocus
+                      autoComplete="name"
+                      className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+                    />
+                  </label>
+                  {nameError && <p className="text-sm text-red-600">{nameError}</p>}
+                </div>
+              )}
+              {!hasSellerType && (
+                <SellerTypeFields values={sellerForm} onChange={setSellerForm} error={sellerError} />
+              )}
               <button
                 type="submit"
-                disabled={nameSaving || nameInput.trim().length < 2}
+                disabled={nameSaving || (!hasName && nameInput.trim().length < 2)}
                 className="w-full px-4 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50"
               >
                 {nameSaving ? t('artist_name_saving') : t('artist_name_save')}

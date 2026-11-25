@@ -14,6 +14,7 @@ import { getTranslations } from 'next-intl/server';
 import ReportButton from '@/components/ReportButton';
 import ArtworkActions from '@/components/ArtworkActions';
 import { isAdmin } from '@/lib/admin';
+import { isSellerType } from '@/lib/seller';
 
 export async function generateMetadata({ params }: { params: Promise<{ id?: string; locale: string }> }) {
   const { id, locale } = await params;
@@ -48,16 +49,26 @@ export default async function ArtworkDetail({
 }) {
   const { id } = await params;
   if (!id) return notFound();
-  const [artwork, currentUser, t] = await Promise.all([
+  const [artwork, currentUser, t, tSeller] = await Promise.all([
     prisma.artwork.findUnique({
       where: { id },
-      include: { owner: { select: { id: true, name: true, image: true } } },
+      include: { owner: { select: { id: true, name: true, image: true, sellerType: true, businessName: true } } },
     }),
     getCurrentUser(),
     getTranslations('artworks'),
+    getTranslations('seller'),
   ]);
 
   if (!artwork) return notFound();
+  // Buyers must be told whether they buy from a private person or a business;
+  // until the seller has said which, the artwork can't be bought.
+  const sellerType = isSellerType(artwork.owner.sellerType) ? artwork.owner.sellerType : null;
+  const sellerNotice =
+    sellerType === 'business'
+      ? tSeller('notice_business', { name: artwork.owner.businessName || artwork.owner.name || '' })
+      : sellerType === 'private'
+        ? tSeller('notice_private')
+        : tSeller('notice_unknown');
   const isOwner = currentUser?.id === artwork.ownerId;
   // Hidden artworks are only visible to the artist and admins.
   if (!artwork.isPublished && !isOwner && !isAdmin(currentUser?.email)) return notFound();
@@ -246,17 +257,25 @@ export default async function ArtworkDetail({
               </div>
             ) : (
               <div className="space-y-2.5">
-                <ArtworkCheckoutButton
-                  artworkId={artwork.id}
-                  title={artwork.title}
-                  imageUrl={artwork.imageUrl ?? ''}
-                  price={artwork.price ?? 0}
-                  ownerName={artwork.owner.name ?? 'Konstnären'}
-                  shippingType={artwork.shippingType}
-                  shippingCost={artwork.shippingCost ?? 0}
-                  shippingArea={artwork.shippingArea ?? ''}
-                  shippingCarrier={artwork.shippingCarrier ?? ''}
-                />
+                {sellerType ? (
+                  <ArtworkCheckoutButton
+                    artworkId={artwork.id}
+                    title={artwork.title}
+                    imageUrl={artwork.imageUrl ?? ''}
+                    price={artwork.price ?? 0}
+                    ownerName={artwork.owner.name ?? 'Konstnären'}
+                    sellerType={sellerType}
+                    businessName={artwork.owner.businessName ?? ''}
+                    shippingType={artwork.shippingType}
+                    shippingCost={artwork.shippingCost ?? 0}
+                    shippingArea={artwork.shippingArea ?? ''}
+                    shippingCarrier={artwork.shippingCarrier ?? ''}
+                  />
+                ) : (
+                  <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    {sellerNotice}
+                  </p>
+                )}
                 <Link
                   href={`/messages/${artwork.ownerId}`}
                   className="block w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium text-center text-sm hover:bg-slate-50 hover:border-slate-300 transition-all duration-200"
@@ -315,7 +334,10 @@ export default async function ArtworkDetail({
                       d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
                     />
                   </svg>
-                  {t('return_policy')}
+                  <span>
+                    {sellerType && <>{sellerNotice} </>}
+                    {tSeller('not_seller')}
+                  </span>
                 </div>
               </div>
             )}
