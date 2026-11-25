@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 
 export interface ShippingAddress {
   fullName: string;
@@ -156,6 +157,17 @@ export default function ShippingAddressForm({ onSubmit, onBack, loading }: Props
           t('continue_to_payment')
         )}
       </button>
+
+      {/* Opens in a new tab so the buyer keeps the filled-in form. */}
+      <p className="text-xs text-stone-500 text-center leading-relaxed">
+        {t.rich('accept_terms', {
+          terms: (chunks) => (
+            <Link href="/kopvillkor" target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-slate-900">
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
     </form>
   );
 }

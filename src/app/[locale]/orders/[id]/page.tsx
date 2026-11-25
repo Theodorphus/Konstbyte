@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { formatSek } from '@/lib/currency';
+import { PLATFORM_FEE_PERCENT } from '@/lib/payout';
 import { getShippingLabel } from '@/lib/shipping';
 import ShippingStatusTimeline from '@/components/shipping/ShippingStatusTimeline';
 import TrackingInfo from '@/components/shipping/TrackingInfo';
@@ -178,7 +179,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       {isSeller && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
           <p className="font-semibold mb-1">💰 {t('payout_title')}</p>
-          <p>{t('payout_desc')}</p>
+          <p>{t('payout_desc', { fee: PLATFORM_FEE_PERCENT })}</p>
           {payoutState === 'paid' && <p className="mt-2 text-green-700 font-medium">✓ {t('payout_done')}</p>}
           {payoutState === 'awaiting_stripe' && <p className="mt-2 font-medium">{t('payout_awaiting_stripe')}</p>}
           {payoutState === 'on_hold' && <p className="mt-2 text-red-700 font-medium">{t('payout_on_hold')}</p>}

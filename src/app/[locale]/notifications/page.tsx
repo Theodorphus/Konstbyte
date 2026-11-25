@@ -106,6 +106,8 @@ export default function NotificationsPage() {
       case 'payout_sent': return '💰';
       case 'order_refunded': return '↩️';
       case 'payout_waiting': return '💳';
+      case 'artwork_removed': return '🚫';
+      case 'artwork_restored': return '✅';
       default: return '🔔';
     }
   };

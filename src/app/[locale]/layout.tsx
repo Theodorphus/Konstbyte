@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation';
 import { routing } from '../../i18n/routing';
 import ClientLayout from '../ClientLayout';
 import { COMPANY } from '@/lib/company';
+import { PLATFORM_FEE_PERCENT } from '@/lib/payout';
 
 const currentYear = new Date().getFullYear();
 
@@ -128,6 +129,7 @@ async function FooterContent({ locale, currentYear }: { locale: string; currentY
             <li><Link href="/policies/faq" className="hover:text-slate-900 transition-colors">{t('faq')}</Link></li>
             <li><Link href="/kontakt" className="hover:text-slate-900 transition-colors">{t('contact')}</Link></li>
             <li><Link href="/policies/terms" className="hover:text-slate-900 transition-colors">{t('terms')}</Link></li>
+            <li><Link href="/kopvillkor" className="hover:text-slate-900 transition-colors">{t('purchase_terms')}</Link></li>
             <li><Link href="/policies/privacy" className="hover:text-slate-900 transition-colors">{t('privacy')}</Link></li>
           </ul>
         </div>
@@ -136,7 +138,7 @@ async function FooterContent({ locale, currentYear }: { locale: string; currentY
       {/* Bottom bar */}
       <div className="border-t border-slate-200/70 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-400">
         <span>© {currentYear} Konstbyte.se. {t('all_rights_reserved')}</span>
-        <span className="font-medium text-slate-500">{t('fee_tagline')}</span>
+        <span className="font-medium text-slate-500">{t('fee_tagline', { fee: PLATFORM_FEE_PERCENT })}</span>
         <span>
           {t('made_by')}{' '}
           <a

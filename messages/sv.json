@@ -47,9 +47,10 @@
     "faq": "Vanliga frågor",
     "contact": "Kontakt",
     "terms": "Användarvillkor",
+    "purchase_terms": "Köpvillkor",
     "privacy": "Integritetspolicy",
     "all_rights_reserved": "Alla rättigheter förbehållna.",
-    "fee_tagline": "Bara 3% i plattformsavgift — trygg betalning med Stripe."
+    "fee_tagline": "Bara {fee}% i plattformsavgift — trygg betalning med Stripe."
   },
   "home": {
     "badge": "Skapa. Dela. Tillsammans.",
@@ -85,7 +86,7 @@
     "trust_label": "Tryggt & transparent",
     "trust_title": "En plattform byggd för tydlighet.",
     "see_all_fees": "Se alla avgifter →",
-    "trust1_value": "Bara 3%",
+    "trust1_value": "Bara {fee}%",
     "trust1_label": "Plattformsavgift – ingen månadsavgift",
     "trust2_value": "Stripe",
     "trust2_label": "Trygg & krypterad betalning",
@@ -548,7 +549,7 @@
     "delivery_address_label": "Leveransadress",
     "mark_received": "Markera som mottaget",
     "payout_title": "Utbetalning",
-    "payout_desc": "Koppla ett Stripe-konto så betalas du ut automatiskt när köparen bekräftat mottagandet (eller 14 dagar efter att du skickat verket). Har du inte kopplat Stripe än väntar pengarna på dig tills du har gjort det. Plattformens provision är 3 %.",
+    "payout_desc": "Koppla ett Stripe-konto så betalas du ut automatiskt när köparen bekräftat mottagandet (eller 14 dagar efter att du skickat verket). Har du inte kopplat Stripe än väntar pengarna på dig tills du har gjort det. Plattformens provision är {fee} %.",
     "payout_done": "Utbetalning genomförd",
     "admin_view": "Du ser den här ordern som admin.",
     "refunded_title": "Köpet är återbetalt",
@@ -753,20 +754,20 @@
     "meta_title": "Gå med i Konstbyte — Marknadsplats för svenska konstnärer",
     "meta_description": "Skapa ett gratis konto och börja sälja din konst, delta i veckoutmaningar och träffa Sveriges nya konstcommunity.",
     "meta_og_title": "Gå med i Konstbyte",
-    "meta_og_description": "Sälj din konst, delta i tävlingar och hitta ditt community. Bara 3% i avgift.",
+    "meta_og_description": "Sälj din konst, delta i tävlingar och hitta ditt community. Bara {fee}% i avgift.",
     "hero_badge": "Gratis att gå med",
     "hero_heading": "Skapa, dela och sälj din konst.",
     "hero_subtext": "Gå med i Sveriges nya konstcommunity. Visa upp dina verk, tävla i veckans utmaning och börja sälja — allt på ett ställe.",
     "hero_cta_primary": "Skapa gratis konto →",
     "hero_cta_secondary": "Utforska konst",
-    "hero_footnote": "3 % i plattformsavgift + Stripes betalavgift. Ingen månadsavgift.",
+    "hero_footnote": "{fee} % i plattformsavgift + Stripes betalavgift. Ingen månadsavgift.",
     "benefits_label": "Varför Konstbyte?",
     "benefits_heading": "Allt du behöver på ett ställe.",
     "benefits": [
       { "icon": "🎨", "title": "Sälj din konst enkelt", "desc": "Ladda upp verk på under fem minuter. Stripe hanterar betalningen tryggt — pengarna betalas ut till dig när köparen har tagit emot verket." },
       { "icon": "🏆", "title": "Delta i veckoutmaningar", "desc": "Tävla om att bli veckans vinnare, samla poäng och bygg ditt rykte som konstnär." },
       { "icon": "👥", "title": "Hitta ditt community", "desc": "Diskutera, inspireras och följ andra konstnärer. Väx tillsammans med likasinnade." },
-      { "icon": "💰", "title": "3 % i plattformsavgift", "desc": "Ingen månadsavgift. Konstbyte tar 3 % när du säljer, och Stripes betalavgift dras från utbetalningen. Allt står på sidan Avgifter." },
+      { "icon": "💰", "title": "{fee} % i plattformsavgift", "desc": "Ingen månadsavgift. Konstbyte tar {fee} % när du säljer, och Stripes betalavgift dras från utbetalningen. Allt står på sidan Avgifter." },
       { "icon": "📦", "title": "Trygg leverans", "desc": "Du väljer fraktsätt och fraktpris, följer varje order steg för steg och kan lägga till spårningsnummer." },
       { "icon": "🤖", "title": "AI-värdering", "desc": "Osäker på priset? Låt vårt AI-verktyg ge dig en första prisuppskattning för ditt verk." }
     ],
@@ -912,7 +913,7 @@
   },
   "fees": {
     "title": "Avgifter & priser",
-    "platform_fee": "Plattformsavgift: 3% på alla försäljningar.",
+    "platform_fee": "Plattformsavgift: {fee}% på alla försäljningar.",
     "stripe_note": "Betalningar hanteras säkert via Stripe."
   },
   "contact": {
@@ -1127,7 +1128,8 @@
     "error_postal": "Ange postnummer",
     "error_city": "Ange ort",
     "error_country": "Ange land",
-    "continue_to_payment": "Fortsätt till betalning →"
+    "continue_to_payment": "Fortsätt till betalning →",
+    "accept_terms": "Genom att gå vidare till betalning godkänner du <terms>köpvillkoren</terms>."
   },
   "report": {
     "button": "Anmäl",

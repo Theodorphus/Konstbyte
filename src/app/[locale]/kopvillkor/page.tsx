@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { COMPANY_LINE } from '@/lib/company';
+import { PLATFORM_FEE_PERCENT } from '@/lib/payout';
 
 export const metadata = { title: 'Köpvillkor' };
 
@@ -28,7 +29,7 @@ export default async function KopvillkorPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">2. Priser och avgifter</h2>
         <p>
-          Priserna på konstverken sätts av respektive konstnär och anges i svenska kronor (SEK) inklusive moms, om inget annat anges. Konstbyte tar en plattformsavgift om 3 % av försäljningspriset, vilket redan är inräknat i det pris du ser som köpare.
+          Priserna på konstverken sätts av respektive konstnär och anges i svenska kronor (SEK) inklusive moms, om inget annat anges. Konstbyte tar en plattformsavgift om {PLATFORM_FEE_PERCENT} % av försäljningspriset, vilket redan är inräknat i det pris du ser som köpare.
         </p>
         <p>
           Eventuell frakt visas i kassan innan du betalar. Har konstnären valt att frakten ska överenskommas bestäms den efter köpet.

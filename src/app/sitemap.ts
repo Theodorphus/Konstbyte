@@ -6,7 +6,7 @@ const baseUrl = SITE_URL;
 
 const highPriorityRoutes = ['', '/artworks', '/join'];
 const mediumPriorityRoutes = ['/community', '/utmaning', '/users', '/ai', '/ai/value-art', '/ai/inspiration', '/om-oss', '/kontakt', '/hur-det-fungerar', '/avgifter'];
-const lowPriorityRoutes = ['/policies/faq', '/policies/privacy', '/policies/terms'];
+const lowPriorityRoutes = ['/policies/faq', '/policies/privacy', '/policies/terms', '/kopvillkor'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const makeEntries = (paths: string[], priority: number): MetadataRoute.Sitemap =>

@@ -1,6 +1,7 @@
 import PolicyLayout, { PolicySection, PolicyList, PolicyNote } from '../PolicyLayout';
 import { getTranslations } from 'next-intl/server';
 import { COMPANY_LINE } from '@/lib/company';
+import { PLATFORM_FEE_PERCENT } from '@/lib/payout';
 
 export const metadata = {
   title: 'Användarvillkor',
@@ -53,7 +54,7 @@ export default async function TermsPage() {
           'Om en säljare inte levererar ett sålt konstverk',
         ]} />
         <p>
-          Vid betalning via Stripe gäller Stripes egna villkor. Konstbyte tar en plattformsavgift på 3 % vid genomförda köp.
+          Vid betalning via Stripe gäller Stripes egna villkor. Konstbyte tar en plattformsavgift på {PLATFORM_FEE_PERCENT} % vid genomförda köp.
         </p>
         <p>
           Konstbytes sammanlagda ansvar är begränsat till den plattformsavgift som betalats för den aktuella transaktionen. Begränsningarna gäller inte om Konstbyte har orsakat skadan med uppsåt eller genom grov vårdslöshet, och de inskränker inte de rättigheter du har enligt tvingande lag, till exempel konsumentköplagen eller lagen om distansavtal.

@@ -80,7 +80,8 @@ export function buyerConfirmationEmail(opts: {
         </a>
 
         <p style="margin-top:32px;font-size:12px;color:#94a3b8">
-          Konstbyte · 14 dagars ångerrätt enligt lag · Säker betalning via Stripe
+          Konstbyte · 14 dagars ångerrätt enligt lag · Säker betalning via Stripe ·
+          <a href="${appUrl}/kopvillkor" style="color:#94a3b8">Köpvillkor</a>
         </p>
       </div>
     `,
@@ -239,6 +240,52 @@ export function shipReminderEmail(opts: { artworkTitle: string; days: number; ap
           style="display:inline-block;margin-top:16px;padding:10px 20px;background:#0f172a;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600">
           Till mina ordrar
         </a>
+      </div>
+    `,
+  };
+}
+
+/**
+ * Tells an artist why an admin took their artwork down. The EU Digital Services
+ * Act (art. 17) requires a statement of reasons: what was done, why, which
+ * rules it rests on, and how to contest it.
+ */
+export function artworkRemovedEmail(opts: {
+  artworkTitle: string;
+  reason: string;
+  /** True when the artwork was hidden (it has orders) rather than deleted. */
+  hidden: boolean;
+  contactEmail: string;
+  appUrl: string;
+}) {
+  const title = escapeHtml(opts.artworkTitle);
+  const reason = escapeHtml(opts.reason).replace(/\n/g, '<br>');
+  const contact = escapeHtml(opts.contactEmail);
+  return {
+    subject: `Ditt konstverk "${opts.artworkTitle.replace(/[\r\n]/g, ' ')}" har tagits bort från Konstbyte`,
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1e293b">
+        <h2 style="margin-bottom:4px">Vi har tagit bort ett av dina konstverk</h2>
+        <p style="font-size:14px;color:#475569">
+          <strong>${title}</strong> visas inte längre på Konstbyte.
+          ${opts.hidden
+            ? 'Verket finns kvar i orderhistoriken, men ingen annan kan se det och det kan inte publiceras igen.'
+            : 'Verket är raderat från Konstbyte.'}
+        </p>
+        <p style="font-size:14px;color:#475569;margin:0 0 4px"><strong>Skäl:</strong></p>
+        <blockquote style="margin:0 0 16px;padding:12px 16px;background:#f8fafc;border-left:3px solid #f59e0b;font-size:14px;color:#334155">
+          ${reason}
+        </blockquote>
+        <p style="font-size:14px;color:#475569">
+          Beslutet bygger på våra <a href="${opts.appUrl}/policies/content" style="color:#4f46e5">innehållsregler</a>
+          och <a href="${opts.appUrl}/policies/terms" style="color:#4f46e5">användarvillkor</a>.
+          Beslutet fattades av en person, inte automatiskt.
+        </p>
+        <p style="font-size:14px;color:#475569;margin-top:12px;padding:12px;background:#f1f5f9;border-radius:6px">
+          <strong>Tycker du att beslutet är fel?</strong> Skriv till oss på
+          <a href="mailto:${contact}" style="color:#4f46e5">${contact}</a> och berätta varför, så tittar vi på det igen.
+          Du kan också vända dig till allmän domstol.
+        </p>
       </div>
     `,
   };

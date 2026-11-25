@@ -1,6 +1,18 @@
 import { alternatesFor } from '@/lib/seo';
 import { Link } from '@/i18n/navigation';
 import type { Metadata } from 'next';
+import { PLATFORM_FEE_PERCENT } from '@/lib/payout';
+
+const fee = PLATFORM_FEE_PERCENT;
+
+// Example sale on the page. Stripe's EU card fee is 1.5 % + 1.80 SEK.
+const EXAMPLE_PRICE = 1000;
+const exampleFee = (EXAMPLE_PRICE * fee) / 100;
+const exampleStripe = EXAMPLE_PRICE * 0.015 + 1.8;
+const examplePayout = EXAMPLE_PRICE - exampleFee - exampleStripe;
+
+const kr = (n: number) =>
+  `${n.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kr`;
 
 export async function generateMetadata({
   params,
@@ -12,8 +24,8 @@ export async function generateMetadata({
   return {
     title: isSv ? 'Avgifter' : 'Fees',
     description: isSv
-      ? 'Konstbyte tar 3% provision på försäljningar. Se fullständig prisöversikt med Stripe-avgifter och exempelberäkning.'
-      : 'Konstbyte charges 3% on sales. See full pricing overview including Stripe fees and an example calculation.',
+      ? `Konstbyte tar ${fee} % provision på försäljningar. Se fullständig prisöversikt med Stripe-avgifter och exempelberäkning.`
+      : `Konstbyte charges ${fee}% on sales. See full pricing overview including Stripe fees and an example calculation.`,
     alternates: alternatesFor(locale, '/avgifter'),
     openGraph: { images: ['/og-image.png'] },
   };
@@ -63,7 +75,7 @@ export default async function FeesPage({
                 : 'Charged as a percentage of the sale price.'}
             </div>
           </div>
-          <div className="text-xl font-bold text-amber-700 whitespace-nowrap">3 %</div>
+          <div className="text-xl font-bold text-amber-700 whitespace-nowrap">{fee} %</div>
         </div>
 
         <div className="px-6 py-5 flex items-start justify-between gap-4">
@@ -131,20 +143,20 @@ export default async function FeesPage({
         <div className="px-6 py-5 space-y-3 text-sm">
           <div className="flex justify-between text-slate-700">
             <span>{isSv ? 'Försäljningspris' : 'Sale price'}</span>
-            <span className="font-medium">1 000,00 kr</span>
+            <span className="font-medium">{kr(EXAMPLE_PRICE)}</span>
           </div>
           <div className="flex justify-between text-slate-500">
-            <span>{isSv ? '− Plattformsavgift (3%)' : '− Platform fee (3%)'}</span>
-            <span>−30,00 kr</span>
+            <span>{isSv ? `− Plattformsavgift (${fee} %)` : `− Platform fee (${fee}%)`}</span>
+            <span>−{kr(exampleFee)}</span>
           </div>
           <div className="flex justify-between text-slate-500">
             <span>{isSv ? '− Stripe (1,5% + 1,80 kr)' : '− Stripe (1.5% + 1.80 SEK)'}</span>
-            <span>−16,80 kr</span>
+            <span>−{kr(exampleStripe)}</span>
           </div>
           <div className="h-px bg-slate-100" />
           <div className="flex justify-between font-bold text-slate-900 text-base">
             <span>{isSv ? 'Utbetalning till dig' : 'Payout to you'}</span>
-            <span>953,20 kr</span>
+            <span>{kr(examplePayout)}</span>
           </div>
           <p className="text-xs text-slate-400 pt-1">
             {isSv

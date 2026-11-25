@@ -10,8 +10,16 @@ export function calculatePayout(orderAmount: number, commissionRate: number, str
   return { commissionAmount, commissionVat, stripeFee, sellerPayoutAmount };
 }
 
+/**
+ * Konstbyte's commission, in percent. The terms, the fees page and the texts
+ * in messages/*.json all show this value (via {fee}), so changing it here
+ * changes both what artists are told and what they are charged. Changing the
+ * fee means updating the terms too, so it is not an environment setting.
+ */
+export const PLATFORM_FEE_PERCENT = 3;
+
 export function defaultCommissionRate(): number {
-  return (Number(process.env.PLATFORM_FEE_PERCENT) || 3) / 100;
+  return PLATFORM_FEE_PERCENT / 100;
 }
 
 // Stripe can't charge less than 3 SEK or more than 999 999.99 SEK in one payment.

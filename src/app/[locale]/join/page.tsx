@@ -1,4 +1,5 @@
 import { alternatesFor } from '@/lib/seo';
+import { PLATFORM_FEE_PERCENT } from '@/lib/payout';
 import { Link } from '@/i18n/navigation';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
@@ -21,7 +22,7 @@ export async function generateMetadata({
     alternates: alternatesFor(locale, '/join'),
     openGraph: {
       title: t('meta_og_title'),
-      description: t('meta_og_description'),
+      description: t('meta_og_description', { fee: PLATFORM_FEE_PERCENT }),
       images: ['/og-image.png'],
     },
   };
@@ -35,7 +36,13 @@ export default async function JoinPage({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'join' });
 
-  const benefits = t.raw('benefits') as Array<{ icon: string; title: string; desc: string }>;
+  // t.raw skips message formatting, so fill in {fee} by hand.
+  const fee = String(PLATFORM_FEE_PERCENT);
+  const benefits = (t.raw('benefits') as Array<{ icon: string; title: string; desc: string }>).map((b) => ({
+    ...b,
+    title: b.title.replaceAll('{fee}', fee),
+    desc: b.desc.replaceAll('{fee}', fee),
+  }));
   const steps = t.raw('steps') as Array<{ num: string; title: string; desc: string }>;
   // Only real quotes, added by an admin under Admin → Testimonials. Made-up
   // reviews are illegal (marknadsföringslagen), so the section hides when empty.
@@ -76,7 +83,7 @@ export default async function JoinPage({
               {t('hero_cta_secondary')}
             </Link>
           </div>
-          <p className="mt-5 text-sm text-slate-600/80">{t('hero_footnote')}</p>
+          <p className="mt-5 text-sm text-slate-600/80">{t('hero_footnote', { fee: PLATFORM_FEE_PERCENT })}</p>
           </div>
           <div className="relative aspect-[3/2] w-full overflow-hidden rounded-[28px] shadow-2xl shadow-slate-900/25 ring-4 ring-white/60">
             <Image

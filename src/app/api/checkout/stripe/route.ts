@@ -4,6 +4,7 @@ import stripe from '../../../../lib/stripe';
 import prisma from '../../../../lib/prisma';
 import { getCurrentUser } from '../../../../lib/auth';
 import { tooManyRequests, since, HOUR } from '@/lib/rate-limit';
+import { defaultCommissionRate } from '@/lib/payout';
 
 const MAX_CHECKOUTS_PER_HOUR = 10;
 
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const feePercent = Number(process.env.PLATFORM_FEE_PERCENT ?? 3) / 100;
+    const feePercent = defaultCommissionRate();
     const unitAmount = Math.round(artwork.price * 100); // SEK in öre
 
     // Determine shipping cost — only "fixed" type adds to total
