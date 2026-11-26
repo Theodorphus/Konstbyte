@@ -4,6 +4,8 @@ import stripe from './stripe';
 import { adminEmails } from './admin';
 import { sendEmail } from './email';
 import { APP_URL } from './urls';
+import { notificationText } from './notification-message';
+import type { NotificationValues } from './notification-text';
 
 // What happens to the artist's payout when money goes back to the buyer.
 //
@@ -85,9 +87,9 @@ async function hold(order: LoadedOrder, eventType: string, message: string) {
 }
 
 /** The artist's notice about money taken back or paid back, as transaction steps. */
-function sellerNotice(order: LoadedOrder, message: string) {
+function sellerNotice(order: LoadedOrder, text: ReturnType<typeof notificationText>) {
   return order.sellerId
-    ? [prisma.notification.create({ data: { userId: order.sellerId, type: 'payout_reclaimed', message, link: '/seller/payouts' } })]
+    ? [prisma.notification.create({ data: { userId: order.sellerId, type: 'payout_reclaimed', ...text, link: '/seller/payouts' } })]
     : [];
 }
 
@@ -261,7 +263,7 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
     }
     await prisma.$transaction([
       event(order, 'partially_refunded', `Delvis återbetald till köparen ${marker}. ${sek(reclaimed.taken)} har dragits tillbaka från konstnären.`),
-      ...sellerNotice(order, `Köparen har fått tillbaka en del av betalningen för "${order.artwork.title}". ${sek(reclaimed.taken)} har dragits tillbaka från ditt Stripe-konto.`),
+      ...sellerNotice(order, notificationText('refund_partial_reclaimed', { title: order.artwork.title, amount: reclaimed.taken / 100 })),
     ]);
     return;
   }
@@ -271,11 +273,11 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
   // Nothing was ever taken back for refunds: the admins have to sort it out.
   // (Earlier partial refunds may already have taken it all; that counts.)
   if (reclaimed && reclaimed.refundsTotal === 0) reclaimed = null;
-  const sellerMessage = !alreadyPaid
-    ? ' Ingen utbetalning görs.'
+  const sellerPayout: NotificationValues = !alreadyPaid
+    ? { payout: 'none' }
     : reclaimed === null
-      ? ' Konstbyte kontaktar dig om utbetalningen.'
-      : ` Utbetalningen (${sek(reclaimed.refundsTotal)}) har dragits tillbaka från ditt Stripe-konto.`;
+      ? { payout: 'contact' }
+      : { payout: 'reclaimed', amount: reclaimed.refundsTotal / 100 };
 
   await prisma.$transaction([
     prisma.order.update({
@@ -301,7 +303,7 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
       data: {
         userId: order.buyerId,
         type: 'order_refunded',
-        message: `Du har fått tillbaka ${refundedSek} kr för "${order.artwork.title}".`,
+        ...notificationText('order_refunded_buyer', { title: order.artwork.title, amount: charge.amount_refunded / 100 }),
         link: `/orders/${order.id}`,
       },
     }),
@@ -311,7 +313,7 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
             data: {
               userId: order.sellerId,
               type: 'order_refunded',
-              message: `Köpet av "${order.artwork.title}" har återbetalats till köparen.${sellerMessage}`,
+              ...notificationText('order_refunded_seller', { title: order.artwork.title, ...sellerPayout }),
               link: '/seller/orders',
             },
           }),
@@ -381,7 +383,7 @@ async function processDispute(order: LoadedOrder, dispute: Stripe.Dispute, inqui
             : `Köparen har bestridit betalningen hos sin bank. ${sek(reclaimed.taken)} har dragits tillbaka från konstnären tills tvisten är avgjord.`,
       ),
       ...(reclaimed
-        ? sellerNotice(order, `Köparen har bestridit betalningen för "${order.artwork.title}" hos sin bank. ${sek(reclaimed.taken)} har dragits tillbaka från ditt Stripe-konto tills tvisten är avgjord, och betalas tillbaka till dig om Konstbyte vinner.`)
+        ? sellerNotice(order, notificationText('dispute_reclaimed', { title: order.artwork.title, amount: reclaimed.taken / 100 }))
         : []),
     ]);
   }
@@ -464,7 +466,7 @@ async function closePaidDispute(order: LoadedOrder, dispute: Stripe.Dispute, won
       ...(transfers && net(transfers) === 0
         ? [markPayoutReversed(order, `Återförd från konstnären (${sek(reversed)}) när tvisten förlorades.`)]
         : []),
-      ...sellerNotice(order, `Tvisten om "${order.artwork.title}" förlorades, så de ${sek(reversed)} som drogs tillbaka betalas inte ut igen.`),
+      ...sellerNotice(order, notificationText('dispute_lost', { title: order.artwork.title, amount: reversed / 100 })),
     ]);
     return;
   }
@@ -505,7 +507,7 @@ async function closePaidDispute(order: LoadedOrder, dispute: Stripe.Dispute, won
       reversed > 0 ? `Tvisten är vunnen. ${sek(reversed)} har betalats tillbaka till konstnären.` : 'Tvisten är avslutad och pengarna finns kvar.',
     ),
     ...(reversed > 0
-      ? sellerNotice(order, `Tvisten om "${order.artwork.title}" är avgjord till din fördel. ${sek(reversed)} har betalats tillbaka till ditt Stripe-konto.`)
+      ? sellerNotice(order, notificationText('dispute_won', { title: order.artwork.title, amount: reversed / 100 }))
       : []),
   ]);
 }

@@ -8,6 +8,7 @@ import { sellerLine } from '@/lib/seller';
 import { calculatePayout, defaultCommissionRate } from '../../../../lib/payout';
 import { stripeFeeForPaymentIntent } from '../../../../lib/stripe-fee';
 import { handleChargeRefunded, handleDisputeCreated, handleDisputeClosed, handleDisputeFundsWithdrawn } from '../../../../lib/refunds';
+import { notificationText } from '../../../../lib/notification-message';
 
 // Order statuses from which a payment may still be fulfilled.
 const OPEN_STATUSES = ['pending', 'payment_processing'];
@@ -199,7 +200,7 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
       data: {
         userId: order.buyerId,
         type: 'order_refunded',
-        message: `"${order.artwork.title}" hann tyvärr säljas till någon annan. Hela beloppet återbetalas till dig.`,
+        ...notificationText('order_refunded_artwork_taken', { title: order.artwork.title }),
         link: `/orders/${orderId}`,
       },
     });
@@ -229,9 +230,11 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
         data: {
           userId: order.sellerId,
           type: 'artwork_sold',
-          message:
-            `Du har sålt "${order.artwork.title}"! Packa och skicka verket till köparen. Du får ${Math.round(sellerPayoutAmount).toLocaleString('sv-SE')} kr när köparen har tagit emot det.` +
-            (sellerStripeReady ? '' : ' Koppla Stripe under Utbetalningar så att pengarna kan skickas till dig.'),
+          ...notificationText('artwork_sold', {
+            title: order.artwork.title,
+            amount: Math.round(sellerPayoutAmount),
+            stripe: sellerStripeReady ? 'ready' : 'missing',
+          }),
           link: '/seller/orders',
         },
       });

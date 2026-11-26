@@ -4,6 +4,7 @@ import { getCurrentUser } from '../../../../lib/auth';
 import { tooManyRequests, notifyOnce, since, MINUTE, HOUR, DAY } from '@/lib/rate-limit';
 import { newMessageEmail, sendEmail } from '@/lib/email';
 import { APP_URL } from '@/lib/urls';
+import { notificationText } from '@/lib/notification-message';
 
 const EMAIL_EVERY = 3 * HOUR;
 
@@ -92,7 +93,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
   await notifyOnce({
     userId,
     type: 'message',
-    message: `${user.name || 'Någon'} skickade dig ett meddelande`,
+    ...notificationText('message', { name: user.name || '' }),
     link: `/messages/${user.id}`,
   });
 

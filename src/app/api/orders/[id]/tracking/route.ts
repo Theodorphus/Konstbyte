@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
 import { sanitizeTracking } from '../../../../../lib/shipping';
+import { notificationText } from '../../../../../lib/notification-message';
 
 // PATCH /api/orders/[id]/tracking
 // Allows the seller to update tracking info after marking an order as shipped.
@@ -37,7 +38,7 @@ export async function PATCH(
     data: {
       userId: order.buyerId,
       type: 'tracking_updated',
-      message: 'Din beställning har fått uppdaterad spårningsinformation.',
+      ...notificationText('tracking_updated'),
       link: `/orders/${id}`,
     },
   });

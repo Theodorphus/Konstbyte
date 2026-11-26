@@ -4,6 +4,7 @@ import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
 import { sendEmail, shippedEmail } from '../../../../../lib/email';
 import { sanitizeTracking } from '../../../../../lib/shipping';
+import { notificationText } from '../../../../../lib/notification-message';
 
 export async function POST(
   req: NextRequest,
@@ -52,7 +53,7 @@ export async function POST(
     data: {
       userId: order.buyerId,
       type: 'shipped',
-      message: `Ditt konstverk "${order.artwork.title}" är på väg!`,
+      ...notificationText('shipped', { title: order.artwork.title }),
       link: `/orders/${id}`,
     },
   });

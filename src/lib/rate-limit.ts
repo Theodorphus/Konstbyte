@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from './prisma';
+import type { NotificationValues } from './notification-text';
 
 const buckets = new Map<string, number[]>();
 
@@ -45,11 +46,12 @@ export const DAY = 24 * HOUR;
  * flood someone's notifications.
  */
 export async function notifyOnce(
-  data: { userId: string; type: string; message: string; link: string },
+  data: { userId: string; type: string; message: string; messageKey?: string; messageValues?: NotificationValues; link: string },
   windowMs = DAY,
 ): Promise<void> {
+  const { userId, type, message, link } = data;
   const existing = await prisma.notification.findFirst({
-    where: { ...data, createdAt: { gt: since(windowMs) } },
+    where: { userId, type, message, link, createdAt: { gt: since(windowMs) } },
     select: { id: true },
   });
   if (!existing) await prisma.notification.create({ data });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 import { getCurrentUser } from '../../../lib/auth';
 import { notifyOnce } from '@/lib/rate-limit';
+import { notificationText } from '@/lib/notification-message';
 
 // GET /api/favorites - Get all favorites for current user
 export async function GET() {
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
       await notifyOnce({
         userId: artwork.ownerId,
         type: 'favorite',
-        message: `${user.name || 'Någon'} sparade "${artwork.title}" som favorit`,
+        ...notificationText('favorite', { name: user.name || '', title: artwork.title }),
         link: `/artworks/${artwork.id}`,
       }).catch((err) => console.error('[favorites] notify failed', err));
     }

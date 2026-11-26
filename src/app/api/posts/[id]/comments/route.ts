@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
 import { tooManyRequests, notifyOnce, since, MINUTE, HOUR } from '@/lib/rate-limit';
+import { notificationText } from '@/lib/notification-message';
 
 // GET /api/posts/[id]/comments - Get all comments for a post
 export async function GET(
@@ -94,7 +95,7 @@ export async function POST(
       await notifyOnce({
         userId: post.authorId,
         type: 'comment',
-        message: `${user.name || 'Någon'} kommenterade på ditt inlägg`,
+        ...notificationText('comment', { name: user.name || '' }),
         link: `/community`,
       }, HOUR);
     }

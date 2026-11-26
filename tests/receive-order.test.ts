@@ -49,6 +49,16 @@ describe('POST /api/orders/[id]/receive', () => {
     expect(releaseSellerPayout).toHaveBeenCalledWith('order_1');
   });
 
+  it('sends a signed-out visitor to sign in and back to the order, in their language', async () => {
+    getCurrentUser.mockResolvedValue(null);
+    const en = await post(FORM);
+    expect(en.status).toBe(303);
+    expect(en.headers.get('location')).toBe('https://www.konstbyte.se/en/auth/signin?callbackUrl=%2Fen%2Forders%2Forder_1');
+    const sv = await post({ ...FORM, referer: 'https://www.konstbyte.se/orders/order_1' });
+    expect(sv.headers.get('location')).toBe('https://www.konstbyte.se/auth/signin?callbackUrl=%2Forders%2Forder_1');
+    expect(markOrderDelivered).not.toHaveBeenCalled();
+  });
+
   it('ignores a Referer from another site', async () => {
     const res = await post({ ...FORM, referer: 'https://evil.example/x' });
     expect(res.headers.get('location')).toBe('https://www.konstbyte.se/orders/order_1');

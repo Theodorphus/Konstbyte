@@ -5,6 +5,7 @@ import { isAdmin } from '../../../../../lib/admin';
 import { artworkRemovedEmail, sendEmail } from '@/lib/email';
 import { COMPANY } from '@/lib/company';
 import { APP_URL } from '@/lib/urls';
+import { notificationText } from '@/lib/notification-message';
 
 const MAX_REASON_LENGTH = 1000;
 
@@ -55,7 +56,7 @@ export async function DELETE(
       data: {
         userId: artwork.ownerId,
         type: 'artwork_removed',
-        message: `Konstbyte har tagit bort ditt konstverk "${artwork.title}". Skäl: ${reason}`,
+        ...notificationText('artwork_removed', { title: artwork.title, reason }),
         link: '/policies/content',
       },
     });
@@ -121,7 +122,7 @@ export async function PATCH(
         data: {
           userId: artwork.ownerId,
           type: 'artwork_restored',
-          message: `Ditt konstverk "${artwork.title}" är publicerat igen.`,
+          ...notificationText('artwork_restored', { title: artwork.title }),
           link: `/artworks/${id}`,
         },
       }),

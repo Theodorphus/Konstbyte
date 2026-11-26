@@ -5,6 +5,7 @@ import { calculatePayout, defaultCommissionRate } from './payout';
 import { stripeChargeCosts } from './stripe-fee';
 import { sendEmail, payoutWaitingEmail } from './email';
 import { APP_URL } from './urls';
+import { notificationText } from './notification-message';
 
 // Order statuses that mean the buyer's money has actually arrived.
 export const PAID_ORDER_STATUSES = ['completed', 'paid', 'delivered'];
@@ -210,7 +211,7 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
         data: {
           userId: order.sellerId,
           type: 'payout_sent',
-          message: `${Math.round(sellerPayoutAmount).toLocaleString('sv-SE')} kr för "${order.artwork.title}" har skickats till ditt Stripe-konto.`,
+          ...notificationText('payout_sent', { title: order.artwork.title, amount: Math.round(sellerPayoutAmount) }),
           link: '/seller/payouts',
         },
       }),
@@ -230,12 +231,11 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
       prisma.order.update({ where: { id: order.id }, data: { sellerPayoutStatus: 'awaiting_stripe' } }),
     ]);
     if (firstTime) {
-      const amount = Math.round(sellerPayoutAmount).toLocaleString('sv-SE');
       await prisma.notification.create({
         data: {
           userId: order.sellerId,
           type: 'payout_waiting',
-          message: `${amount} kr för "${order.artwork.title}" väntar på dig. Koppla Stripe så skickas pengarna till ditt bankkonto.`,
+          ...notificationText('payout_waiting', { title: order.artwork.title, amount: Math.round(sellerPayoutAmount) }),
           link: '/seller/payouts',
         },
       });

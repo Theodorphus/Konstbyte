@@ -239,6 +239,10 @@ model Notification {
   userId    String
   type      String
   message   String
+  // Which text this is (messages → notification_texts) and its values, so it can be
+  // shown in the reader's language. `message` holds the Swedish text.
+  messageKey    String?
+  messageValues Json?
   link      String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())

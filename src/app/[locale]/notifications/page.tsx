@@ -3,18 +3,25 @@
 import { useEffect, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
-import { useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
+import { renderNotificationText, type NotificationValues } from '@/lib/notification-text';
 
 interface Notification {
   id: string;
   type: string;
   message: string;
+  messageKey: string | null;
+  messageValues: NotificationValues | null;
   link: string | null;
   read: boolean;
   createdAt: string;
 }
 
-function formatDate(date: string, t: (key: string, values?: Record<string, number>) => string) {
+function formatDate(
+  date: string,
+  t: (key: string, values?: Record<string, number>) => string,
+  format: ReturnType<typeof useFormatter>,
+) {
   const now = new Date();
   const notifDate = new Date(date);
   const diffInSeconds = Math.floor((now.getTime() - notifDate.getTime()) / 1000);
@@ -23,11 +30,16 @@ function formatDate(date: string, t: (key: string, values?: Record<string, numbe
   if (diffInSeconds < 3600) return t('minutes_ago', { count: Math.floor(diffInSeconds / 60) });
   if (diffInSeconds < 86400) return t('hours_ago', { count: Math.floor(diffInSeconds / 3600) });
   if (diffInSeconds < 604800) return t('days_ago', { count: Math.floor(diffInSeconds / 86400) });
-  return notifDate.toLocaleDateString('sv-SE');
+  return format.dateTime(notifDate, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export default function NotificationsPage() {
   const t = useTranslations('notifications');
+  const tText = useTranslations('notification_texts');
+  const format = useFormatter();
+  // Newer notifications are shown in the reader's language; older ones only have the Swedish text.
+  const textOf = (n: Notification) =>
+    n.messageKey && tText.has(n.messageKey) ? renderNotificationText(tText, n.messageKey, n.messageValues ?? {}) : n.message;
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -186,16 +198,16 @@ export default function NotificationsPage() {
                       onClick={() => !notification.read && markAsRead(notification.id)}
                     >
                       <p className={`${notification.read ? 'text-slate-700' : 'text-slate-900 font-medium'}`}>
-                        {notification.message}
+                        {textOf(notification)}
                       </p>
                     </Link>
                   ) : (
                     <p className={`${notification.read ? 'text-slate-700' : 'text-slate-900 font-medium'}`}>
-                      {notification.message}
+                      {textOf(notification)}
                     </p>
                   )}
                   <p className="text-sm text-slate-500 mt-1">
-                    {formatDate(notification.createdAt, t)}
+                    {formatDate(notification.createdAt, t, format)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">

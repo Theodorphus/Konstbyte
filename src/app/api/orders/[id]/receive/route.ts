@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
 import { markOrderDelivered, releaseSellerPayout } from '../../../../../lib/release-payout';
+import { notificationText } from '../../../../../lib/notification-message';
 
 // POST /api/orders/[id]/receive
 // The buyer confirms the artwork has arrived. This releases the artist's payout.
@@ -13,8 +14,8 @@ export async function POST(
   // The order page posts a plain HTML form; send the browser back to the order
   // instead of showing raw JSON. fetch() callers still get JSON.
   const fromForm = (req.headers.get('accept') ?? '').includes('text/html');
-  const backToOrder = () => {
-    // Go back to the page the form was on (keeps /en/ for English visitors).
+  // The page the form was on (keeps /en/ for English visitors).
+  const orderPage = () => {
     let target = new URL(`/orders/${id}`, req.url);
     try {
       const referer = new URL(req.headers.get('referer') ?? '');
@@ -22,14 +23,18 @@ export async function POST(
     } catch {
       // No or malformed Referer: use the default order page.
     }
-    return NextResponse.redirect(target, 303);
+    return target;
   };
+  const backToOrder = () => NextResponse.redirect(orderPage(), 303);
 
   const user = await getCurrentUser();
   if (!user) {
-    return fromForm
-      ? NextResponse.redirect(new URL('/auth/signin', req.url), 303)
-      : NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    if (!fromForm) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    // Signed out (e.g. the session expired): sign in, then come back to the order.
+    const back = orderPage();
+    const path = back.pathname + back.search;
+    const prefix = path === '/en' || path.startsWith('/en/') ? '/en' : '';
+    return NextResponse.redirect(new URL(`${prefix}/auth/signin?callbackUrl=${encodeURIComponent(path)}`, req.url), 303);
   }
 
   const order = await prisma.order.findUnique({
@@ -56,15 +61,14 @@ export async function POST(
   const result = await releaseSellerPayout(id);
 
   if (order.sellerId && (result.status === 'transferred' || result.status === 'manual')) {
-    const amount = Math.round(result.sellerPayoutAmount).toLocaleString('sv-SE');
     await prisma.notification.create({
       data: {
         userId: order.sellerId,
         type: 'order_delivered',
-        message:
-          result.status === 'transferred'
-            ? `Köparen har bekräftat mottagandet av "${order.artwork.title}". ${amount} kr är på väg till ditt Stripe-konto.`
-            : `Köparen har bekräftat mottagandet av "${order.artwork.title}". En utbetalning på ${amount} kr har skapats och behandlas av Konstbyte.`,
+        ...notificationText(result.status === 'transferred' ? 'order_delivered_stripe' : 'order_delivered_manual', {
+          title: order.artwork.title,
+          amount: Math.round(result.sellerPayoutAmount),
+        }),
         link: `/orders/${id}`,
       },
     });

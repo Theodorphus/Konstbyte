@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
 import { hitLimit, tooManyRequests, notifyOnce, MINUTE } from '@/lib/rate-limit';
+import { notificationText } from '@/lib/notification-message';
 
 const VALID_TYPES = ['like', 'heart', 'wow'] as const;
 type ReactionType = (typeof VALID_TYPES)[number];
@@ -56,7 +57,7 @@ export async function POST(
         await notifyOnce({
           userId: post.authorId,
           type: 'like',
-          message: `${user.name || 'Någon'} reagerade ${emoji} på ditt inlägg`,
+          ...notificationText('reaction', { name: user.name || '', emoji }),
           link: '/community',
         });
       }

@@ -5,6 +5,7 @@ import { sendEmail, shipReminderEmail, escapeHtml } from '../../../../lib/email'
 import { adminEmails } from '../../../../lib/admin';
 import { APP_URL } from '../../../../lib/urls';
 import { ensureWeeklyChallenge } from '../../../../lib/weekly-challenge';
+import { notificationText } from '../../../../lib/notification-message';
 
 // GET /api/cron/release-payouts — run daily by Vercel Cron (see vercel.json).
 //
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
       data: {
         userId: order.buyerId,
         type: 'order_auto_delivered',
-        message: `"${order.artwork.title}" har markerats som mottagen ${days} dagar efter leverans. Hör av dig till oss om något inte stämmer.`,
+        ...notificationText('order_auto_delivered', { title: order.artwork.title, days }),
         link: `/orders/${order.id}`,
       },
     });
@@ -136,7 +137,7 @@ async function remindUnshipped() {
         data: {
           userId: order.sellerId,
           type: 'ship_reminder',
-          message: `Köparen väntar på "${order.artwork.title}". Skicka verket och markera det som skickat.`,
+          ...notificationText('ship_reminder', { title: order.artwork.title }),
           link: '/seller/orders',
         },
       }),

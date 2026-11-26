@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/prisma';
 import { getCurrentUser } from '../../../../../lib/auth';
 import { hitLimit, tooManyRequests, notifyOnce, MINUTE } from '@/lib/rate-limit';
+import { notificationText } from '@/lib/notification-message';
 
 // POST /api/users/[id]/follow - Follow a user
 export async function POST(
@@ -64,7 +65,7 @@ export async function POST(
     await notifyOnce({
       userId: id,
       type: 'follow',
-      message: `${user.name || 'Någon'} började följa dig`,
+      ...notificationText('follow', { name: user.name || '' }),
       link: `/users/${user.id}`,
     });
 
