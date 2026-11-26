@@ -1016,6 +1016,7 @@
     "status_published": "Publicerad",
     "status_hidden": "Dold",
     "status_sold": "Såld",
+    "status_refunded": "Återbetald",
     "status_removed": "Borttagen av Konstbyte",
     "favorites": "{count} favoriter",
     "edit": "Redigera",

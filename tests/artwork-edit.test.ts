@@ -2,8 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { prisma, getCurrentUser } = vi.hoisted(() => ({
   prisma: {
-    artwork: { findUnique: vi.fn(), update: vi.fn() },
+    artwork: { findUnique: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    favorite: { deleteMany: vi.fn() },
     order: { count: vi.fn() },
+    $transaction: vi.fn((ops: unknown[]) => Promise.all(ops)),
   },
   getCurrentUser: vi.fn(),
 }));
@@ -12,7 +14,7 @@ vi.mock('../src/lib/prisma', () => ({ default: prisma }));
 vi.mock('@/lib/auth', () => ({ getCurrentUser }));
 vi.mock('../src/lib/auth', () => ({ getCurrentUser }));
 
-import { GET, PUT } from '@/app/api/artworks/[id]/route';
+import { DELETE, GET, PUT } from '@/app/api/artworks/[id]/route';
 import { NextRequest } from 'next/server';
 
 const params = { params: Promise.resolve({ id: 'art1' }) };
@@ -63,6 +65,46 @@ describe('GET /api/artworks/[id]', () => {
     expect((await GET(new NextRequest('https://konstbyte.se/api/artworks/art1'), params)).status).toBe(404);
     getCurrentUser.mockResolvedValue({ id: 'u1', email: 'a@example.com' });
     expect((await GET(new NextRequest('https://konstbyte.se/api/artworks/art1'), params)).status).toBe(200);
+  });
+});
+
+describe('DELETE /api/artworks/[id] by the artist', () => {
+  const remove = () => DELETE(new NextRequest('https://konstbyte.se/api/artworks/art1', { method: 'DELETE' }), params);
+  const withOrders = (orders: { status: string; createdAt?: Date }[], extra: object = {}) =>
+    prisma.artwork.findUnique.mockResolvedValue({
+      ...artwork,
+      ...extra,
+      orders: orders.map((o) => ({ createdAt: new Date(), ...o })),
+    });
+
+  it('deletes an artwork nobody tried to buy', async () => {
+    withOrders([]);
+    const res = await remove();
+    expect(await res.json()).toEqual({ success: true });
+    expect(prisma.artwork.delete).toHaveBeenCalledWith({ where: { id: 'art1' } });
+  });
+
+  it('hides (keeps for bookkeeping) an artwork whose sale was refunded', async () => {
+    withOrders([{ status: 'refunded' }], { isSold: true });
+    const res = await remove();
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ success: true, hidden: true });
+    expect(prisma.artwork.update).toHaveBeenCalledWith({ where: { id: 'art1' }, data: { isPublished: false } });
+    expect(prisma.artwork.delete).not.toHaveBeenCalled();
+  });
+
+  it('hides an artwork whose checkouts were all abandoned', async () => {
+    withOrders([{ status: 'expired' }, { status: 'pending', createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) }]);
+    expect(await (await remove()).json()).toEqual({ success: true, hidden: true });
+  });
+
+  it('refuses while a sale has gone through or a payment is in progress', async () => {
+    withOrders([{ status: 'refunded' }, { status: 'delivered' }]);
+    expect((await remove()).status).toBe(409);
+    withOrders([{ status: 'pending' }]);
+    expect((await remove()).status).toBe(409);
+    expect(prisma.artwork.update).not.toHaveBeenCalled();
+    expect(prisma.artwork.delete).not.toHaveBeenCalled();
   });
 });
 

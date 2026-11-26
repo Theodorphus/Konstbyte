@@ -10,6 +10,7 @@ import DeleteArtworkButton from '@/components/DeleteArtworkButton';
 import { formatSek } from '@/lib/currency';
 import { getTranslations } from 'next-intl/server';
 import { isSellerType } from '@/lib/seller';
+import { canOwnerRemove } from '@/lib/artwork-removal';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,18 +46,29 @@ export default async function MyArtworksPage() {
       isPublished: true,
       isSold: true,
       removedByAdmin: true,
+      orders: { select: { status: true, createdAt: true } },
       _count: { select: { favorites: true } },
     },
   });
 
+  // A "sold" artwork whose sale was refunded: the artist may take it down.
+  const refunded = (art: (typeof artworks)[number]) =>
+    art.isSold && art.orders.length > 0 && art.orders.every((o) => o.status === 'refunded' || o.status === 'expired');
+  // Same rule as DELETE /api/artworks/[id]. An artwork with orders is only
+  // hidden, so there is nothing more to do once it is.
+  const removable = (art: (typeof artworks)[number]) =>
+    !art.removedByAdmin && canOwnerRemove(art.orders) && (art.isPublished || art.orders.length === 0);
+
   const status = (art: (typeof artworks)[number]) =>
     art.removedByAdmin
       ? { label: t('status_removed'), className: 'bg-red-50 text-red-700 ring-red-200' }
-      : art.isSold
-        ? { label: t('status_sold'), className: 'bg-emerald-50 text-emerald-700 ring-emerald-200' }
-        : art.isPublished
-          ? { label: t('status_published'), className: 'bg-amber-50 text-amber-800 ring-amber-200' }
-          : { label: t('status_hidden'), className: 'bg-slate-100 text-slate-600 ring-slate-200' };
+      : refunded(art)
+        ? { label: t('status_refunded'), className: 'bg-slate-100 text-slate-600 ring-slate-200' }
+        : art.isSold
+          ? { label: t('status_sold'), className: 'bg-emerald-50 text-emerald-700 ring-emerald-200' }
+          : art.isPublished
+            ? { label: t('status_published'), className: 'bg-amber-50 text-amber-800 ring-amber-200' }
+            : { label: t('status_hidden'), className: 'bg-slate-100 text-slate-600 ring-slate-200' };
 
   return (
     <div className="space-y-4">
@@ -117,7 +129,7 @@ export default async function MyArtworksPage() {
                           <Link href={`/artworks/${art.id}/edit`}>{t('edit')}</Link>
                         </Button>
                       )}
-                      {!art.isSold && <DeleteArtworkButton artworkId={art.id} label={t('delete')} />}
+                      {removable(art) && <DeleteArtworkButton artworkId={art.id} label={t('delete')} />}
                     </div>
                   </CardContent>
                 </Card>

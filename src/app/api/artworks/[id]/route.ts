@@ -5,6 +5,7 @@ import { getCurrentUser } from '../../../../lib/auth';
 import { parseArtworkPrice, parseShippingCost, MIN_ARTWORK_PRICE, MAX_ARTWORK_PRICE } from '../../../../lib/payout';
 import { SHIPPING_OPTIONS } from '@/lib/shipping';
 import { isAdmin } from '@/lib/admin';
+import { canOwnerRemove } from '@/lib/artwork-removal';
 
 const CATEGORIES = ['malningar', 'skulpturer', 'fotografi', 'digital'];
 const SHIPPING_TYPES: string[] = SHIPPING_OPTIONS.map((o) => o.value);
@@ -194,11 +195,8 @@ export async function DELETE(
 
     // Orders keep a reference to the artwork, so it can't be deleted once anyone
     // has tried to buy it. A real sale (or a payment in progress) blocks removal;
-    // if all attempts were abandoned, the artwork is hidden instead.
-    const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
-    const abandoned = (o: { status: string; createdAt: Date }) =>
-      ['expired', 'payment_failed'].includes(o.status) || (o.status === 'pending' && o.createdAt.getTime() < dayAgo);
-    if (artwork.orders.some((o) => !abandoned(o))) {
+    // if every attempt was abandoned or refunded, the artwork is hidden instead.
+    if (!canOwnerRemove(artwork.orders)) {
       return NextResponse.json(
         { error: 'Verket har sålts eller håller på att köpas och kan inte tas bort.' },
         { status: 409 },

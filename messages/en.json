@@ -1087,6 +1087,7 @@
     "status_published": "Published",
     "status_hidden": "Hidden",
     "status_sold": "Sold",
+    "status_refunded": "Refunded",
     "status_removed": "Removed by Konstbyte",
     "favorites": "{count} favourites",
     "edit": "Edit",
