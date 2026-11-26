@@ -7,7 +7,7 @@ import { sendEmail, buyerConfirmationEmail, sellerNotificationEmail } from '../.
 import { sellerLine } from '@/lib/seller';
 import { calculatePayout, defaultCommissionRate } from '../../../../lib/payout';
 import { stripeFeeForPaymentIntent } from '../../../../lib/stripe-fee';
-import { handleChargeRefunded, handleDisputeCreated, handleDisputeClosed } from '../../../../lib/refunds';
+import { handleChargeRefunded, handleDisputeCreated, handleDisputeClosed, handleDisputeFundsWithdrawn } from '../../../../lib/refunds';
 
 // Order statuses from which a payment may still be fulfilled.
 const OPEN_STATUSES = ['pending', 'payment_processing'];
@@ -17,7 +17,8 @@ const OPEN_STATUSES = ['pending', 'payment_processing'];
 //   checkout.session.async_payment_succeeded   (Swish, Klarna and other delayed methods)
 //   checkout.session.async_payment_failed
 //   checkout.session.expired
-//   charge.refunded, charge.dispute.created, charge.dispute.closed
+//   charge.refunded, charge.dispute.created, charge.dispute.closed,
+//   charge.dispute.funds_withdrawn             (a bank inquiry became a chargeback)
 export async function POST(request: Request) {
   const signature = request.headers.get('stripe-signature') || '';
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -64,6 +65,9 @@ export async function POST(request: Request) {
         break;
       case 'charge.dispute.created':
         await handleDisputeCreated(event.data.object as Stripe.Dispute);
+        break;
+      case 'charge.dispute.funds_withdrawn':
+        await handleDisputeFundsWithdrawn(event.data.object as Stripe.Dispute);
         break;
       case 'charge.dispute.closed':
         await handleDisputeClosed(event.data.object as Stripe.Dispute);

@@ -1094,6 +1094,7 @@
     "bank_transfer": "Banköverföring",
     "paid_on": "Utbetald {date}",
     "paid_status": "Utbetald",
+    "reversed_status": "Återförd",
     "pending_status": "Väntar"
   },
   "checkout": {

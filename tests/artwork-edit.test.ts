@@ -2,10 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { prisma, getCurrentUser } = vi.hoisted(() => ({
   prisma: {
-    artwork: { findUnique: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    artwork: { findUnique: vi.fn(), update: vi.fn(), updateMany: vi.fn(), deleteMany: vi.fn() },
     favorite: { deleteMany: vi.fn() },
     order: { count: vi.fn() },
-    $transaction: vi.fn((ops: unknown[]) => Promise.all(ops)),
+    // Interactive transactions get the same mocked client.
+    $transaction: vi.fn(),
   },
   getCurrentUser: vi.fn(),
 }));
@@ -32,6 +33,11 @@ beforeEach(() => {
   prisma.artwork.findUnique.mockResolvedValue(artwork);
   prisma.artwork.update.mockImplementation(({ data }) => Promise.resolve({ ...artwork, ...data }));
   prisma.order.count.mockResolvedValue(0);
+  prisma.artwork.updateMany.mockResolvedValue({ count: 1 });
+  prisma.artwork.deleteMany.mockResolvedValue({ count: 1 });
+  prisma.$transaction.mockImplementation((arg: unknown) =>
+    typeof arg === 'function' ? arg(prisma) : Promise.all(arg as unknown[]),
+  );
 });
 
 describe('PUT /api/artworks/[id] shipping', () => {
@@ -81,7 +87,7 @@ describe('DELETE /api/artworks/[id] by the artist', () => {
     withOrders([]);
     const res = await remove();
     expect(await res.json()).toEqual({ success: true });
-    expect(prisma.artwork.delete).toHaveBeenCalledWith({ where: { id: 'art1' } });
+    expect(prisma.artwork.deleteMany).toHaveBeenCalledWith({ where: { id: 'art1', orders: { none: {} } } });
   });
 
   it('hides (keeps for bookkeeping) an artwork whose sale was refunded', async () => {
@@ -89,8 +95,11 @@ describe('DELETE /api/artworks/[id] by the artist', () => {
     const res = await remove();
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ success: true, hidden: true });
-    expect(prisma.artwork.update).toHaveBeenCalledWith({ where: { id: 'art1' }, data: { isPublished: false } });
-    expect(prisma.artwork.delete).not.toHaveBeenCalled();
+    expect(prisma.artwork.updateMany).toHaveBeenCalledWith({
+      where: { id: 'art1', orders: { none: expect.any(Object) } },
+      data: { isPublished: false },
+    });
+    expect(prisma.artwork.deleteMany).not.toHaveBeenCalled();
   });
 
   it('hides an artwork whose checkouts were all abandoned', async () => {
@@ -103,8 +112,34 @@ describe('DELETE /api/artworks/[id] by the artist', () => {
     expect((await remove()).status).toBe(409);
     withOrders([{ status: 'pending' }]);
     expect((await remove()).status).toBe(409);
-    expect(prisma.artwork.update).not.toHaveBeenCalled();
-    expect(prisma.artwork.delete).not.toHaveBeenCalled();
+    expect(prisma.artwork.updateMany).not.toHaveBeenCalled();
+    expect(prisma.artwork.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('does not let the artist delete an artwork an admin took down', async () => {
+    withOrders([], { removedByAdmin: true, isPublished: false });
+    expect((await remove()).status).toBe(403);
+    expect(prisma.artwork.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('keeps a sold artwork unless its sale was refunded', async () => {
+    withOrders([], { isSold: true });
+    expect((await remove()).status).toBe(409);
+    expect(prisma.artwork.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('refuses when a buyer starts paying while the artwork is being taken down', async () => {
+    withOrders([{ status: 'expired' }]);
+    prisma.artwork.updateMany.mockResolvedValue({ count: 0 });
+    expect((await remove()).status).toBe(409);
+
+    withOrders([]);
+    prisma.artwork.deleteMany.mockResolvedValue({ count: 0 });
+    expect((await remove()).status).toBe(409);
+
+    // The order can also show up as the database's foreign-key error.
+    prisma.artwork.deleteMany.mockRejectedValue(Object.assign(new Error('fk'), { code: 'P2003' }));
+    expect((await remove()).status).toBe(409);
   });
 });
 

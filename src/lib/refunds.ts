@@ -13,10 +13,16 @@ import { APP_URL } from './urls';
 //   - full refund   → order 'refunded', payout 'cancelled'
 //   - partial refund→ payout 'on_hold' until an admin sorts it out
 //   - dispute       → payout 'on_hold'; released again if Konstbyte wins, cancelled if it loses
-// If the artist has already been paid, the money is taken back from their Stripe
-// account (the terms make refunds and chargebacks the seller's): the transfer is
-// reversed, and for a dispute that Konstbyte wins it is sent back to them. The
-// admins are only emailed when Stripe refuses, so it has to be done by hand.
+// If the artist has already been paid through Stripe, the money is taken back
+// from their Stripe account (the terms make refunds and chargebacks the
+// seller's): the transfer is reversed, and for a dispute that Konstbyte wins it
+// is sent back to them. The admins are emailed when that can't be done
+// automatically: the artist was paid some other way, or Stripe refused.
+//
+// Stripe retries webhooks for days, and a retry may come after the money moved
+// but before it was written down. So the order's history (OrderEvent) decides
+// whether an event was already handled, and the amounts come from the
+// reversals' metadata in Stripe, never from what one call happened to move.
 
 async function orderIdFor(paymentIntent: string | Stripe.PaymentIntent | null, metadata?: Stripe.Metadata | null) {
   if (metadata?.orderId) return metadata.orderId;
@@ -38,7 +44,7 @@ async function loadOrder(orderId: string) {
       sellerPayoutStatus: true,
       artwork: { select: { title: true } },
       seller: { select: { stripeAccountId: true } },
-      payout: { select: { amount: true, sellerPayoutAmount: true } },
+      payout: { select: { amount: true, sellerPayoutAmount: true, method: true } },
     },
   });
 }
@@ -55,45 +61,27 @@ async function alertAdmins(subject: string, order: LoadedOrder, body: string) {
   await Promise.allSettled(adminEmails().map((to) => sendEmail({ to, subject, html })));
 }
 
+/** Whether this step was already written down (a retried webhook). */
+async function recorded(orderId: string, type: string, messageContains?: string) {
+  const event = await prisma.orderEvent.findFirst({
+    where: { orderId, type, ...(messageContains ? { message: { contains: messageContains } } : {}) },
+    select: { id: true },
+  });
+  return event !== null;
+}
+
+function event(order: LoadedOrder, type: string, message: string) {
+  return prisma.orderEvent.create({ data: { orderId: order.id, type, message } });
+}
+
 async function hold(order: LoadedOrder, eventType: string, message: string) {
   await prisma.$transaction([
     prisma.order.update({
       where: { id: order.id },
       data: { sellerPayoutStatus: 'on_hold', sellerPayoutNote: message },
     }),
-    prisma.orderEvent.create({ data: { orderId: order.id, type: eventType, message } }),
+    event(order, eventType, message),
   ]);
-}
-
-/**
- * Takes money back from the artist after they were paid, by reversing the
- * order's Stripe transfers until the artist has at most `keepOre` of them left.
- * Returns how much was reversed now (öre), or null if Stripe refused.
- */
-async function reclaimFromArtist(orderId: string, keepOre: number, metadata: Record<string, string>): Promise<number | null> {
-  try {
-    const { data: transfers } = await stripe.transfers.list({ transfer_group: orderId, limit: 20 });
-    let net = transfers.reduce((sum, t) => sum + t.amount - t.amount_reversed, 0);
-    let reversed = 0;
-    for (const transfer of transfers) {
-      const excess = net - keepOre;
-      if (excess <= 0) break;
-      const amount = Math.min(excess, transfer.amount - transfer.amount_reversed);
-      if (amount <= 0) continue;
-      await stripe.transfers.createReversal(
-        transfer.id,
-        { amount, metadata: { orderId, ...metadata } },
-        // Tied to the transfer's state, so a retried webhook can't reverse twice.
-        { idempotencyKey: `konstbyte-reclaim-${transfer.id}-${transfer.amount_reversed}-${amount}` },
-      );
-      net -= amount;
-      reversed += amount;
-    }
-    return reversed;
-  } catch (err) {
-    console.error(`[refunds] could not reclaim the payout for order ${orderId}:`, err);
-    return null;
-  }
 }
 
 /** The artist's notice about money taken back or paid back, as transaction steps. */
@@ -102,6 +90,120 @@ function sellerNotice(order: LoadedOrder, message: string) {
     ? [prisma.notification.create({ data: { userId: order.sellerId, type: 'payout_reclaimed', message, link: '/seller/payouts' } })]
     : [];
 }
+
+/** A bank inquiry: Stripe takes no money unless it becomes a chargeback. */
+const isInquiry = (dispute: Stripe.Dispute) => dispute.status.startsWith('warning_');
+
+// ── Taking money back from the artist ───────────────────────────────────────
+
+const net = (transfers: Stripe.Transfer[]) => transfers.reduce((sum, t) => sum + t.amount - t.amount_reversed, 0);
+
+/** Sum of the reversals whose metadata matches (öre). */
+function reversedWhere(transfers: Stripe.Transfer[], match: (metadata: Stripe.Metadata) => boolean) {
+  return transfers
+    .flatMap((t) => t.reversals?.data ?? [])
+    .filter((r) => match(r.metadata ?? {}))
+    .reduce((sum, r) => sum + r.amount, 0);
+}
+
+/**
+ * The order's Stripe transfers, or null when the artist wasn't paid through
+ * Stripe. Throws when Stripe can't be reached.
+ */
+async function stripeTransfers(order: LoadedOrder): Promise<Stripe.Transfer[] | null> {
+  if (order.payout?.method !== 'stripe') return null;
+  const { data } = await stripe.transfers.list({ transfer_group: order.id, limit: 20 });
+  // Return transfers after a won dispute are also in the group; only the
+  // payout itself counts as "the artist was paid through Stripe".
+  return data.some((t) => !t.metadata?.dispute) ? data : null;
+}
+
+/** Reverses `amount` öre across the transfers. */
+async function reverse(transfers: Stripe.Transfer[], amount: number, metadata: Record<string, string>, key: string) {
+  let left = amount;
+  for (const transfer of transfers) {
+    if (left <= 0) break;
+    const part = Math.min(left, transfer.amount - transfer.amount_reversed);
+    if (part <= 0) continue;
+    await stripe.transfers.createReversal(
+      transfer.id,
+      { amount: part, metadata },
+      // Tied to the transfer's state, so a retried webhook can't reverse twice.
+      { idempotencyKey: `konstbyte-${key}-${transfer.id}-${transfer.amount_reversed}-${part}` },
+    );
+    left -= part;
+  }
+}
+
+type Reclaim = {
+  /** Taken back for this refund or dispute, earlier attempts included (öre). */
+  taken: number;
+  /** Taken back for all refunds on the order so far (öre). */
+  refundsTotal: number;
+  /** What the artist still has of the order's transfers afterwards (öre). */
+  netAfter: number;
+};
+
+/**
+ * After a refund: reverses the order's transfers until the artist has at most
+ * `keepOre` left. `refundTotal` (the charge's amount_refunded) tags the
+ * reversal, so a retry finds what this refund already took. Null when it
+ * can't be done automatically.
+ */
+async function reclaimForRefund(order: LoadedOrder, keepOre: number, refundTotal: number): Promise<Reclaim | null> {
+  try {
+    const transfers = await stripeTransfers(order);
+    if (!transfers) return null;
+    const tag = String(refundTotal);
+    const before = net(transfers);
+    const now = Math.max(0, before - keepOre);
+    await reverse(transfers, now, { orderId: order.id, reason: 'refund', refunded: tag }, `refund-${tag}`);
+    return {
+      taken: reversedWhere(transfers, (m) => m.refunded === tag) + now,
+      refundsTotal: reversedWhere(transfers, (m) => m.reason === 'refund') + now,
+      netAfter: before - now,
+    };
+  } catch (err) {
+    console.error(`[refunds] could not reclaim the payout for order ${order.id}:`, err);
+    return null;
+  }
+}
+
+/** What has been reversed, and sent back, because of this dispute (öre). */
+function disputeTotals(transfers: Stripe.Transfer[], disputeId: string) {
+  const reversed = reversedWhere(transfers, (m) => m.dispute === disputeId);
+  const returned = transfers.filter((t) => t.metadata?.dispute === disputeId).reduce((sum, t) => sum + t.amount, 0);
+  return { reversed, returned };
+}
+
+/**
+ * After a chargeback: reverses the disputed amount (at most what the artist
+ * has), once per dispute however often Stripe sends the event.
+ */
+async function reclaimForDispute(order: LoadedOrder, dispute: Stripe.Dispute): Promise<Reclaim | null> {
+  try {
+    const transfers = await stripeTransfers(order);
+    if (!transfers) return null;
+    const { reversed } = disputeTotals(transfers, dispute.id);
+    const before = net(transfers);
+    const now = Math.max(0, Math.min(dispute.amount - reversed, before));
+    await reverse(transfers, now, { orderId: order.id, reason: 'dispute', dispute: dispute.id }, `dispute-${dispute.id}`);
+    return { taken: reversed + now, refundsTotal: reversedWhere(transfers, (m) => m.reason === 'refund'), netAfter: before - now };
+  } catch (err) {
+    console.error(`[refunds] could not reclaim the payout for order ${order.id}:`, err);
+    return null;
+  }
+}
+
+/** The payout was fully taken back: it no longer counts as paid out. */
+function markPayoutReversed(order: LoadedOrder, note: string) {
+  return prisma.payout.updateMany({
+    where: { orderId: order.id, status: 'completed' },
+    data: { status: 'reversed', adminNote: note },
+  });
+}
+
+// ── Stripe events ──────────────────────────────────────────────────────────
 
 export async function handleChargeRefunded(charge: Stripe.Charge) {
   const orderId = await orderIdFor(charge.payment_intent, charge.metadata);
@@ -114,9 +216,13 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
   const alreadyPaid = order.sellerPayoutStatus === 'paid';
 
   if (!charge.refunded) {
-    // Partial refund: the payout would be too high, so stop it.
-    const message = `Delvis återbetald till köparen (${refundedSek} kr). Utbetalningen till konstnären är pausad.`;
+    // Partial refund. Each one has its own cumulative amount, which every
+    // message about it contains.
+    const marker = `(${refundedSek} kr)`;
+    if (await recorded(order.id, 'partially_refunded', marker)) return;
+    const message = `Delvis återbetald till köparen ${marker}. Utbetalningen till konstnären är pausad.`;
     if (!alreadyPaid) {
+      // The payout would be too high, so stop it.
       await hold(order, 'partially_refunded', message);
       await alertAdmins(
         `Delvis återbetalning: ${order.artwork.title}`,
@@ -127,44 +233,49 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
     }
 
     // Already paid: the artist gives back what the buyer got back since then.
-    let reclaimed: number | null = null;
+    let reclaimed: Reclaim | null = null;
     if (order.payout) {
       const refundedBeforePayout = Math.round((order.amount - order.payout.amount) * 100);
       const refundedSince = Math.max(0, charge.amount_refunded - refundedBeforePayout);
       const keep = Math.max(0, Math.round(order.payout.sellerPayoutAmount * 100) - refundedSince);
-      reclaimed = await reclaimFromArtist(order.id, keep, { reason: 'partial_refund' });
+      reclaimed = await reclaimForRefund(order, keep, charge.amount_refunded);
     }
-    if (reclaimed === null) {
-      await prisma.orderEvent.create({ data: { orderId: order.id, type: 'partially_refunded', message } });
+    if (reclaimed && reclaimed.taken === 0 && reclaimed.netAfter === 0) {
+      // Earlier refunds already took the artist's whole payout.
+      await event(order, 'partially_refunded', `Delvis återbetald till köparen ${marker}. Konstnärens hela utbetalning var redan återtagen.`);
       await alertAdmins(
         `Delvis återbetalning: ${order.artwork.title}`,
         order,
-        `Köparen fick tillbaka ${refundedSek} kr, men konstnären har redan fått betalt och pengarna kunde inte dras tillbaka automatiskt. Kräv tillbaka mellanskillnaden (Stripe → Connect → konstnärens konto → Transfers → Reverse).`,
+        `Köparen fick tillbaka ${refundedSek} kr. Konstnärens hela utbetalning har redan dragits tillbaka, så det som köparen fått utöver den belastar Konstbyte. Enligt villkoren kan du kräva mellanskillnaden av konstnären.`,
+      );
+      return;
+    }
+    if (!reclaimed || reclaimed.taken === 0) {
+      await event(order, 'partially_refunded', `Delvis återbetald till köparen ${marker}. Konstnären hade redan fått betalt.`);
+      await alertAdmins(
+        `Delvis återbetalning: ${order.artwork.title}`,
+        order,
+        `Köparen fick tillbaka ${refundedSek} kr, men konstnären har redan fått betalt och pengarna kunde inte dras tillbaka automatiskt. Kräv tillbaka mellanskillnaden från konstnären (för Stripe-utbetalningar: Stripe → Connect → konstnärens konto → Transfers → Reverse).`,
       );
       return;
     }
     await prisma.$transaction([
-      prisma.orderEvent.create({
-        data: {
-          orderId: order.id,
-          type: 'partially_refunded',
-          message: `Delvis återbetald till köparen (${refundedSek} kr). ${sek(reclaimed)} har dragits tillbaka från konstnären.`,
-        },
-      }),
-      ...(reclaimed > 0
-        ? sellerNotice(order, `Köparen har fått tillbaka en del av betalningen för "${order.artwork.title}". ${sek(reclaimed)} har dragits tillbaka från ditt Stripe-konto.`)
-        : []),
+      event(order, 'partially_refunded', `Delvis återbetald till köparen ${marker}. ${sek(reclaimed.taken)} har dragits tillbaka från konstnären.`),
+      ...sellerNotice(order, `Köparen har fått tillbaka en del av betalningen för "${order.artwork.title}". ${sek(reclaimed.taken)} har dragits tillbaka från ditt Stripe-konto.`),
     ]);
     return;
   }
 
   // Full refund. If the artist was already paid, take the payout back first.
-  const reclaimed = alreadyPaid ? await reclaimFromArtist(order.id, 0, { reason: 'refund' }) : 0;
+  let reclaimed = alreadyPaid ? await reclaimForRefund(order, 0, charge.amount_refunded) : null;
+  // Nothing was ever taken back for refunds: the admins have to sort it out.
+  // (Earlier partial refunds may already have taken it all; that counts.)
+  if (reclaimed && reclaimed.refundsTotal === 0) reclaimed = null;
   const sellerMessage = !alreadyPaid
     ? ' Ingen utbetalning görs.'
     : reclaimed === null
       ? ' Konstbyte kontaktar dig om utbetalningen.'
-      : ` Utbetalningen (${sek(reclaimed)}) har dragits tillbaka från ditt Stripe-konto.`;
+      : ` Utbetalningen (${sek(reclaimed.refundsTotal)}) har dragits tillbaka från ditt Stripe-konto.`;
 
   await prisma.$transaction([
     prisma.order.update({
@@ -175,16 +286,17 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
       },
     }),
     prisma.payout.updateMany({
-      where: { orderId: order.id, status: { not: 'completed' } },
+      where: { orderId: order.id, status: { notIn: ['completed', 'reversed'] } },
       data: { status: 'cancelled' },
     }),
-    prisma.orderEvent.create({
-      data: {
-        orderId: order.id,
-        type: 'refunded',
-        message: `Hela beloppet (${refundedSek} kr) har återbetalats till köparen.${alreadyPaid && reclaimed !== null ? ` ${sek(reclaimed)} har dragits tillbaka från konstnären.` : ''}`,
-      },
-    }),
+    ...(reclaimed && reclaimed.netAfter === 0
+      ? [markPayoutReversed(order, `Återförd från konstnären (${sek(reclaimed.refundsTotal)}) när köpet återbetalades.`)]
+      : []),
+    event(
+      order,
+      'refunded',
+      `Hela beloppet (${refundedSek} kr) har återbetalats till köparen.${reclaimed ? ` ${sek(reclaimed.refundsTotal)} har dragits tillbaka från konstnären.` : ''}`,
+    ),
     prisma.notification.create({
       data: {
         userId: order.buyerId,
@@ -211,7 +323,7 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
     await alertAdmins(
       `Återbetald efter utbetalning: ${order.artwork.title}`,
       order,
-      `Köparen har fått tillbaka hela beloppet (${refundedSek} kr), men konstnären har redan fått betalt och pengarna kunde inte dras tillbaka automatiskt. Kräv tillbaka överföringen (Stripe → Connect → konstnärens konto → Transfers → Reverse) eller kontakta konstnären.`,
+      `Köparen har fått tillbaka hela beloppet (${refundedSek} kr), men konstnären har redan fått betalt och pengarna kunde inte dras tillbaka automatiskt. Kräv tillbaka utbetalningen från konstnären (för Stripe-utbetalningar: Stripe → Connect → konstnärens konto → Transfers → Reverse).`,
     );
   }
 }
@@ -221,51 +333,71 @@ export async function handleDisputeCreated(dispute: Stripe.Dispute) {
   if (!orderId) return;
   const order = await loadOrder(orderId);
   if (!order) return;
-
-  const message = 'Köparen har bestridit betalningen hos sin bank. Utbetalningen till konstnären är pausad.';
-  const alreadyPaid = order.sellerPayoutStatus === 'paid';
-  let reclaimed: number | null = null;
-  if (alreadyPaid) {
-    // Stripe takes the disputed amount from Konstbyte now, so take it back from
-    // the artist now too. It goes back to them if Konstbyte wins.
-    reclaimed = await reclaimFromArtist(order.id, 0, { reason: 'dispute', dispute: dispute.id });
-    await prisma.$transaction([
-      prisma.orderEvent.create({
-        data: {
-          orderId: order.id,
-          type: 'disputed',
-          message: reclaimed === null
-            ? 'Köparen har bestridit betalningen hos sin bank. Konstnären har redan fått betalt.'
-            : `Köparen har bestridit betalningen hos sin bank. ${sek(reclaimed)} har dragits tillbaka från konstnären tills tvisten är avgjord.`,
-        },
-      }),
-      ...(reclaimed
-        ? sellerNotice(order, `Köparen har bestridit betalningen för "${order.artwork.title}" hos sin bank. ${sek(reclaimed)} har dragits tillbaka från ditt Stripe-konto tills tvisten är avgjord, och betalas tillbaka till dig om Konstbyte vinner.`)
-        : []),
-    ]);
-  } else {
-    await hold(order, 'disputed', message);
-  }
-  await alertAdmins(
-    `Tvist (chargeback): ${order.artwork.title}`,
-    order,
-    `Köparen har bestridit betalningen. Svara på tvisten i Stripe (Payments → Disputes) före deadline, med t.ex. spårningsnummer och bevis på leverans.${
-      !alreadyPaid
-        ? ' Utbetalningen till konstnären är pausad.'
-        : reclaimed === null
-          ? ' Konstnären har redan fått betalt och pengarna kunde inte dras tillbaka automatiskt. Kräv tillbaka överföringen för hand.'
-          : ` Konstnären hade redan fått betalt, så ${sek(reclaimed)} har dragits tillbaka från konstnären.`
-    }`,
-  );
+  await processDispute(order, dispute, isInquiry(dispute));
 }
 
-/** Sum of what was reversed from the artist because of this dispute. */
-async function reversedForDispute(orderId: string, disputeId: string): Promise<number> {
-  const { data: transfers } = await stripe.transfers.list({ transfer_group: orderId, limit: 20 });
-  return transfers
-    .flatMap((t) => t.reversals?.data ?? [])
-    .filter((r) => r.metadata?.dispute === disputeId)
-    .reduce((sum, r) => sum + r.amount, 0);
+/**
+ * Stripe took the disputed money. For a normal chargeback that already
+ * happened when it was created; for a bank inquiry it means the inquiry has
+ * become a chargeback, so it is handled as one now.
+ */
+export async function handleDisputeFundsWithdrawn(dispute: Stripe.Dispute) {
+  const orderId = await orderIdFor(dispute.payment_intent, dispute.metadata);
+  if (!orderId) return;
+  const order = await loadOrder(orderId);
+  if (!order) return;
+  if (!(await recorded(order.id, 'dispute_inquiry'))) return;
+  await processDispute(order, dispute, false);
+}
+
+async function processDispute(order: LoadedOrder, dispute: Stripe.Dispute, inquiry: boolean) {
+  // A charge can only be disputed once, so one event of each kind per order.
+  const type = inquiry ? 'dispute_inquiry' : 'disputed';
+  if (await recorded(order.id, type)) return;
+
+  const alreadyPaid = order.sellerPayoutStatus === 'paid';
+  // Inquiries take no money, so the artist keeps theirs; a chargeback does.
+  let reclaimed = alreadyPaid && !inquiry ? await reclaimForDispute(order, dispute) : null;
+  // Nothing was taken back: the admins have to sort it out.
+  if (reclaimed && reclaimed.taken === 0) reclaimed = null;
+
+  if (!alreadyPaid) {
+    await hold(
+      order,
+      type,
+      inquiry
+        ? 'Köparens bank har ställt en fråga om betalningen. Utbetalningen till konstnären är pausad.'
+        : 'Köparen har bestridit betalningen hos sin bank. Utbetalningen till konstnären är pausad.',
+    );
+  } else {
+    await prisma.$transaction([
+      event(
+        order,
+        type,
+        inquiry
+          ? 'Köparens bank har ställt en fråga om betalningen. Konstnären har redan fått betalt.'
+          : reclaimed === null
+            ? 'Köparen har bestridit betalningen hos sin bank. Konstnären har redan fått betalt.'
+            : `Köparen har bestridit betalningen hos sin bank. ${sek(reclaimed.taken)} har dragits tillbaka från konstnären tills tvisten är avgjord.`,
+      ),
+      ...(reclaimed
+        ? sellerNotice(order, `Köparen har bestridit betalningen för "${order.artwork.title}" hos sin bank. ${sek(reclaimed.taken)} har dragits tillbaka från ditt Stripe-konto tills tvisten är avgjord, och betalas tillbaka till dig om Konstbyte vinner.`)
+        : []),
+    ]);
+  }
+
+  const paidNote = !alreadyPaid
+    ? ' Utbetalningen till konstnären är pausad.'
+    : inquiry
+      ? ' Konstnären har redan fått betalt. Det är en förfrågan, så inga pengar har dragits ännu. Blir den en tvist dras pengarna tillbaka från konstnären och du får ett nytt mejl.'
+      : reclaimed === null
+        ? ' Konstnären har redan fått betalt och pengarna kunde inte dras tillbaka automatiskt. Kräv tillbaka dem från konstnären.'
+        : ` Konstnären hade redan fått betalt, så ${sek(reclaimed.taken)} har dragits tillbaka från konstnären.`;
+  await alertAdmins(
+    `${inquiry ? 'Förfrågan från banken' : 'Tvist (chargeback)'}: ${order.artwork.title}`,
+    order,
+    `Köparen har bestridit betalningen. Svara på tvisten i Stripe (Payments → Disputes) före deadline, med t.ex. spårningsnummer och bevis på leverans.${paidNote}`,
+  );
 }
 
 export async function handleDisputeClosed(dispute: Stripe.Dispute) {
@@ -292,91 +424,88 @@ export async function handleDisputeClosed(dispute: Stripe.Dispute) {
         ? { sellerPayoutStatus: 'unpaid', sellerPayoutNote: null }
         : { sellerPayoutStatus: 'cancelled', sellerPayoutNote: 'Tvisten förlorades.' },
     }),
-    prisma.orderEvent.create({
-      data: {
-        orderId: order.id,
-        type: won ? 'dispute_won' : 'dispute_lost',
-        message: won ? 'Tvisten är avslutad och pengarna finns kvar.' : 'Tvisten förlorades. Ingen utbetalning görs.',
-      },
-    }),
+    event(order, won ? 'dispute_won' : 'dispute_lost', won ? 'Tvisten är avslutad och pengarna finns kvar.' : 'Tvisten förlorades. Ingen utbetalning görs.'),
   ]);
 }
 
 /** A dispute on an order the artist had already been paid for. */
 async function closePaidDispute(order: LoadedOrder, dispute: Stripe.Dispute, won: boolean) {
-  let reversed: number;
+  const type = won ? 'dispute_won' : 'dispute_lost';
+  if (await recorded(order.id, type)) return;
+
+  let transfers: Stripe.Transfer[] | null;
   try {
-    reversed = await reversedForDispute(order.id, dispute.id);
+    transfers = await stripeTransfers(order);
   } catch (err) {
-    console.error(`[refunds] could not read the reversals for order ${order.id}:`, err);
+    // Not knowing what was taken back must not look like "nothing was": the
+    // artist could lose money they are owed, or be charged twice.
+    console.error(`[refunds] could not read the transfers for order ${order.id}:`, err);
     await alertAdmins(
       `Tvist avslutad: ${order.artwork.title}`,
       order,
-      `Tvisten är ${won ? 'vunnen' : 'förlorad'}, men det gick inte att se vad som drogs tillbaka från konstnären. Kontrollera överföringarna i Stripe.`,
+      `Tvisten är ${won ? 'vunnen' : 'förlorad'}, men det gick inte att läsa i Stripe vad som drogs tillbaka från konstnären. Kontrollera överföringarna i Stripe och ${won ? 'betala tillbaka det som drogs' : 'kräv tillbaka det som inte drogs'}.`,
     );
     return;
   }
+  const { reversed, returned } = transfers ? disputeTotals(transfers, dispute.id) : { reversed: 0, returned: 0 };
 
   if (!won) {
-    await prisma.orderEvent.create({
-      data: {
-        orderId: order.id,
-        type: 'dispute_lost',
-        message: reversed > 0
-          ? `Tvisten förlorades. ${sek(reversed)} som drogs tillbaka från konstnären behålls.`
-          : 'Tvisten förlorades.',
-      },
-    });
-    if (reversed > 0) {
-      await Promise.all(sellerNotice(order, `Tvisten om "${order.artwork.title}" förlorades, så de ${sek(reversed)} som drogs tillbaka betalas inte ut igen.`));
-    } else {
+    if (reversed === 0) {
+      await event(order, type, 'Tvisten förlorades. Konstnären hade redan fått betalt.');
       await alertAdmins(
         `Tvist förlorad efter utbetalning: ${order.artwork.title}`,
         order,
-        'Tvisten förlorades och konstnären hade redan fått betalt. Kräv tillbaka överföringen från konstnären.',
+        'Tvisten förlorades och konstnären hade redan fått betalt, men inget drogs tillbaka automatiskt. Kräv tillbaka pengarna från konstnären.',
       );
+      return;
     }
+    await prisma.$transaction([
+      event(order, type, `Tvisten förlorades. ${sek(reversed)} som drogs tillbaka från konstnären behålls.`),
+      ...(transfers && net(transfers) === 0
+        ? [markPayoutReversed(order, `Återförd från konstnären (${sek(reversed)}) när tvisten förlorades.`)]
+        : []),
+      ...sellerNotice(order, `Tvisten om "${order.artwork.title}" förlorades, så de ${sek(reversed)} som drogs tillbaka betalas inte ut igen.`),
+    ]);
     return;
   }
 
   // Won: Konstbyte got the money back, so the artist gets theirs back too.
-  if (reversed === 0) {
-    await prisma.orderEvent.create({
-      data: { orderId: order.id, type: 'dispute_won', message: 'Tvisten är avslutad och pengarna finns kvar.' },
-    });
-    return;
-  }
-  const accountId = order.seller?.stripeAccountId;
-  try {
-    if (!accountId) throw new Error('seller has no Stripe account');
-    await stripe.transfers.create(
-      {
-        amount: reversed,
-        currency: 'sek',
-        destination: accountId,
-        transfer_group: order.id,
-        description: `Konstbyte – ${order.artwork.title} (tvisten vunnen)`,
-        metadata: { orderId: order.id, dispute: dispute.id },
-      },
-      { idempotencyKey: `konstbyte-dispute-return-${dispute.id}` },
-    );
-  } catch (err) {
-    console.error(`[refunds] could not pay back the artist for order ${order.id}:`, err);
-    await alertAdmins(
-      `Tvist vunnen: ${order.artwork.title}`,
-      order,
-      `Tvisten är vunnen, men de ${sek(reversed)} som drogs tillbaka från konstnären kunde inte betalas tillbaka automatiskt. Skicka dem till konstnären i Stripe.`,
-    );
-    return;
+  // What was already sent back (by an earlier, interrupted attempt) is
+  // subtracted, so it happens once however often Stripe sends the event.
+  const toReturn = reversed - returned;
+  if (toReturn > 0) {
+    const accountId = order.seller?.stripeAccountId;
+    try {
+      if (!accountId) throw new Error('seller has no Stripe account');
+      await stripe.transfers.create(
+        {
+          amount: toReturn,
+          currency: 'sek',
+          destination: accountId,
+          transfer_group: order.id,
+          description: `Konstbyte – ${order.artwork.title} (tvisten vunnen)`,
+          metadata: { orderId: order.id, dispute: dispute.id },
+        },
+        { idempotencyKey: `konstbyte-dispute-return-${dispute.id}` },
+      );
+    } catch (err) {
+      console.error(`[refunds] could not pay back the artist for order ${order.id}:`, err);
+      await alertAdmins(
+        `Tvist vunnen: ${order.artwork.title}`,
+        order,
+        `Tvisten är vunnen, men de ${sek(toReturn)} som drogs tillbaka från konstnären kunde inte betalas tillbaka automatiskt. Skicka dem till konstnären i Stripe.`,
+      );
+      return;
+    }
   }
   await prisma.$transaction([
-    prisma.orderEvent.create({
-      data: {
-        orderId: order.id,
-        type: 'dispute_won',
-        message: `Tvisten är vunnen. ${sek(reversed)} har betalats tillbaka till konstnären.`,
-      },
-    }),
-    ...sellerNotice(order, `Tvisten om "${order.artwork.title}" är avgjord till din fördel. ${sek(reversed)} har betalats tillbaka till ditt Stripe-konto.`),
+    event(
+      order,
+      type,
+      reversed > 0 ? `Tvisten är vunnen. ${sek(reversed)} har betalats tillbaka till konstnären.` : 'Tvisten är avslutad och pengarna finns kvar.',
+    ),
+    ...(reversed > 0
+      ? sellerNotice(order, `Tvisten om "${order.artwork.title}" är avgjord till din fördel. ${sek(reversed)} har betalats tillbaka till ditt Stripe-konto.`)
+      : []),
   ]);
 }

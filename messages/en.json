@@ -901,6 +901,7 @@
     "bank_transfer": "Bank transfer",
     "paid_on": "Paid out {date}",
     "paid_status": "Paid",
+    "reversed_status": "Reversed",
     "pending_status": "Pending"
   },
   "admin": {

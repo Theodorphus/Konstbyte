@@ -5,7 +5,10 @@ import { getCurrentUser } from '../../../../lib/auth';
 import { parseArtworkPrice, parseShippingCost, MIN_ARTWORK_PRICE, MAX_ARTWORK_PRICE } from '../../../../lib/payout';
 import { SHIPPING_OPTIONS } from '@/lib/shipping';
 import { isAdmin } from '@/lib/admin';
-import { canOwnerRemove } from '@/lib/artwork-removal';
+import { blockingOrders, canOwnerRemove } from '@/lib/artwork-removal';
+
+/** Rolls back an artwork delete when someone started buying it meanwhile. */
+class OrderAppeared extends Error {}
 
 const CATEGORIES = ['malningar', 'skulpturer', 'fotografi', 'digital'];
 const SHIPPING_TYPES: string[] = SHIPPING_OPTIONS.map((o) => o.value);
@@ -196,23 +199,43 @@ export async function DELETE(
     // Orders keep a reference to the artwork, so it can't be deleted once anyone
     // has tried to buy it. A real sale (or a payment in progress) blocks removal;
     // if every attempt was abandoned or refunded, the artwork is hidden instead.
-    if (!canOwnerRemove(artwork.orders)) {
+    if (artwork.removedByAdmin) {
       return NextResponse.json(
-        { error: 'Verket har sålts eller håller på att köpas och kan inte tas bort.' },
-        { status: 409 },
+        { error: 'Konstverket har tagits bort av Konstbyte. Kontakta webbdevstudio@gmail.com om du har frågor.' },
+        { status: 403 },
       );
     }
+    const blocked = NextResponse.json(
+      { error: 'Verket har sålts eller håller på att köpas och kan inte tas bort.' },
+      { status: 409 },
+    );
+    if (!canOwnerRemove(artwork)) return blocked;
+
+    // The writes repeat the check, since a buyer may start a checkout meanwhile.
     if (artwork.orders.length > 0) {
-      await prisma.artwork.update({ where: { id }, data: { isPublished: false } });
-      return NextResponse.json({ success: true, hidden: true });
+      const hidden = await prisma.artwork.updateMany({
+        where: { id, orders: { none: blockingOrders() } },
+        data: { isPublished: false },
+      });
+      return hidden.count === 1 ? NextResponse.json({ success: true, hidden: true }) : blocked;
     }
 
-    // Favorites don't cascade in the schema, so remove them first.
-    await prisma.$transaction([
-      prisma.favorite.deleteMany({ where: { artworkId: id } }),
-      prisma.artwork.delete({ where: { id } }),
-    ]);
-    return NextResponse.json({ success: true });
+    // Favorites don't cascade in the schema, so remove them first; undone if
+    // an order turned up in the meantime.
+    const deleted = await prisma
+      .$transaction(async (tx) => {
+        await tx.favorite.deleteMany({ where: { artworkId: id } });
+        const result = await tx.artwork.deleteMany({ where: { id, orders: { none: {} } } });
+        if (result.count === 0) throw new OrderAppeared();
+        return true;
+      })
+      .catch((err) => {
+        // An order inserted at the same moment can also surface as the
+        // database's foreign-key error (P2003).
+        if (err instanceof OrderAppeared || (err as { code?: string })?.code === 'P2003') return false;
+        throw err;
+      });
+    return deleted ? NextResponse.json({ success: true }) : blocked;
   } catch (err) {
     console.error('[artworks/[id]]', err);
     return NextResponse.json({ error: 'Något gick fel. Försök igen.' }, { status: 500 });

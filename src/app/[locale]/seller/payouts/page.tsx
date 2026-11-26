@@ -58,6 +58,13 @@ export default async function SellerPayoutsPage({
         </span>
       );
     }
+    if (status === 'reversed') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-slate-100 text-slate-600 border-slate-200">
+          {t('reversed_status')}
+        </span>
+      );
+    }
     if (status === 'awaiting_stripe') {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-indigo-100 text-indigo-700 border-indigo-200">
