@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 
     const artwork = await prisma.artwork.findUnique({
       where: { id: artworkId },
-      include: { owner: { select: { id: true, name: true, sellerType: true } } },
+      include: { owner: { select: { id: true, name: true, sellerType: true, businessName: true, businessOrgNr: true } } },
     });
 
     if (!artwork || !artwork.isPublished) {
@@ -121,6 +121,9 @@ export async function POST(request: Request) {
         paymentMethod: 'stripe',
         // What the buyer was told about the seller at purchase.
         sellerType,
+        ...(sellerType === 'business'
+          ? { sellerBusinessName: artwork.owner.businessName, sellerBusinessOrgNr: artwork.owner.businessOrgNr }
+          : {}),
         status: 'pending',
         sellerPayoutStatus: 'unpaid',
         // Snapshot shipping info at time of purchase

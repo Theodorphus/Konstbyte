@@ -122,6 +122,10 @@ model Order {
   paymentMethod        String       @default("stripe")  // "stripe" | "swish"
   // What the buyer was told at purchase: "private" | "business" (seller's declaration).
   sellerType           String?
+  // A business seller's identity at purchase: the buyer needs it for withdrawal
+  // and complaints even if the seller changes their profile later.
+  sellerBusinessName   String?
+  sellerBusinessOrgNr  String?
   feeAmount            Float?
   stripeSessionId      String?
   swishPaymentId       String?

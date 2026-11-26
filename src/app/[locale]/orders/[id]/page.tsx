@@ -195,8 +195,9 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           <p className="text-slate-800">
             {order.sellerType === 'business'
               ? tSeller('seller_business', {
-                  company: order.seller.businessName || order.seller.name || '',
-                  orgNr: order.seller.businessOrgNr || '–',
+                  // As it was at purchase; the profile only for older orders.
+                  company: order.sellerBusinessName || order.seller.businessName || order.seller.name || '',
+                  orgNr: order.sellerBusinessOrgNr || order.seller.businessOrgNr || '–',
                 })
               : order.sellerType === 'private'
                 ? tSeller('seller_private', { name: order.seller.name || '' })

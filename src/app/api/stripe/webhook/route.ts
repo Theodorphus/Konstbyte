@@ -256,8 +256,9 @@ async function fulfillOrder(session: Stripe.Checkout.Session) {
       seller: sellerLine({
         name: order.seller?.name || 'Konstnären',
         sellerType: order.sellerType,
-        businessName: order.seller?.businessName,
-        businessOrgNr: order.seller?.businessOrgNr,
+        // As it was at purchase; the profile only for orders from before that was saved.
+        businessName: order.sellerBusinessName ?? order.seller?.businessName,
+        businessOrgNr: order.sellerBusinessOrgNr ?? order.seller?.businessOrgNr,
       }),
       sellerType: order.sellerType,
     });

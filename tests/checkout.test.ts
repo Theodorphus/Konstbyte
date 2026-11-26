@@ -51,6 +51,21 @@ describe('POST /api/checkout/stripe', () => {
   it('records what the buyer was told about the seller', async () => {
     await checkout({ artworkId: 'art1', shippingAddress: address });
     expect(prisma.order.create.mock.calls[0][0].data).toMatchObject({ sellerType: 'private' });
+    expect(prisma.order.create.mock.calls[0][0].data).not.toHaveProperty('sellerBusinessOrgNr');
+  });
+
+  it("keeps a business seller's name and org.nr on the order", async () => {
+    const art = await prisma.artwork.findUnique();
+    prisma.artwork.findUnique.mockResolvedValue({
+      ...art,
+      owner: { id: 'artist', name: 'Anna', sellerType: 'business', businessName: 'Lind Konst', businessOrgNr: '556123-4567' },
+    });
+    await checkout({ artworkId: 'art1', shippingAddress: address });
+    expect(prisma.order.create.mock.calls[0][0].data).toMatchObject({
+      sellerType: 'business',
+      sellerBusinessName: 'Lind Konst',
+      sellerBusinessOrgNr: '556123-4567',
+    });
   });
 
   it('cannot sell until the seller has said whether they are a private person or a business', async () => {
