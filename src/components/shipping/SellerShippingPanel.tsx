@@ -4,6 +4,7 @@
 // and add/update tracking information.
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   orderId: string;
@@ -20,6 +21,7 @@ export default function SellerShippingPanel({
   trackingUrl: initialUrl,
   onUpdate,
 }: Props) {
+  const t = useTranslations('orders');
   const [expanded, setExpanded] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState(initialTracking ?? '');
   const [trackingUrl, setTrackingUrl] = useState(initialUrl ?? '');
@@ -39,8 +41,8 @@ export default function SellerShippingPanel({
         body: JSON.stringify({ trackingNumber: trackingNumber || null, trackingUrl: trackingUrl || null }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error ?? 'Något gick fel'); return; }
-      setSuccess('Ordern markerad som skickad! Köparen har fått ett mejl.');
+      if (!res.ok) { setError(data.error ?? t('ship_error')); return; }
+      setSuccess(t('ship_done'));
       setExpanded(false);
       onUpdate?.();
     } finally {
@@ -58,8 +60,8 @@ export default function SellerShippingPanel({
         body: JSON.stringify({ trackingNumber: trackingNumber || null, trackingUrl: trackingUrl || null }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error ?? 'Något gick fel'); return; }
-      setSuccess('Spårningsinformation uppdaterad.');
+      if (!res.ok) { setError(data.error ?? t('ship_error')); return; }
+      setSuccess(t('tracking_updated'));
       setExpanded(false);
       onUpdate?.();
     } finally {
@@ -85,7 +87,7 @@ export default function SellerShippingPanel({
           onClick={() => setExpanded(true)}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors"
         >
-          <span>🚚</span> Markera som skickat
+          <span>🚚</span> {t('mark_shipped')}
         </button>
       )}
 
@@ -94,24 +96,24 @@ export default function SellerShippingPanel({
           onClick={() => setExpanded(true)}
           className="text-xs text-slate-500 hover:text-slate-800 underline underline-offset-2 transition-colors"
         >
-          Uppdatera spårningsinformation
+          {t('update_tracking_link')}
         </button>
       )}
 
       {expanded && (
         <div className="rounded-xl border border-stone-200 bg-stone-50 p-4 space-y-4">
           <p className="text-sm font-semibold text-slate-800">
-            {isShipped ? 'Uppdatera spårning' : 'Markera som skickat'}
+            {isShipped ? t('update_tracking') : t('mark_shipped')}
           </p>
 
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-medium text-stone-500 mb-1">
-                Spårningsnummer <span className="font-normal">(valfritt)</span>
+                {t('tracking_number')} <span className="font-normal">({t('optional')})</span>
               </label>
               <input
                 type="text"
-                placeholder="T.ex. AB123456789SE"
+                placeholder={t('tracking_number_placeholder')}
                 value={trackingNumber}
                 onChange={(e) => setTrackingNumber(e.target.value)}
                 className="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
@@ -119,7 +121,7 @@ export default function SellerShippingPanel({
             </div>
             <div>
               <label className="block text-xs font-medium text-stone-500 mb-1">
-                Spårningslänk <span className="font-normal">(valfritt)</span>
+                {t('tracking_link')} <span className="font-normal">({t('optional')})</span>
               </label>
               <input
                 type="url"
@@ -143,13 +145,13 @@ export default function SellerShippingPanel({
               disabled={loading}
               className="flex-1 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 disabled:opacity-60 transition-colors"
             >
-              {loading ? 'Sparar…' : isShipped ? 'Spara spårning' : 'Markera som skickat'}
+              {loading ? t('saving') : isShipped ? t('save_tracking') : t('mark_shipped')}
             </button>
             <button
               onClick={() => setExpanded(false)}
               className="px-4 py-2 rounded-lg border border-stone-200 text-sm text-stone-600 hover:bg-stone-100 transition-colors"
             >
-              Avbryt
+              {t('cancel')}
             </button>
           </div>
         </div>

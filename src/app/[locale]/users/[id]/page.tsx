@@ -241,7 +241,7 @@ export default function UserProfilePage() {
         <div>
           <CollectionStrip
             collections={collections}
-            title={`${user?.name || 'Konstnärens'} samlingar`}
+            title={user?.name ? t('collections_of', { name: user.name }) : t('collections_title')}
           />
         </div>
       )}

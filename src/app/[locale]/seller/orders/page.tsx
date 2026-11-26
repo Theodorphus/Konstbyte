@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { redirectToSignIn } from '@/lib/require-user';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import prisma from '@/lib/prisma';
@@ -18,7 +18,7 @@ export default async function SellerOrdersPage() {
     getCurrentUser(),
     getTranslations('seller'),
   ]);
-  if (!user) redirect('/auth/signin');
+  if (!user) return redirectToSignIn('/seller/orders');
 
   const orders = await prisma.order.findMany({
     where: {

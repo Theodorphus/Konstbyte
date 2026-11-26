@@ -19,6 +19,7 @@ interface MsgUser {
   name: string | null;
   email: string;
   image: string | null;
+  _count?: { artworks: number };
 }
 
 interface Message {
@@ -129,9 +130,10 @@ export default function ConversationPage() {
             </div>
             <div>
               <Link href={`/users/${other.id}`} className="font-semibold text-slate-900 hover:underline text-sm">
-                {other.name || 'Användare'}
+                {other.name || t('unknown_user')}
               </Link>
-              <p className="text-xs text-slate-400">{t('artist_on_konstbyte')}</p>
+              {/* Only people who have put up art are called artists; buyers are members. */}
+              <p className="text-xs text-slate-400">{t((other._count?.artworks ?? 0) > 0 ? 'artist_on_konstbyte' : 'member_on_konstbyte')}</p>
             </div>
           </>
         )}

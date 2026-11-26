@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useTimeAgo } from '@/lib/use-time-ago';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import ReactionBar from './ReactionBar';
@@ -40,18 +42,6 @@ interface Props {
   onDelete: (postId: string) => void;
 }
 
-function timeAgo(dateString: string) {
-  const now = Date.now();
-  const then = new Date(dateString).getTime();
-  const diff = Math.floor((now - then) / 1000);
-  if (diff < 60) return 'just nu';
-  if (diff < 3600) return `${Math.floor(diff / 60)} min sedan`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} tim sedan`;
-  const days = Math.floor(diff / 86400);
-  if (days < 7) return `${days} dag${days !== 1 ? 'ar' : ''} sedan`;
-  return new Date(dateString).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
-}
-
 function AvatarCircle({ user, size = 'md' }: { user: Author; size?: 'sm' | 'md' }) {
   const dim = size === 'md' ? 'w-10 h-10' : 'w-8 h-8';
   const textSize = size === 'md' ? 'text-sm' : 'text-xs';
@@ -74,6 +64,8 @@ function AvatarCircle({ user, size = 'md' }: { user: Author; size?: 'sm' | 'md' 
 }
 
 export default function PostCard({ post, currentUserEmail, currentUserId, isAdmin = false, onDelete }: Props) {
+  const t = useTranslations('community');
+  const timeAgo = useTimeAgo();
   const [reactions, setReactions] = useState<ReactionCounts>(post.reactions);
   const [userReaction, setUserReaction] = useState<string | null>(post.userReaction);
   const [commentCount, setCommentCount] = useState(post.commentCount);
@@ -115,7 +107,7 @@ export default function PostCard({ post, currentUserEmail, currentUserId, isAdmi
         // Revert
         setReactions(prevReactions);
         setUserReaction(prevUserReaction);
-        alert('Du måste vara inloggad för att reagera');
+        alert(t('sign_in_to_react'));
       }
     } catch {
       setReactions(prevReactions);
@@ -124,12 +116,12 @@ export default function PostCard({ post, currentUserEmail, currentUserId, isAdmi
   }
 
   async function handleDelete() {
-    if (!confirm('Ta bort inlägget?')) return;
+    if (!confirm(t('delete_post_confirm'))) return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/posts/${post.id}`, { method: 'DELETE' });
       if (res.ok) onDelete(post.id);
-      else alert('Kunde inte ta bort inlägget');
+      else alert(t('delete_post_error'));
     } finally {
       setDeleting(false);
     }
@@ -143,7 +135,7 @@ export default function PostCard({ post, currentUserEmail, currentUserId, isAdmi
           <AvatarCircle user={post.author} />
           <div>
             <p className="text-sm font-semibold text-slate-900 group-hover:text-amber-800 transition-colors">
-              {post.author.name ?? 'Anonym användare'}
+              {post.author.name ?? t('anonymous')}
             </p>
             <p className="text-xs text-slate-400">{timeAgo(post.createdAt)}</p>
           </div>
@@ -154,7 +146,7 @@ export default function PostCard({ post, currentUserEmail, currentUserId, isAdmi
             disabled={deleting}
             className="text-xs text-slate-300 hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
           >
-            {deleting ? '…' : 'Ta bort'}
+            {deleting ? '…' : t('delete')}
           </button>
         ) : (
           <ReportButton type="post" id={post.id} />
@@ -175,11 +167,11 @@ export default function PostCard({ post, currentUserEmail, currentUserId, isAdmi
             type="button"
             onClick={() => setLightboxOpen(true)}
             className="relative w-full aspect-[4/3] bg-stone-100 overflow-hidden block group cursor-zoom-in"
-            aria-label="Förstora bild"
+            aria-label={t('enlarge_image')}
           >
             <Image
               src={post.imageUrl}
-              alt="Post image"
+              alt={t('post_image_alt')}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
               sizes="(max-width: 672px) 100vw, 672px"
@@ -193,7 +185,7 @@ export default function PostCard({ post, currentUserEmail, currentUserId, isAdmi
           {lightboxOpen && (
             <ImageLightbox
               src={post.imageUrl}
-              alt="Post image"
+              alt={t('post_image_alt')}
               onClose={() => setLightboxOpen(false)}
             />
           )}

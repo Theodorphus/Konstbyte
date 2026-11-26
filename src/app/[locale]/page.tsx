@@ -64,10 +64,23 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     const challenge = await prisma.challenge.findFirst({
       where: { startsAt: { lte: now } },
       orderBy: { startsAt: 'desc' },
-      select: { id: true, title: true, themePrompt: true, imageUrl: true, weekNumber: true, year: true, endsAt: true },
+      select: { id: true, title: true, titleEn: true, themePrompt: true, themePromptEn: true, imageUrl: true, weekNumber: true, year: true, endsAt: true },
     });
     // Challenges without their own image get the theme's illustration.
-    if (challenge) currentChallenge = { ...challenge, imageUrl: challenge.imageUrl ?? themeImageFor(challenge.title), isActive: challenge.endsAt > now };
+    if (challenge) {
+      const en = locale === 'en';
+      currentChallenge = {
+        id: challenge.id,
+        // English visitors get the English theme when there is one.
+        title: (en && challenge.titleEn) || challenge.title,
+        themePrompt: (en && challenge.themePromptEn) || challenge.themePrompt,
+        imageUrl: challenge.imageUrl ?? themeImageFor(challenge.title, challenge.titleEn),
+        weekNumber: challenge.weekNumber,
+        year: challenge.year,
+        endsAt: challenge.endsAt,
+        isActive: challenge.endsAt > now,
+      };
+    }
   } catch { loadError = true; }
 
   return (

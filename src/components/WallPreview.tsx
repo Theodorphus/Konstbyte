@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   artworkUrl: string;
@@ -93,6 +94,7 @@ function UploadArea({
 }: {
   onFile: (file: File) => void;
 }) {
+  const t = useTranslations('wall');
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -135,10 +137,10 @@ function UploadArea({
 
       <div className="text-center space-y-1">
         <p className="text-stone-200 font-medium text-sm">
-          Ladda upp ett foto av din vägg
+          {t('upload_title')}
         </p>
         <p className="text-stone-500 text-xs">
-          Dra och släpp, eller välj en fil
+          {t('upload_hint')}
         </p>
       </div>
 
@@ -146,7 +148,7 @@ function UploadArea({
         onClick={() => inputRef.current?.click()}
         className="px-5 py-2.5 rounded-lg bg-amber-500 text-stone-900 text-sm font-semibold hover:bg-amber-400 active:bg-amber-600 transition-colors"
       >
-        Välj foto
+        {t('choose_photo')}
       </button>
 
       <input
@@ -166,6 +168,7 @@ function UploadArea({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
+  const t = useTranslations('wall');
   const [isOpen, setIsOpen] = useState(false);
   const [wallImage, setWallImage] = useState<string | null>(null);
   const [transform, setTransform] = useState<Transform>(INITIAL_TRANSFORM);
@@ -316,7 +319,7 @@ export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
           />
         </svg>
-        Se på min vägg
+        {t('open')}
       </button>
     );
   }
@@ -328,7 +331,7 @@ export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
       className="fixed inset-0 z-50 flex items-stretch bg-stone-950/85 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-label="Förhandsgranska konstverk på din vägg"
+      aria-label={t('dialog_label')}
     >
       {/* ── Canvas (left) ─────────────────────────────────────────────────── */}
       <div className="flex-1 relative overflow-hidden bg-stone-900" onWheel={onWheel}>
@@ -338,7 +341,7 @@ export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
           <>
             <img
               src={wallImage}
-              alt="Din vägg"
+              alt={t('wall_alt')}
               className="absolute inset-0 w-full h-full object-cover"
               draggable={false}
             />
@@ -360,7 +363,7 @@ export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
         <div className="px-5 py-4 border-b border-stone-200 flex items-center justify-between flex-shrink-0">
           <div className="min-w-0">
             <h2 className="font-semibold text-stone-900 text-sm leading-tight">
-              Se på min vägg
+              {t('open')}
             </h2>
             <p className="text-xs text-stone-400 mt-0.5 truncate">{artworkTitle}</p>
           </div>
@@ -374,19 +377,19 @@ export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
                 onFocus={() => setShowTooltip(true)}
                 onBlur={() => setShowTooltip(false)}
                 className="w-6 h-6 rounded-full border border-stone-300 text-stone-500 text-xs font-semibold hover:bg-stone-100 transition-colors flex items-center justify-center"
-                aria-label="Hjälp"
+                aria-label={t('help')}
               >
                 ?
               </button>
 
               {showTooltip && (
                 <div className="absolute right-0 top-8 w-52 bg-stone-900 text-stone-100 text-xs rounded-xl p-3.5 shadow-2xl z-20 leading-relaxed">
-                  <p className="font-semibold text-stone-100 mb-2">Hur använder jag det här?</p>
+                  <p className="font-semibold text-stone-100 mb-2">{t('help_title')}</p>
                   <ul className="space-y-1.5 text-stone-400">
-                    <li>📷 Ladda upp ett foto av din vägg</li>
-                    <li>✋ Dra konstverket för att flytta det</li>
-                    <li>🖱 Skrolla för att zooma in/ut</li>
-                    <li>🎛 Justera med reglagen till höger</li>
+                    <li>📷 {t('help_upload')}</li>
+                    <li>✋ {t('help_drag')}</li>
+                    <li>🖱 {t('help_zoom')}</li>
+                    <li>🎛 {t('help_controls')}</li>
                   </ul>
                 </div>
               )}
@@ -396,7 +399,7 @@ export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
             <button
               onClick={() => setIsOpen(false)}
               className="w-7 h-7 rounded-lg hover:bg-stone-200 flex items-center justify-center text-stone-500 transition-colors"
-              aria-label="Stäng"
+              aria-label={t('close')}
             >
               <svg
                 className="w-4 h-4"
@@ -429,7 +432,7 @@ export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
 
           {!wallImage && (
             <p className="text-xs text-stone-400 text-center leading-relaxed">
-              Ladda upp ett foto av din vägg för att se hur konstverket passar in i ditt hem.
+              {t('intro')}
             </p>
           )}
 
@@ -438,7 +441,7 @@ export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
               {/* Sliders */}
               <div className="space-y-5">
                 <Slider
-                  label="Storlek"
+                  label={t('size')}
                   value={Math.round(transform.scale * 100)}
                   min={10}
                   max={200}
@@ -448,7 +451,7 @@ export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
                   }
                 />
                 <Slider
-                  label="Rotation"
+                  label={t('rotation')}
                   value={transform.rotation}
                   min={-180}
                   max={180}
@@ -462,10 +465,10 @@ export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
               {/* Appearance toggles */}
               <div className="space-y-3">
                 <p className="text-xs font-medium text-stone-500 uppercase tracking-wide">
-                  Utseende
+                  {t('appearance')}
                 </p>
-                <Toggle label="Skugga" value={showShadow} onChange={setShowShadow} />
-                <Toggle label="Ram" value={showFrame} onChange={setShowFrame} />
+                <Toggle label={t('shadow')} value={showShadow} onChange={setShowShadow} />
+                <Toggle label={t('frame')} value={showFrame} onChange={setShowFrame} />
               </div>
 
               {/* Actions */}
@@ -474,7 +477,7 @@ export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
                   onClick={() => setTransform(INITIAL_TRANSFORM)}
                   className="w-full py-2 text-xs text-stone-600 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors"
                 >
-                  Återställ position
+                  {t('reset')}
                 </button>
                 <button
                   onClick={() => {
@@ -483,7 +486,7 @@ export default function WallPreview({ artworkUrl, artworkTitle }: Props) {
                   }}
                   className="w-full py-2 text-xs text-stone-600 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors"
                 >
-                  Byt väggfoto
+                  {t('change_photo')}
                 </button>
               </div>
             </>

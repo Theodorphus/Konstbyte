@@ -81,7 +81,7 @@ export default function MessagesPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className={`font-semibold text-sm truncate ${unread > 0 ? 'text-slate-900' : 'text-slate-700'}`}>
-                      {other.name || 'Användare'}
+                      {other.name || t('unknown_user')}
                     </span>
                     <span className="text-xs text-slate-400 flex-shrink-0">
                       {timeAgo(lastMessage.createdAt, t)}

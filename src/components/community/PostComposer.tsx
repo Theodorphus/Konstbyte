@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useUploadThing } from '../../lib/uploadthing-client';
 import type { PostData } from './PostCard';
 
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function PostComposer({ currentUserEmail, currentUserName, currentUserImage, onPost }: Props) {
+  const t = useTranslations('community');
   const [content, setContent] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export default function PostComposer({ currentUserEmail, currentUserName, curren
     },
     onUploadError: () => {
       setUploading(false);
-      alert('Bilduppladdning misslyckades');
+      alert(t('image_upload_error'));
     },
   });
 
@@ -61,9 +63,9 @@ export default function PostComposer({ currentUserEmail, currentUserName, curren
         setUploadedUrl(null);
         setExpanded(false);
       } else if (res.status === 401) {
-        alert('Du måste vara inloggad för att skriva inlägg');
+        alert(t('sign_in_to_post'));
       } else {
-        alert('Misslyckades att publicera inlägg');
+        alert(t('post_error'));
       }
     } finally {
       setPosting(false);
@@ -92,7 +94,7 @@ export default function PostComposer({ currentUserEmail, currentUserName, curren
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onFocus={() => setExpanded(true)}
-            placeholder="Dela något med communityt…"
+            placeholder={t('composer_placeholder')}
             rows={expanded ? 3 : 1}
             className="w-full resize-none rounded-2xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-transparent transition-all duration-200"
             disabled={posting}
@@ -102,10 +104,10 @@ export default function PostComposer({ currentUserEmail, currentUserName, curren
           {previewUrl && (
             <div className="relative rounded-xl overflow-hidden bg-stone-100 max-h-64">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previewUrl} alt="Förhandsvisning" className="w-full object-cover max-h-64" />
+              <img src={previewUrl} alt={t('preview_alt')} className="w-full object-cover max-h-64" />
               {uploading && (
                 <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-                  <p className="text-xs font-medium text-slate-600 animate-pulse">Laddar upp…</p>
+                  <p className="text-xs font-medium text-slate-600 animate-pulse">{t('uploading')}</p>
                 </div>
               )}
               <button
@@ -136,7 +138,7 @@ export default function PostComposer({ currentUserEmail, currentUserName, curren
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:bg-stone-100 cursor-pointer transition-colors"
                 >
                   <span>🖼️</span>
-                  <span>Bild</span>
+                  <span>{t('image')}</span>
                 </label>
               </div>
 
@@ -147,7 +149,7 @@ export default function PostComposer({ currentUserEmail, currentUserName, curren
                     onClick={() => { setExpanded(false); setContent(''); removeImage(); }}
                     className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-500 hover:bg-stone-100 transition-colors"
                   >
-                    Avbryt
+                    {t('cancel')}
                   </button>
                 )}
                 <button
@@ -155,7 +157,7 @@ export default function PostComposer({ currentUserEmail, currentUserName, curren
                   disabled={!content.trim() || posting || uploading}
                   className="px-5 py-1.5 rounded-full bg-amber-400 text-slate-900 text-xs font-semibold disabled:opacity-50 hover:bg-amber-300 transition-colors"
                 >
-                  {posting ? 'Publicerar…' : 'Publicera'}
+                  {posting ? t('posting') : t('post')}
                 </button>
               </div>
             </div>

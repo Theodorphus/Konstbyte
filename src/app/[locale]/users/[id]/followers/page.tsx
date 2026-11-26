@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 
 interface Follower {
   id: string;
@@ -21,6 +22,7 @@ interface Follower {
 export default function FollowersPage() {
   const params = useParams();
   const userId = params.id as string;
+  const t = useTranslations('users');
 
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,10 +49,10 @@ export default function FollowersPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-semibold">Följare</h1>
+        <h1 className="text-2xl font-semibold">{t('followers_title')}</h1>
         <Card>
           <CardContent className="p-6 text-center text-slate-600">
-            Laddar följare...
+            {t('list_loading')}
           </CardContent>
         </Card>
       </div>
@@ -60,20 +62,20 @@ export default function FollowersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Följare</h1>
+        <h1 className="text-2xl font-semibold">{t('followers_title')}</h1>
         <Button variant="outline" asChild>
-          <Link href="/profile">Tillbaka</Link>
+          <Link href={`/users/${userId}`}>{t('back')}</Link>
         </Button>
       </div>
 
       <div className="text-sm text-slate-600">
-        {followers.length} följare
+        {t('followers_count', { count: followers.length })}
       </div>
 
       {followers.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-slate-600">Inga följare ännu.</p>
+            <p className="text-slate-600">{t('no_followers')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -87,12 +89,12 @@ export default function FollowersPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold truncate">
-                      {follower.follower.name || 'Anonym användare'}
+                      {follower.follower.name || t('anonymous_user')}
                     </div>
                   </div>
                 </div>
                 <Button asChild variant="outline" size="sm" className="w-full mt-3">
-                  <Link href={`/users/${follower.follower.id}`}>Visa profil</Link>
+                  <Link href={`/users/${follower.follower.id}`}>{t('view_profile')}</Link>
                 </Button>
               </CardContent>
             </Card>

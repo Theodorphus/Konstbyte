@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 interface ReactionCounts {
   like: number;
   heart: number;
@@ -15,10 +17,11 @@ interface Props {
   commentsOpen: boolean;
 }
 
+// Labels: messages → community.reaction_<type>
 const REACTIONS = [
-  { type: 'like' as const, emoji: '👍', label: 'Gilla' },
-  { type: 'heart' as const, emoji: '❤️', label: 'Älska' },
-  { type: 'wow' as const, emoji: '😮', label: 'Wow' },
+  { type: 'like' as const, emoji: '👍' },
+  { type: 'heart' as const, emoji: '❤️' },
+  { type: 'wow' as const, emoji: '😮' },
 ];
 
 export default function ReactionBar({
@@ -29,6 +32,7 @@ export default function ReactionBar({
   onToggleComments,
   commentsOpen,
 }: Props) {
+  const t = useTranslations('community');
   const totalReactions = reactions.like + reactions.heart + reactions.wow;
 
   return (
@@ -39,7 +43,7 @@ export default function ReactionBar({
           {reactions.like > 0 && <span>👍 {reactions.like}</span>}
           {reactions.heart > 0 && <span>❤️ {reactions.heart}</span>}
           {reactions.wow > 0 && <span>😮 {reactions.wow}</span>}
-          <span className="ml-auto">{commentCount > 0 ? `${commentCount} kommentar${commentCount !== 1 ? 'er' : ''}` : ''}</span>
+          <span className="ml-auto">{commentCount > 0 ? t('comments_count', { count: commentCount }) : ''}</span>
         </div>
       )}
 
@@ -48,7 +52,8 @@ export default function ReactionBar({
 
       {/* Action buttons */}
       <div className="flex items-center gap-1">
-        {REACTIONS.map(({ type, emoji, label }) => {
+        {REACTIONS.map(({ type, emoji }) => {
+          const label = t(`reaction_${type}`);
           const isActive = userReaction === type;
           return (
             <button
@@ -79,7 +84,7 @@ export default function ReactionBar({
         >
           <span className="transition-transform duration-150 group-hover:scale-125">💬</span>
           <span className="text-xs">
-            {commentsOpen ? 'Dölj' : commentCount > 0 ? `${commentCount} kommentarer` : 'Kommentera'}
+            {commentsOpen ? t('hide_comments') : commentCount > 0 ? t('comments_count', { count: commentCount }) : t('comment')}
           </span>
         </button>
       </div>

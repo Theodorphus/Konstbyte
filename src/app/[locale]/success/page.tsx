@@ -31,6 +31,32 @@ async function SuccessContent({ orderId }: { orderId: string }) {
   // Delayed methods (Swish/Klarna via Stripe) can land here before the webhook confirms.
   const isProcessing = order.status === 'pending' || order.status === 'payment_processing';
 
+  // The payment didn't go through, or was given back (e.g. someone else bought
+  // the artwork a moment earlier): never say "payment completed" then.
+  if (order.status === 'expired' || order.status === 'payment_failed' || order.status === 'refunded') {
+    const refunded = order.status === 'refunded';
+    return (
+      <div className="max-w-md mx-auto py-20 px-4 text-center space-y-6">
+        <h1 className="text-2xl font-bold text-slate-900">{refunded ? t('refunded_title') : t('not_completed_title')}</h1>
+        <p className="text-slate-600">{refunded ? t('refunded_desc') : t('not_completed_desc')}</p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+          <Link
+            href={`/orders/${order.id}`}
+            className="px-5 py-2.5 rounded-md bg-slate-900 text-white font-semibold text-sm hover:bg-slate-700 transition-colors"
+          >
+            {t('view_order')}
+          </Link>
+          <Link
+            href="/artworks"
+            className="px-5 py-2.5 rounded-md border border-stone-300 text-slate-700 font-semibold text-sm hover:bg-stone-50 transition-colors"
+          >
+            {t('keep_browsing')}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-lg mx-auto py-16 px-4 space-y-6">
       {/* Success header */}
@@ -135,16 +161,13 @@ async function SuccessContent({ orderId }: { orderId: string }) {
   );
 }
 
+// No order we can show (missing id, not signed in, or someone else's order):
+// don't claim that a payment went through.
 async function GenericSuccess() {
   const t = await getTranslations('success');
   return (
     <div className="max-w-md mx-auto py-20 text-center space-y-6">
-      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-        <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-      <h1 className="text-2xl font-bold text-slate-900">{t('payment_done')}</h1>
+      <h1 className="text-2xl font-bold text-slate-900">{t('generic_title')}</h1>
       <p className="text-slate-600">{t('generic_thanks')}</p>
       <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
         <Link

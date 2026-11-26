@@ -37,6 +37,7 @@ interface SharedShippingValues {
 export default function NewArtworkPage() {
   const router = useRouter();
   const t = useTranslations('artworks');
+  const tUp = useTranslations('upload');
 
   // Auth check
   const [ownerId, setOwnerId] = useState<string | null>(null);
@@ -125,7 +126,7 @@ export default function NewArtworkPage() {
 
   const handleStep1Next = () => {
     if (artworkSlots.length === 0) {
-      setError('Du måste ladda upp minst en bild');
+      setError(tUp('need_image'));
       return;
     }
     setError(null);
@@ -184,7 +185,7 @@ export default function NewArtworkPage() {
     } catch (err) {
       console.error('Error creating artworks:', err);
       setError(
-        err instanceof Error ? err.message : 'Kunde inte skapa konstverken. Försök igen senare.'
+        err instanceof Error ? err.message : tUp('create_error')
       );
       setIsSubmitting(false);
     }
@@ -207,13 +208,13 @@ export default function NewArtworkPage() {
         <Card>
           <CardContent className="p-6 text-center space-y-4">
             <h1 className="text-xl font-semibold text-slate-900">{t('sign_in_to_upload')}</h1>
-            <p className="text-slate-600">Du måste vara inloggad för att ladda upp konst.</p>
+            <p className="text-slate-600">{tUp('sign_in_desc')}</p>
             <div className="flex flex-col gap-2 pt-2">
               <Link href="/auth/signin" className="inline-flex justify-center px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors">
-                Logga in
+                {tUp('sign_in')}
               </Link>
               <Link href="/auth/register" className="inline-flex justify-center px-4 py-2 border border-slate-200 text-slate-900 rounded-lg hover:bg-slate-50 transition-colors">
-                Registrera dig
+                {tUp('register')}
               </Link>
             </div>
           </CardContent>

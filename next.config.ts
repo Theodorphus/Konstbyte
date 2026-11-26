@@ -58,7 +58,9 @@ const nextConfig: NextConfig = {
       { source: `/sv${from}`, destination: to, permanent: true },
       { source: `/en${from}`, destination: `/en${to}`, permanent: true },
     ]);
-    return [...hemsidor, ...policies];
+    // Browsers and crawlers ask for /favicon.ico even though the layout links the real icons.
+    const favicon = { source: '/favicon.ico', destination: '/favicon-96x96.png', permanent: true };
+    return [...hemsidor, ...policies, favicon];
   },
   async headers() {
     return [

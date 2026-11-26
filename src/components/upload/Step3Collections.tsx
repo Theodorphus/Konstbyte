@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createCollection, getUserCollections } from '@/app/actions/collection-actions';
@@ -26,6 +27,7 @@ export function Step3Collections({
   onSubmit,
   isSubmitting,
 }: Step3CollectionsProps) {
+  const t = useTranslations('upload');
   const [mode, setMode] = useState<'skip' | Mode>('choose');
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -42,7 +44,7 @@ export function Step3Collections({
         setCollections(result);
       } catch (err) {
         console.error('Error fetching collections:', err);
-        setError('Kunde inte hämta samlingarna. Försök igen senare.');
+        setError(t('collections_load_error'));
       } finally {
         setIsLoading(false);
       }
@@ -51,10 +53,11 @@ export function Step3Collections({
     fetchCollections();
   }, []);
 
-  const handleCreateCollection = async () => {
+  // Creates the collection and returns its id (null if it could not be created).
+  const handleCreateCollection = async (): Promise<string | null> => {
     if (!newCollectionTitle.trim()) {
-      setError('Samlingens namn är obligatoriskt');
-      return;
+      setError(t('collection_name_required'));
+      return null;
     }
 
     setIsCreating(true);
@@ -77,17 +80,22 @@ export function Step3Collections({
       setMode('choose');
       setNewCollectionTitle('');
       setNewCollectionDesc('');
+      return newCollection.id;
     } catch (err) {
       console.error('Error creating collection:', err);
-      setError('Kunde inte skapa samlingen. Försök igen senare.');
+      setError(t('collection_create_error'));
+      return null;
     } finally {
       setIsCreating(false);
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (mode === 'skip') {
       onSubmit(null);
+    } else if (mode === 'create') {
+      const id = await handleCreateCollection();
+      if (id) onSubmit(id);
     } else {
       onSubmit(selectedId || null);
     }
@@ -102,9 +110,9 @@ export function Step3Collections({
       className="space-y-6"
     >
       <div>
-        <h2 className="text-2xl font-semibold text-slate-900 mb-2">Lägg till i samling</h2>
+        <h2 className="text-2xl font-semibold text-slate-900 mb-2">{t('step3_title')}</h2>
         <p className="text-slate-600">
-          Du kan skapa en ny samling, välja en befintlig, eller hoppa över detta steg.
+          {t('step3_desc')}
         </p>
       </div>
 
@@ -118,7 +126,7 @@ export function Step3Collections({
       {isLoading ? (
         <div className="text-center py-8">
           <Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-400 mb-2" />
-          <p className="text-sm text-slate-600">Laddar samlingarna...</p>
+          <p className="text-sm text-slate-600">{t('collections_loading')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -133,7 +141,7 @@ export function Step3Collections({
               className="w-4 h-4 accent-amber-400"
             />
             <span className="ml-3 font-medium text-slate-900">
-              Hoppa över – lägg inte till i någon samling
+              {t('skip_collection')}
             </span>
           </label>
 
@@ -149,7 +157,7 @@ export function Step3Collections({
                 className="w-4 h-4 accent-amber-400"
               />
               <span className="ml-3 font-medium text-slate-900">
-                Välj befintlig samling ({collections.length})
+                {t('choose_collection', { count: collections.length })}
               </span>
             </label>
 
@@ -170,7 +178,7 @@ export function Step3Collections({
                     />
                     <span className="ml-3 font-medium text-slate-900">{col.title}</span>
                     <span className="ml-auto text-xs text-slate-500">
-                      {col._count.items} verk
+                      {t('collection_items', { count: col._count.items })}
                     </span>
                   </label>
                 ))}
@@ -179,7 +187,7 @@ export function Step3Collections({
 
             {mode === 'choose' && collections.length === 0 && (
               <div className="border-2 border-t-0 border-slate-200 rounded-b-xl p-4 bg-slate-50/50 text-center text-sm text-slate-500">
-                Du har inga samlingard än. Skapa en ny!
+                {t('no_collections')}
               </div>
             )}
           </div>
@@ -195,30 +203,30 @@ export function Step3Collections({
                 onChange={() => setMode('create')}
                 className="w-4 h-4 accent-amber-400"
               />
-              <span className="ml-3 font-medium text-slate-900">Skapa ny samling</span>
+              <span className="ml-3 font-medium text-slate-900">{t('create_collection')}</span>
             </label>
 
             {mode === 'create' && (
               <div className="border-2 border-t-0 border-slate-200 rounded-b-xl p-4 space-y-3 bg-slate-50/50">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Samlingens namn *
+                    {t('collection_name')}
                   </label>
                   <Input
                     value={newCollectionTitle}
                     onChange={(e) => setNewCollectionTitle(e.target.value)}
-                    placeholder="T.ex. Blå period"
+                    placeholder={t('collection_name_placeholder')}
                     className="rounded-xl"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Beskrivning
+                    {t('collection_desc')}
                   </label>
                   <textarea
                     value={newCollectionDesc}
                     onChange={(e) => setNewCollectionDesc(e.target.value)}
-                    placeholder="Beskriv denna samling..."
+                    placeholder={t('collection_desc_placeholder')}
                     rows={2}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
                   />
@@ -238,7 +246,7 @@ export function Step3Collections({
           variant="outline"
           className="border-slate-200"
         >
-          ← Tillbaka
+          {t('back')}
         </Button>
         <Button
           type="submit"
@@ -248,10 +256,10 @@ export function Step3Collections({
           {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Publicerar...
+              {t('publishing')}
             </>
           ) : (
-            'Publicera konstverk'
+            t('publish')
           )}
         </Button>
       </div>

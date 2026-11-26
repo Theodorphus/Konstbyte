@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   src: string;
@@ -9,7 +10,8 @@ interface Props {
   onClose: () => void;
 }
 
-export default function ImageLightbox({ src, alt = 'Bild', onClose }: Props) {
+export default function ImageLightbox({ src, alt, onClose }: Props) {
+  const t = useTranslations('community');
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handleKey);
@@ -28,7 +30,7 @@ export default function ImageLightbox({ src, alt = 'Bild', onClose }: Props) {
       <button
         onClick={onClose}
         className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors text-lg"
-        aria-label="Stäng"
+        aria-label={t('close')}
       >
         ✕
       </button>
@@ -39,7 +41,7 @@ export default function ImageLightbox({ src, alt = 'Bild', onClose }: Props) {
       >
         <Image
           src={src}
-          alt={alt}
+          alt={alt ?? t('image')}
           fill
           className="object-contain"
           sizes="(max-width: 896px) 100vw, 896px"

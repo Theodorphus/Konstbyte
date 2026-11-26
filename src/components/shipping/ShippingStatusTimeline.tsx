@@ -1,16 +1,15 @@
 // ShippingStatusTimeline — vertical 3-step timeline on the order page.
 // Steps: Beställt → Skickat → Mottaget
 
+import { useTranslations } from 'next-intl';
+
 interface Props {
   shippingStatus: string; // "not_shipped" | "shipped" | "delivered"
   createdAt: string;
 }
 
-const STEPS = [
-  { key: 'ordered', label: 'Beställt', sublabel: 'Betalning genomförd' },
-  { key: 'shipped', label: 'Skickat', sublabel: 'Säljaren har skickat paketet' },
-  { key: 'delivered', label: 'Mottaget', sublabel: 'Köparen har bekräftat leveransen' },
-];
+// Labels: messages → orders.step_<key> / orders.step_<key>_sub
+const STEPS = [{ key: 'ordered' }, { key: 'shipped' }, { key: 'delivered' }] as const;
 
 function stepDone(stepKey: string, shippingStatus: string): boolean {
   if (stepKey === 'ordered') return true;
@@ -20,6 +19,7 @@ function stepDone(stepKey: string, shippingStatus: string): boolean {
 }
 
 export default function ShippingStatusTimeline({ shippingStatus }: Props) {
+  const t = useTranslations('orders');
   return (
     <div className="space-y-0">
       {STEPS.map((step, i) => {
@@ -52,10 +52,10 @@ export default function ShippingStatusTimeline({ shippingStatus }: Props) {
             {/* Right — text */}
             <div className={`pb-6 ${isLast ? 'pb-0' : ''}`}>
               <p className={`text-sm font-semibold ${done ? 'text-slate-900' : 'text-slate-400'}`}>
-                {step.label}
+                {t(`step_${step.key}`)}
               </p>
               <p className={`text-xs mt-0.5 ${done ? 'text-slate-500' : 'text-slate-300'}`}>
-                {step.sublabel}
+                {t(`step_${step.key}_sub`)}
               </p>
             </div>
           </div>

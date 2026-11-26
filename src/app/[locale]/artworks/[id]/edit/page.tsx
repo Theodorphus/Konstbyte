@@ -36,6 +36,7 @@ export default function EditArtworkPage() {
   const params = useParams();
   const artworkId = params.id as string;
   const t = useTranslations('artworks');
+  const tShip = useTranslations('shipping');
 
   const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [title, setTitle] = useState('');
@@ -267,7 +268,7 @@ export default function EditArtworkPage() {
                 className="w-full px-3 py-2 border rounded text-sm"
               >
                 {SHIPPING_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option key={opt.value} value={opt.value}>{opt.icon} {tShip(`type_${opt.value}`)}</option>
                 ))}
               </select>
               {shippingType === 'fixed' && (

@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { redirectToSignIn } from '@/lib/require-user';
 import { Link } from '@/i18n/navigation';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
@@ -18,7 +18,7 @@ export default async function SellerPayoutsPage({
     getTranslations('seller'),
     searchParams,
   ]);
-  if (!user) redirect('/auth/signin');
+  if (!user) return redirectToSignIn('/seller/payouts');
 
   const stripeReady = Boolean(user.stripeAccountId && user.stripeOnboardingDone);
   const connectMessage =

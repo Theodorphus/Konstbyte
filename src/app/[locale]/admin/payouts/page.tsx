@@ -15,7 +15,7 @@ interface Order {
   seller: { id: string; name: string | null; email: string } | null;
   sellerPayoutNote?: string | null;
   // Saved when the payout was calculated (net of commission and Stripe's fee).
-  payout?: { sellerPayoutAmount: number; commissionAmount: number; adminNote: string | null } | null;
+  payout?: { sellerPayoutAmount: number; commissionAmount: number; adminNote: string | null; createdAt?: string } | null;
 }
 
 interface CompletedPayout {
@@ -43,6 +43,10 @@ function formatAmount(amount: number) {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('sv-SE', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function daysSince(iso: string) {
+  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
 }
 
 function CommissionBreakdown({ order }: { order: Order }) {
@@ -280,6 +284,7 @@ export default function AdminPayoutsPage() {
   const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
   const [pendingSwish, setPendingSwish] = useState<Order[]>([]);
   const [unpaidPayouts, setUnpaidPayouts] = useState<Order[]>([]);
+  const [awaitingStripe, setAwaitingStripe] = useState<Order[]>([]);
   const [onHold, setOnHold] = useState<Order[]>([]);
   const [completedPayouts, setCompletedPayouts] = useState<CompletedPayout[]>([]);
   const [loading, setLoading] = useState(true);
@@ -296,6 +301,7 @@ export default function AdminPayoutsPage() {
         if (data.pendingSwish) {
           setPendingSwish(data.pendingSwish);
           setUnpaidPayouts(data.unpaidPayouts);
+          setAwaitingStripe(data.awaitingStripe ?? []);
           setOnHold(data.onHold ?? []);
         } else {
           setError(data.error ?? t('error_unknown'));
@@ -339,6 +345,7 @@ export default function AdminPayoutsPage() {
         setCompletedPayouts([]);
       } else {
         setUnpaidPayouts((prev) => prev.filter((o) => o.id !== orderId));
+        setAwaitingStripe((prev) => prev.filter((o) => o.id !== orderId));
         // Reset completed cache so it reloads if user switches tab
         setCompletedPayouts([]);
       }
@@ -348,7 +355,8 @@ export default function AdminPayoutsPage() {
   }
 
   const totalPayout = unpaidPayouts.reduce((s, o) => s + (o.payout?.sellerPayoutAmount ?? 0), 0);
-  const pendingCount = pendingSwish.length + unpaidPayouts.length + onHold.length;
+  const totalAwaiting = awaitingStripe.reduce((s, o) => s + (o.payout?.sellerPayoutAmount ?? 0), 0);
+  const pendingCount = pendingSwish.length + unpaidPayouts.length + awaitingStripe.length + onHold.length;
   const isEmpty = pendingCount === 0;
 
   return (
@@ -479,6 +487,47 @@ export default function AdminPayoutsPage() {
                   method={methods[order.id] ?? 'swish'}
                   onMethodChange={(m) => setMethods((p) => ({ ...p, [order.id]: m }))}
                 />
+              ))}
+            </section>
+          )}
+
+          {awaitingStripe.length > 0 && (
+            <section className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-sky-500" />
+                <h2 className="font-semibold text-slate-900">{t('awaiting_stripe_title')}</h2>
+                <span className="ml-auto text-xs text-slate-400">{t('orders_count', { count: awaitingStripe.length })}</span>
+              </div>
+              <p className="text-xs text-slate-500 -mt-1">{t('awaiting_stripe_desc')}</p>
+
+              <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4">
+                <p className="text-sm text-sky-700 font-medium">{t('awaiting_stripe_total')}</p>
+                <p className="text-2xl font-bold text-sky-900">{formatAmount(totalAwaiting)}</p>
+              </div>
+
+              {awaitingStripe.map((order) => (
+                <div key={order.id} className="space-y-1">
+                  {order.payout?.createdAt && (
+                    <p className="text-xs text-sky-700 px-1">
+                      {t('waiting_since', { date: formatDate(order.payout.createdAt), days: daysSince(order.payout.createdAt) })}
+                    </p>
+                  )}
+                  <OrderCard
+                    order={order}
+                    actionLabel={t('mark_paid_manually')}
+                    actionColor="bg-slate-700 hover:bg-slate-800"
+                    note={notes[order.id] ?? ''}
+                    onNoteChange={(v) => setNotes((p) => ({ ...p, [order.id]: v }))}
+                    onAction={() => {
+                      if (confirm(t('mark_paid_manually_confirm'))) doAction(order.id, 'payout');
+                    }}
+                    loading={actingId === order.id}
+                    showNote={true}
+                    showCommission={true}
+                    method={methods[order.id] ?? 'swish'}
+                    onMethodChange={(m) => setMethods((p) => ({ ...p, [order.id]: m }))}
+                  />
+                </div>
               ))}
             </section>
           )}

@@ -1,28 +1,31 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
+import { redirectToSignIn } from '@/lib/require-user';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { formatSek } from '@/lib/currency';
 import { PLATFORM_FEE_PERCENT } from '@/lib/payout';
-import { getShippingLabel } from '@/lib/shipping';
+import { shippingTypeKey } from '@/lib/shipping';
 import ShippingStatusTimeline from '@/components/shipping/ShippingStatusTimeline';
 import TrackingInfo from '@/components/shipping/TrackingInfo';
 import SellerShippingPanel from '@/components/shipping/SellerShippingPanel';
 import ConfirmReceivedButton from '@/components/shipping/ConfirmReceivedButton';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { isAdmin } from '@/lib/admin';
 
 export const dynamic = 'force-dynamic';
 
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [user, t, tSeller] = await Promise.all([
+  const [user, t, tSeller, tShip] = await Promise.all([
     getCurrentUser(),
     getTranslations('orders'),
     getTranslations('seller_type'),
+    getTranslations('shipping'),
   ]);
-  if (!user) redirect('/auth/signin');
+  const dateLocale = (await getLocale()) === 'en' ? 'en-GB' : 'sv-SE';
+  if (!user) return redirectToSignIn(`/orders/${id}`);
 
   const order = await prisma.order.findUnique({
     where: { id },
@@ -59,7 +62,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Order #{id.slice(-8).toUpperCase()}</h1>
             <p className="text-sm text-slate-500 mt-0.5">
-              {new Date(order.createdAt).toLocaleDateString('sv-SE', { year: 'numeric', month: 'long', day: 'numeric' })}
+              {new Date(order.createdAt).toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric' })}
               {' · '}{order.paymentMethod === 'swish' ? t('paid_swish') : t('paid_card')}
             </p>
           </div>
@@ -92,7 +95,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           </div>
           <div className="flex-1">
             <p className="font-semibold text-slate-900">{item.title}</p>
-            <p className="text-sm text-slate-500 mt-0.5">av {order.seller?.name || 'Konstnären'}</p>
+            <p className="text-sm text-slate-500 mt-0.5">{t('by_artist', { name: order.seller?.name || t('anonymous_artist') })}</p>
             <p className="font-bold text-slate-900 mt-2">{formatSek(item.price)}</p>
           </div>
           {order.shippingCost > 0 && (
@@ -148,7 +151,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         <p className="font-semibold text-stone-500 text-xs uppercase tracking-wide">{t('shipping_info_label')}</p>
         <div className="flex items-center justify-between">
           <span className="text-stone-500">{t('shipping_method_label')}</span>
-          <span className="font-medium text-slate-800">{getShippingLabel(order.shippingMethod)}</span>
+          <span className="font-medium text-slate-800">{tShip(shippingTypeKey(order.shippingMethod))}</span>
         </div>
         {order.shippingCost > 0 && (
           <div className="flex items-center justify-between">

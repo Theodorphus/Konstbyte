@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
+import { useTimeAgo } from '@/lib/use-time-ago';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import ReportButton from '@/components/ReportButton';
@@ -27,16 +29,6 @@ interface Props {
   isAdmin?: boolean;
 }
 
-function timeAgo(dateString: string) {
-  const now = Date.now();
-  const then = new Date(dateString).getTime();
-  const diff = Math.floor((now - then) / 1000);
-  if (diff < 60) return 'just nu';
-  if (diff < 3600) return `${Math.floor(diff / 60)} min sedan`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} tim sedan`;
-  return new Date(dateString).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
-}
-
 function AvatarCircle({ user }: { user: Author }) {
   const initials = user.name?.[0]?.toUpperCase() ?? '?';
   if (user.image) {
@@ -54,6 +46,8 @@ function AvatarCircle({ user }: { user: Author }) {
 }
 
 export default function CommentSection({ postId, currentUserEmail, currentUserId, postAuthorId, isAdmin = false }: Props) {
+  const t = useTranslations('community');
+  const timeAgo = useTimeAgo();
   const [comments, setComments] = useState<Comment[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState('');
@@ -85,7 +79,7 @@ export default function CommentSection({ postId, currentUserEmail, currentUserId
         setComments((prev) => [newComment, ...(prev ?? [])]);
         setInput('');
       } else if (res.status === 401) {
-        alert('Du måste vara inloggad för att kommentera');
+        alert(t('sign_in_to_comment'));
       }
     } finally {
       setSubmitting(false);
@@ -93,14 +87,14 @@ export default function CommentSection({ postId, currentUserEmail, currentUserId
   }
 
   async function handleDeleteComment(commentId: string) {
-    if (!confirm('Ta bort kommentaren?')) return;
+    if (!confirm(t('delete_comment_confirm'))) return;
     const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
     if (res.ok) setComments((prev) => (prev ?? []).filter((c) => c.id !== commentId));
-    else alert('Kunde inte ta bort kommentaren');
+    else alert(t('delete_comment_error'));
   }
 
   if (loading) {
-    return <div className="py-3 text-center text-xs text-slate-400">Laddar kommentarer…</div>;
+    return <div className="py-3 text-center text-xs text-slate-400">{t('comments_loading')}</div>;
   }
 
   return (
@@ -112,7 +106,7 @@ export default function CommentSection({ postId, currentUserEmail, currentUserId
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Skriv en kommentar…"
+            placeholder={t('write_comment')}
             className="flex-1 rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-transparent transition"
             disabled={submitting}
             onKeyDown={(e) => {
@@ -127,7 +121,7 @@ export default function CommentSection({ postId, currentUserEmail, currentUserId
             disabled={!input.trim() || submitting}
             className="px-4 py-2 rounded-full bg-amber-400 text-slate-900 text-xs font-semibold disabled:opacity-50 hover:bg-amber-300 transition-colors"
           >
-            Skicka
+            {t('send')}
           </button>
         </form>
       )}
@@ -135,7 +129,7 @@ export default function CommentSection({ postId, currentUserEmail, currentUserId
       {/* Comments list */}
       {comments && comments.length === 0 && (
         <p className="text-center text-xs text-slate-400 py-2">
-          Inga kommentarer ännu — var först!
+          {t('no_comments')}
         </p>
       )}
       <div className="space-y-2">
@@ -151,7 +145,7 @@ export default function CommentSection({ postId, currentUserEmail, currentUserId
                     href={`/users/${comment.author.id}`}
                     className="text-xs font-semibold text-slate-900 hover:underline truncate"
                   >
-                    {comment.author.name ?? 'Anonym'}
+                    {comment.author.name ?? t('anonymous')}
                   </Link>
                   <span className="flex items-center gap-2">
                   {Boolean(currentUserId) && (currentUserId === comment.author.id || currentUserId === postAuthorId || isAdmin) && (

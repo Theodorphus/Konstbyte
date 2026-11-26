@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useUploadThing } from '@/lib/uploadthing-client';
 import { ImageThumbnailGrid, type UploadedImage } from './ImageThumbnailGrid';
 import { Upload, AlertCircle } from 'lucide-react';
@@ -18,6 +19,7 @@ export function MultiImageDropzone({
   onChange,
   maxImages = 10,
 }: MultiImageDropzoneProps) {
+  const t = useTranslations('upload');
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -48,12 +50,12 @@ export function MultiImageDropzone({
     );
 
     if (imageFiles.length === 0) {
-      setUploadError('Välj endast bildfiler');
+      setUploadError(t('only_images'));
       return;
     }
 
     if (images.length + imageFiles.length > maxImages) {
-      setUploadError(`Maximum ${maxImages} bilder tillåtna`);
+      setUploadError(t('max_images', { max: maxImages }));
       return;
     }
 
@@ -135,14 +137,14 @@ export function MultiImageDropzone({
         />
         <Upload className="w-10 h-10 mx-auto mb-3 text-slate-400" />
         <p className="font-medium text-slate-900">
-          {isDragActive ? 'Släpp bilderna här' : 'Dra bilder eller klicka'}
+          {isDragActive ? t('drop_here') : t('drag_or_click')}
         </p>
         <p className="text-sm text-slate-500 mt-1">
-          Max 10 bilder, 8 MB per bild. Stödda format: JPG, PNG, WebP
+          {t('limits', { max: maxImages })}
         </p>
         {images.length > 0 && (
           <p className="text-xs text-slate-400 mt-2">
-            {images.length} av {maxImages} bilder
+            {t('count_of_max', { count: images.length, max: maxImages })}
           </p>
         )}
       </div>
@@ -158,7 +160,7 @@ export function MultiImageDropzone({
       {isUploading && (
         <div className="text-center py-4">
           <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-amber-400" />
-          <p className="text-sm text-slate-600 mt-2">Laddar upp...</p>
+          <p className="text-sm text-slate-600 mt-2">{t('uploading')}</p>
         </div>
       )}
 
@@ -166,7 +168,7 @@ export function MultiImageDropzone({
       {images.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-slate-900 mb-3">
-            Dina bilder ({images.length})
+            {t('your_images', { count: images.length })}
           </h3>
           <ImageThumbnailGrid
             images={images}

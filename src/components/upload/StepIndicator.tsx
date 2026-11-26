@@ -1,12 +1,15 @@
+import { useTranslations } from 'next-intl';
+
 interface StepIndicatorProps {
   currentStep: 1 | 2 | 3;
 }
 
 export function StepIndicator({ currentStep }: StepIndicatorProps) {
+  const t = useTranslations('upload');
   const steps = [
-    { number: 1, label: 'Bilder' },
-    { number: 2, label: 'Detaljer' },
-    { number: 3, label: 'Samling' },
+    { number: 1, label: t('step_images') },
+    { number: 2, label: t('step_details') },
+    { number: 3, label: t('step_collection') },
   ];
 
   return (

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 
 interface Following {
   id: string;
@@ -21,6 +22,7 @@ interface Following {
 export default function FollowingPage() {
   const params = useParams();
   const userId = params.id as string;
+  const t = useTranslations('users');
 
   const [following, setFollowing] = useState<Following[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,10 +49,10 @@ export default function FollowingPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-semibold">Följer</h1>
+        <h1 className="text-2xl font-semibold">{t('following_title')}</h1>
         <Card>
           <CardContent className="p-6 text-center text-slate-600">
-            Laddar...
+            {t('list_loading')}
           </CardContent>
         </Card>
       </div>
@@ -60,22 +62,22 @@ export default function FollowingPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Följer</h1>
+        <h1 className="text-2xl font-semibold">{t('following_title')}</h1>
         <Button variant="outline" asChild>
-          <Link href="/profile">Tillbaka</Link>
+          <Link href={`/users/${userId}`}>{t('back')}</Link>
         </Button>
       </div>
 
       <div className="text-sm text-slate-600">
-        Följer {following.length} användare
+        {t('following_count', { count: following.length })}
       </div>
 
       {following.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-center space-y-3">
-            <p className="text-slate-600">Du följer inga användare ännu.</p>
+            <p className="text-slate-600">{t('no_following')}</p>
             <Button asChild>
-              <Link href="/community">Upptäck användare</Link>
+              <Link href="/community">{t('discover_users')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -90,12 +92,12 @@ export default function FollowingPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold truncate">
-                      {follow.following.name || 'Anonym användare'}
+                      {follow.following.name || t('anonymous_user')}
                     </div>
                   </div>
                 </div>
                 <Button asChild variant="outline" size="sm" className="w-full mt-3">
-                  <Link href={`/users/${follow.following.id}`}>Visa profil</Link>
+                  <Link href={`/users/${follow.following.id}`}>{t('view_profile')}</Link>
                 </Button>
               </CardContent>
             </Card>

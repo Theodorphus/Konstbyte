@@ -30,6 +30,13 @@ interface Favorite {
 
 export default function FavoritesPage() {
   const t = useTranslations('favorites');
+  const tArt = useTranslations('artworks');
+  const categoryLabels: Record<string, string> = {
+    malningar: tArt('paintings'),
+    skulpturer: tArt('sculptures'),
+    fotografi: tArt('photography'),
+    digital: tArt('digital'),
+  };
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -133,8 +140,8 @@ export default function FavoritesPage() {
                   )}
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-bold">{formatSek(favorite.artwork.price)}</span>
-                    <span className="text-xs text-slate-400 capitalize">
-                      {favorite.artwork.category}
+                    <span className="text-xs text-slate-400">
+                      {categoryLabels[favorite.artwork.category] ?? favorite.artwork.category}
                     </span>
                   </div>
                   <div className="text-xs text-slate-500 mt-2">

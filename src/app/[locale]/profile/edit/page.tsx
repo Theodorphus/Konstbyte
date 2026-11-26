@@ -119,7 +119,7 @@ export default function EditProfilePage() {
           businessOrgNr: data.businessOrgNr ?? '',
         });
       })
-      .catch(status => { if (status === 401) router.push('/auth/signin'); })
+      .catch(status => { if (status === 401) router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname)); })
       .finally(() => setIsLoading(false));
   }, [router]);
 
@@ -253,7 +253,7 @@ export default function EditProfilePage() {
                 placeholder="@yourusername"
                 maxLength={100}
               />
-              <p className="text-xs text-slate-400">Ditt Instagram-användarnamn (valfritt)</p>
+              <p className="text-xs text-slate-400">{t('instagram_hint')}</p>
             </div>
 
             <div className="flex gap-2 pt-2">

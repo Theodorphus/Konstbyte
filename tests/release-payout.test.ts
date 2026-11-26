@@ -180,6 +180,15 @@ describe('releaseSellerPayout', () => {
     expect(stripe.transfers.create).not.toHaveBeenCalled();
   });
 
+  it('does not transfer if an admin paid by hand while the payout was being prepared', async () => {
+    prisma.order.findUnique
+      .mockResolvedValueOnce(paidOrder({ sellerPayoutStatus: 'awaiting_stripe' }))
+      .mockResolvedValueOnce({ sellerPayoutStatus: 'paid' });
+    expect(await releaseSellerPayout('order_1')).toEqual({ status: 'already_paid' });
+    expect(stripe.transfers.create).not.toHaveBeenCalled();
+    expect(prisma.order.update).not.toHaveBeenCalled();
+  });
+
   it('refuses to pay out an unpaid order', async () => {
     prisma.order.findUnique.mockResolvedValue(paidOrder({ status: 'pending' }));
     expect(await releaseSellerPayout('order_1')).toEqual({ status: 'skipped', reason: 'not_paid' });

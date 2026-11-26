@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Star, X, GripVertical } from 'lucide-react';
 
 export interface UploadedImage {
@@ -23,6 +24,7 @@ export function ImageThumbnailGrid({
   onRemove,
   onReorder,
 }: ImageThumbnailGridProps) {
+  const t = useTranslations('upload');
   const draggedIndex = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
@@ -85,7 +87,7 @@ export function ImageThumbnailGrid({
           {/* Drag handle */}
           <button
             className="absolute top-2 left-2 p-1 rounded bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
-            aria-label="Drag to reorder"
+            aria-label={t('drag_reorder')}
           >
             <GripVertical className="w-4 h-4" />
           </button>
@@ -106,15 +108,15 @@ export function ImageThumbnailGrid({
                   ? 'bg-amber-400 text-slate-950'
                   : 'bg-slate-700 text-white hover:bg-slate-600'
               }`}
-              title="Set as main image"
+              title={t('set_main')}
             >
               <Star className="w-4 h-4" />
-              <span className="hidden sm:inline">Huvud</span>
+              <span className="hidden sm:inline">{t('main_image')}</span>
             </button>
             <button
               onClick={() => onRemove(idx)}
               className="px-2 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors"
-              title="Remove image"
+              title={t('remove_image')}
             >
               <X className="w-4 h-4" />
             </button>

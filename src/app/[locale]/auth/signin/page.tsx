@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
+import { safeReturnPath } from '@/lib/return-path';
 
 const ERROR_KEYS = [
   'OAuthSignin', 'OAuthCallback', 'OAuthCreateAccount', 'EmailCreateAccount',
@@ -29,6 +30,11 @@ function SignInContent() {
   const [isPending, startTransition] = useTransition();
   const searchParams = useSearchParams();
   const errorCode = searchParams.get('error') || '';
+  // Back to the page that asked the visitor to sign in (same site only).
+  const returnTo = safeReturnPath(
+    searchParams.get('callbackUrl'),
+    typeof window === 'undefined' ? undefined : window.location.origin,
+  );
 
   const errorMessages: Record<string, string> = Object.fromEntries(
     ERROR_KEYS.map((k) => [k, t(`error_${k}` as `error_${ErrorKey}`)])
@@ -39,7 +45,7 @@ function SignInContent() {
     event.preventDefault();
     if (!email) return;
     startTransition(() => {
-      signIn('email', { email, callbackUrl: '/' });
+      signIn('email', { email, callbackUrl: returnTo });
     });
   }
 
@@ -84,7 +90,7 @@ function SignInContent() {
           <div className="flex-1 h-px bg-slate-200" />
         </div>
         <Button
-          onClick={() => signIn('google', { callbackUrl: '/' })}
+          onClick={() => signIn('google', { callbackUrl: returnTo })}
           className="w-full border border-slate-200 bg-white text-slate-900 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:bg-slate-50"
         >
           <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white">

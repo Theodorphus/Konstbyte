@@ -1,18 +1,20 @@
+// The names are translated: messages → shipping.type_<value>.
 export const SHIPPING_OPTIONS = [
-  { value: 'overenskommes', label: '🤝 Frakt överenskommes' },
-  { value: 'fixed',         label: '📦 Fast fraktkostnad' },
-  { value: 'pickup',        label: '🏠 Upphämtning' },
-  { value: 'postnord',      label: '📮 PostNord' },
-  { value: 'dhl',           label: '🚚 DHL' },
-  { value: 'schenker',      label: '🚛 Schenker' },
-  { value: 'other',         label: '📬 Annat fraktbolag' },
+  { value: 'overenskommes', icon: '🤝' },
+  { value: 'fixed',         icon: '📦' },
+  { value: 'pickup',        icon: '🏠' },
+  { value: 'postnord',      icon: '📮' },
+  { value: 'dhl',           icon: '🚚' },
+  { value: 'schenker',      icon: '🚛' },
+  { value: 'other',         icon: '📬' },
 ] as const;
 
 export type ShippingType = (typeof SHIPPING_OPTIONS)[number]['value'];
 
-export function getShippingLabel(type: string | null | undefined): string {
+/** Message key for a shipping type (unknown or missing → "by agreement"). */
+export function shippingTypeKey(type: string | null | undefined): `type_${ShippingType}` {
   const found = SHIPPING_OPTIONS.find((o) => o.value === type);
-  return found ? found.label.replace(/^\S+\s/, '') : 'Överenskommes';
+  return `type_${found ? found.value : 'overenskommes'}`;
 }
 
 /**

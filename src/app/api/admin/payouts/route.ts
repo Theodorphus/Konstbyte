@@ -12,13 +12,14 @@ const orderInclude = {
   artwork: { select: { id: true, title: true, imageUrl: true } },
   buyer: { select: { name: true, email: true } },
   seller: { select: { id: true, name: true, email: true } },
-  payout: { select: { sellerPayoutAmount: true, commissionAmount: true, adminNote: true } },
+  payout: { select: { sellerPayoutAmount: true, commissionAmount: true, adminNote: true, createdAt: true } },
 };
 
 // GET /api/admin/payouts
 // ?filter=completed  → returns completed Payout records (history)
 // (default)          → returns pendingSwish, unpaidPayouts (received by the buyer,
-//                       needs a manual payout) and onHold (paused by a refund or dispute)
+//                       needs a manual payout), awaitingStripe (received, waiting for
+//                       the artist to connect Stripe) and onHold (paused by a refund or dispute)
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser();
   if (!user || !isAdmin(user.email)) {
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ completedPayouts });
   }
 
-  const [pendingSwish, unpaidPayouts, onHold] = await Promise.all([
+  const [pendingSwish, unpaidPayouts, awaitingStripe, onHold] = await Promise.all([
     prisma.order.findMany({
       where: { status: 'awaiting_swish' },
       include: orderInclude,
@@ -61,6 +62,13 @@ export async function GET(request: NextRequest) {
       include: orderInclude,
       orderBy: { createdAt: 'desc' },
     }),
+    // The artist hasn't connected Stripe: the money stays with Konstbyte until
+    // they do (or an admin pays by hand). Shown so it is never forgotten.
+    prisma.order.findMany({
+      where: { status: 'delivered', sellerPayoutStatus: 'awaiting_stripe' },
+      include: orderInclude,
+      orderBy: { createdAt: 'asc' },
+    }),
     prisma.order.findMany({
       where: { sellerPayoutStatus: 'on_hold' },
       include: orderInclude,
@@ -68,7 +76,7 @@ export async function GET(request: NextRequest) {
     }),
   ]);
 
-  return NextResponse.json({ pendingSwish, unpaidPayouts, onHold });
+  return NextResponse.json({ pendingSwish, unpaidPayouts, awaitingStripe, onHold });
 }
 
 // PATCH /api/admin/payouts
@@ -239,22 +247,42 @@ export async function PATCH(request: NextRequest) {
     completedAt: new Date(),
   };
 
-  const [updated] = await prisma.$transaction([
-    prisma.order.update({
-      where: { id: orderId },
+  // Claim the order only if it is still unpaid, so nothing is paid twice. An
+  // order waiting for Stripe can only be paid by hand while the artist still
+  // hasn't connected Stripe: connecting marks them ready before any automatic
+  // transfer, and that transfer checks the order again (lib/release-payout.ts).
+  const sellerId = order.sellerId;
+  const updated = await prisma.$transaction(async (tx) => {
+    const { count } = await tx.order.updateMany({
+      where: {
+        id: orderId,
+        status: 'delivered',
+        OR: [
+          { sellerPayoutStatus: 'unpaid' },
+          { sellerPayoutStatus: 'awaiting_stripe', seller: { is: { stripeOnboardingDone: false } } },
+        ],
+      },
       data: {
         sellerPayoutStatus: 'paid',
         sellerPayoutNote: noteText,
         sellerPayoutAt: new Date(),
       },
-    }),
+    });
+    if (count === 0) return null;
     // Upsert: a pending Payout row already exists if the buyer confirmed receipt.
-    prisma.payout.upsert({
+    await tx.payout.upsert({
       where: { orderId },
-      create: { sellerId: order.sellerId, orderId, ...payoutFields },
+      create: { sellerId, orderId, ...payoutFields },
       update: payoutFields,
-    }),
-  ]);
+    });
+    return tx.order.findUnique({ where: { id: orderId } });
+  });
+  if (!updated) {
+    return NextResponse.json(
+      { error: 'Utbetalningen har redan hanterats, eller så har konstnären just kopplat Stripe och får pengarna automatiskt. Ladda om sidan.' },
+      { status: 409 },
+    );
+  }
 
   if (order.seller?.email) {
     const fmt = (v: number) => v.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 });

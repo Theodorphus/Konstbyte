@@ -153,6 +153,10 @@ export async function releaseSellerPayout(orderId: string): Promise<ReleaseResul
         transferFailed = true;
       } else if (ready) {
         if (chargeId) {
+          // An admin may have paid this by hand since the order was read above
+          // (they can't once the artist is marked ready, which happened before this).
+          const latest = await prisma.order.findUnique({ where: { id: order.id }, select: { sellerPayoutStatus: true } });
+          if (latest?.sellerPayoutStatus === 'paid') return { status: 'already_paid' };
           const transfer = await stripe.transfers.create(
             {
               amount: Math.round(sellerPayoutAmount * 100),

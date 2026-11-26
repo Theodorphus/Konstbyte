@@ -9,5 +9,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   return {
     locale,
     messages: (await import(`../../messages/${locale}.json`)).default,
+    // Dates and relative times ("5 minutes ago") the same on server and browser.
+    timeZone: 'Europe/Stockholm',
   };
 });

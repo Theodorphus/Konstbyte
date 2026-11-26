@@ -38,6 +38,7 @@ export function Step2BulkDetails({
   defaultShipping,
 }: Step2BulkDetailsProps) {
   const t = useTranslations('artworks');
+  const tShip = useTranslations('shipping');
   const [shippingType, setShippingType] = useState(defaultShipping?.shippingType || 'overenskommes');
   const [shippingCost, setShippingCost] = useState(defaultShipping?.shippingCost || 0);
   const [shippingArea, setShippingArea] = useState(defaultShipping?.shippingArea || '');
@@ -122,7 +123,7 @@ export function Step2BulkDetails({
           >
             {SHIPPING_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
-                {opt.label}
+                {opt.icon} {tShip(`type_${opt.value}`)}
               </option>
             ))}
           </select>
