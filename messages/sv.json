@@ -1148,7 +1148,7 @@
     "thanks": "Tack! Vi har fått din anmälan och tittar på den så snart vi kan.",
     "error": "Anmälan kunde inte skickas. Försök igen eller mejla webbdevstudio@gmail.com."
   },
-  "seller": {
+  "seller_type": {
     "heading": "Säljer du som privatperson eller företag?",
     "desc": "Köpare har olika rättigheter beroende på vem de köper av, så det visas i dina annonser. Du ansvarar för att uppgiften stämmer.",
     "private_label": "Privatperson",

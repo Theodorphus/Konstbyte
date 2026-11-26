@@ -18,7 +18,7 @@ export default async function MyArtworksPage() {
   const [user, t, tSeller] = await Promise.all([
     getCurrentUser(),
     getTranslations('my_artworks'),
-    getTranslations('seller'),
+    getTranslations('seller_type'),
   ]);
 
   if (!user) {

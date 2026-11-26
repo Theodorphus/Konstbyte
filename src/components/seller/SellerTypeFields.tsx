@@ -36,7 +36,7 @@ export default function SellerTypeFields({
   error?: SellerDetailsError | 'generic' | null;
   showHeading?: boolean;
 }) {
-  const t = useTranslations('seller');
+  const t = useTranslations('seller_type');
   const option = (type: SellerType, label: string, desc: string) => {
     const checked = values.sellerType === type;
     return (

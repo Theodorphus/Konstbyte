@@ -56,7 +56,7 @@ export default async function ArtworkDetail({
     }),
     getCurrentUser(),
     getTranslations('artworks'),
-    getTranslations('seller'),
+    getTranslations('seller_type'),
   ]);
 
   if (!artwork) return notFound();

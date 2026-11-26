@@ -20,7 +20,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const [user, t, tSeller] = await Promise.all([
     getCurrentUser(),
     getTranslations('orders'),
-    getTranslations('seller'),
+    getTranslations('seller_type'),
   ]);
   if (!user) redirect('/auth/signin');
 

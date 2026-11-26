@@ -44,7 +44,7 @@ export default function EditProfilePage() {
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
-  const tSeller = useTranslations('seller');
+  const tSeller = useTranslations('seller_type');
   const [sellerForm, setSellerForm] = useState<SellerFormValues>(emptySellerForm);
   const [sellerError, setSellerError] = useState<SellerDetailsError | 'generic' | null>(null);
   const [sellerSaving, setSellerSaving] = useState(false);

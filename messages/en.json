@@ -1148,7 +1148,7 @@
     "thanks": "Thank you! We have received your report and will look at it as soon as we can.",
     "error": "The report could not be sent. Try again or email webbdevstudio@gmail.com."
   },
-  "seller": {
+  "seller_type": {
     "heading": "Do you sell as a private person or as a business?",
     "desc": "Buyers have different rights depending on who they buy from, so it is shown on your listings. You are responsible for it being correct.",
     "private_label": "Private person",
